@@ -1,8 +1,8 @@
-// POST /api/extract-ideas — Claude extraction of ideas from a brainstorm transcript.
+// POST /api/extract-ideas — Gemini extraction of ideas from a brainstorm transcript.
 // Runs as a Vercel serverless function; server.ts mounts the same handler for local dev.
 // On any non-200 response the client (ScriptImportModal) falls back to local suggestions.
 
-import { type ApiRequest, type ApiResponse, handleJson, generateJson, HttpError } from './_lib/claude.js';
+import { type ApiRequest, type ApiResponse, handleJson, generateJson, loadStylePack, HttpError } from './_lib/gemini.js';
 
 const MAX_TRANSCRIPT_CHARS = 8000;
 const REQUEST_TIMEOUT_MS = 50_000; // under Vercel's 60 s limit
@@ -74,9 +74,11 @@ ${transcript.slice(0, MAX_TRANSCRIPT_CHARS)}
 
 export async function extractIdeas(apiKey: string, body: ExtractRequestBody) {
   const transcript = typeof body.transcript === 'string' ? body.transcript : '';
+  // Titles and summaries follow Dr. Rasheed's style guide (data/style-guide.md)
+  const { styleGuide } = await loadStylePack();
   const result = await generateJson<{ ideas?: unknown[] }>({
     apiKey,
-    system: SYSTEM_PROMPT,
+    system: `${SYSTEM_PROMPT}\n\n${styleGuide}`,
     prompt: buildPrompt(transcript, body.speakers ?? [], body.axes ?? []),
     schema: IDEA_SCHEMA,
     timeoutMs: REQUEST_TIMEOUT_MS,
@@ -86,7 +88,7 @@ export async function extractIdeas(apiKey: string, body: ExtractRequestBody) {
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
-  // handleJson: method check, the browser's key (header) or the server's ANTHROPIC_API_KEY
+  // handleJson: method check, the browser's key (header) or the server's GEMINI_API_KEY
   return handleJson(req, res, async (body, apiKey) => {
     const request = body as ExtractRequestBody;
     if (typeof request.transcript !== 'string' || !request.transcript.trim()) {

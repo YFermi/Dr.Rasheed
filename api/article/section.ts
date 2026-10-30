@@ -23,7 +23,7 @@ import {
   asStringArray,
   wordCount,
   ORDINALS,
-} from '../_lib/claude.js';
+} from '../_lib/gemini.js';
 
 const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const MAX_EXAMPLES = 5;
@@ -212,8 +212,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       // Speed: the outline already did the planning, and the 55 s limit leaves
       // no room for long thinking before ~1,500 words of prose.
       effort: 'low',
-      // Style guide + examples repeat across the article's section calls
-      cacheSystem: true,
     });
     return normalizeSection(raw, request, heading);
   });

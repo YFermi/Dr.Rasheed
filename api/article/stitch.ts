@@ -11,7 +11,7 @@ import {
   loadStylePack,
   asString,
   asStringArray,
-} from '../_lib/claude.js';
+} from '../_lib/gemini.js';
 
 const TIMEOUT_MS = 30_000;
 const MAX_PARAGRAPHS_PER_SIDE = 2;
@@ -88,8 +88,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       schema: STITCH_SCHEMA,
       timeoutMs: TIMEOUT_MS,
       effort: 'low',
-      // Same style-guide system prompt for every boundary of the article
-      cacheSystem: true,
     });
     return normalizeStitch(raw, request);
   });

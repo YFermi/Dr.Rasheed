@@ -12,8 +12,8 @@ A research workspace for organizing and exporting ideas extracted from brainstor
 - 📚 Blog corpus search — Dr. Rasheed Al-Jarrah's articles (بحث في مقالات المدونة)
 - 📖 Quranic verse indexing, cross-referenced with the blog (فهرسة الآيات وربطها بالمدونة)
 - 📊 Statistics dashboard (لوحة إحصائيات)
-- 📥 Script import with AI — Claude (استيراد بالذكاء الاصطناعي)
-- ✍️ AI article drafting in Dr. Rasheed's style — Claude (كتابة المقالات بأسلوب د. رشيد)
+- 📥 Script import with AI — Gemini (استيراد بالذكاء الاصطناعي)
+- ✍️ AI article drafting in Dr. Rasheed's style — Gemini (كتابة المقالات بأسلوب د. رشيد)
 - 📤 Word/PDF export, with blog citations as footnotes (تصدير مع حواشي المراجع)
 
 The project tree is saved in the browser (`localStorage`). Use the tree's JSON export to back it up or move it to another machine.
@@ -58,16 +58,16 @@ The articles cite verses with a Quran font whose glyphs are not readable text. `
 ```bash
 # Option 1: Express server (full features including AI)
 cp .env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY
+# Edit .env and add your GEMINI_API_KEY
 npm run dev            # http://localhost:3000
 
 # Option 2: Vercel-like environment (requires: npm i -g vercel)
 npm run dev:vercel
 ```
 
-The AI features use Anthropic's Claude (`claude-sonnet-5-5` by default; set `ANTHROPIC_MODEL` to change it). The key can come from the server (`ANTHROPIC_API_KEY`) or be entered by each user in the app (🔑 button in the navbar), stored only in that browser. Create a key at [platform.claude.com/settings/keys](https://platform.claude.com/settings/keys). Without any key, everything works except the AI features: script import falls back to local suggestions and article writing is disabled.
+The AI features use Google Gemini through its REST API (`gemini-3.8-flash` by default; set `GEMINI_MODEL` to change it). The key can come from the server (`GEMINI_API_KEY`) or be entered by each user in the app (🔑 button in the navbar), stored only in that browser. Get a free key at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey). Without any key, everything works except the AI features: script import falls back to local suggestions and article writing is disabled.
 
-تعمل ميزات الذكاء الاصطناعي بنموذج Claude من Anthropic. يُؤخذ المفتاح من الخادم (`ANTHROPIC_API_KEY`) أو يدخله المستخدم من زر 🔑 في الشريط العلوي فيُحفظ في متصفحه فقط. بدون مفتاح تعمل كل الميزات ما عدا ميزات الذكاء الاصطناعي.
+تعمل ميزات الذكاء الاصطناعي بنموذج Gemini من Google. يُؤخذ المفتاح من الخادم (`GEMINI_API_KEY`) أو يدخله المستخدم من زر 🔑 في الشريط العلوي فيُحفظ في متصفحه فقط. المفتاح مجاني من [Google AI Studio](https://aistudio.google.com/app/apikey). بدون مفتاح تعمل كل الميزات ما عدا ميزات الذكاء الاصطناعي.
 
 ### Scripts / الأوامر
 
@@ -84,8 +84,8 @@ The AI features use Anthropic's Claude (`claude-sonnet-5-5` by default; set `ANT
 
 1. Push to GitHub / ارفع المشروع إلى GitHub
 2. Import the repo in the Vercel dashboard / استورد المستودع في لوحة Vercel
-3. Optional: add `ANTHROPIC_API_KEY` in **Settings → Environment Variables** (otherwise each user enters a key in the app)
-   اختياري: أضف `ANTHROPIC_API_KEY` من **Settings → Environment Variables** (وإلا يدخل كل مستخدم مفتاحه في التطبيق)
+3. Optional: add `GEMINI_API_KEY` in **Settings → Environment Variables** (otherwise each user enters a key in the app)
+   اختياري: أضف `GEMINI_API_KEY` من **Settings → Environment Variables** (وإلا يدخل كل مستخدم مفتاحه في التطبيق)
 4. Deploy / انشر
 
 Build settings and function limits come from `vercel.json`. The AI endpoints run as serverless functions under `api/`; `server.ts` is for local development only.
@@ -95,10 +95,10 @@ Build settings and function limits come from `vercel.json`. The AI endpoints run
 ## Project Structure / بنية المشروع
 
 ```text
-api/extract-ideas.ts     Serverless function: idea extraction (Claude)
-api/article/*.ts         Serverless functions: article outline / section / stitch (Claude)
+api/extract-ideas.ts     Serverless function: idea extraction (Gemini)
+api/article/*.ts         Serverless functions: article outline / section / stitch (Gemini)
 api/key-check.ts         Serverless function: API key status and test
-api/_lib/claude.ts       Anthropic Messages API calls (fetch), key resolution
+api/_lib/gemini.ts       Gemini REST API calls (fetch), key resolution
 server.ts                Local dev server (mounts the same handler)
 content/blog/قصة لوط/    .docx sources (git-ignored)
 scripts/build-blog.ts    .docx → blog.json converter (mammoth)
@@ -111,6 +111,6 @@ src/
 
 ## Tech Stack
 
-React 19 · TypeScript · Vite 8 · Tailwind 4 · Zustand 5 · react-arborist · mammoth · docx · Anthropic Claude API
+React 19 · TypeScript · Vite 8 · Tailwind 4 · Zustand 5 · react-arborist · mammoth · docx · Google Gemini API
 
 Quran text: [Tanzil Project](https://tanzil.net) (CC BY 3.0, verbatim).

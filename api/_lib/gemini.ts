@@ -1,5 +1,5 @@
 // Shared helpers for the /api/* functions (files under _lib are not routes):
-// Anthropic Messages API calls over fetch, API key resolution, style data,
+// Google Gemini REST calls over fetch, API key resolution, style data,
 // verse-reference checks.
 //
 // Kept free of imports from src/ and of JSON imports: Vercel runs these files
@@ -10,21 +10,15 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { StylePack, StyleExample } from '../../src/types/article';
 
-export const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-export const ANTHROPIC_VERSION = '2023-06-01';
-// Claude Sonnet 3.5 (claude-3-5-sonnet-20241022) was retired on 2025-10-28;
-// claude-sonnet-5-5 is the current Sonnet. Override with ANTHROPIC_MODEL.
-export const DEFAULT_MODEL = 'claude-sonnet-5-5';
-export const MAX_TOKENS = 8192;
+export const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+// gemini-1.5-flash was shut down in 2025; gemini-3.8-flash is the current stable
+// Flash model. Override with GEMINI_MODEL.
+export const DEFAULT_MODEL = 'gemini-3.8-flash';
+export const MAX_OUTPUT_TOKENS = 8192; // includes thinking tokens
 
-export function claudeModel(): string {
-  return process.env.ANTHROPIC_MODEL || DEFAULT_MODEL;
+export function geminiModel(): string {
+  return process.env.GEMINI_MODEL || DEFAULT_MODEL;
 }
-
-// Models that take the server-side refusal fallback in its "default" form
-// (Claude API only): a policy decline is retried on a fallback model in the same call.
-const FALLBACK_MODELS = new Set(['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-opus-5', 'claude-fable-5-1']);
-const FALLBACK_BETA = 'server-side-fallback-2026-07-01';
 
 // ---- HTTP plumbing -----------------------------------------------------------
 
@@ -46,17 +40,17 @@ export class HttpError extends Error {
   }
 }
 
-export const API_KEY_HEADER = 'x-anthropic-api-key';
-export const MISSING_KEY_ERROR = 'Missing ANTHROPIC_API_KEY';
+export const API_KEY_HEADER = 'x-gemini-api-key';
+export const MISSING_KEY_ERROR = 'Missing GEMINI_API_KEY';
 const MAX_KEY_LENGTH = 300;
 
-// Key resolution: 1. the browser's key (X-Anthropic-Api-Key header, entered in
-// the UI), 2. the server's ANTHROPIC_API_KEY. The key is never logged or returned.
+// Key resolution: 1. the browser's key (X-Gemini-Api-Key header, entered in the
+// UI), 2. the server's GEMINI_API_KEY. The key is never logged or returned.
 export function resolveApiKey(req: ApiRequest): { key: string; source: 'header' | 'env' } | null {
   const raw = req.headers?.[API_KEY_HEADER];
   const headerKey = (Array.isArray(raw) ? raw[0] : raw)?.trim();
   if (headerKey && headerKey.length <= MAX_KEY_LENGTH && !/\s/.test(headerKey)) return { key: headerKey, source: 'header' };
-  const envKey = process.env.ANTHROPIC_API_KEY;
+  const envKey = process.env.GEMINI_API_KEY;
   return envKey ? { key: envKey, source: 'env' } : null;
 }
 
@@ -77,101 +71,103 @@ export async function handleJson<T>(
     return res.status(200).json(await run(body, apiKey));
   } catch (error) {
     if (error instanceof HttpError) return res.status(error.status).json({ error: error.message });
-    console.error('Claude API error:', error);
+    console.error('Gemini API error:', error);
     return res.status(502).json({ error: String(error) });
   }
 }
 
-// ---- Anthropic Messages API ----------------------------------------------------
+// ---- Gemini generateContent (REST) ---------------------------------------------
 
 export type Effort = 'low' | 'medium' | 'high';
 
-export interface ClaudeRequest {
+export interface GeminiRequest {
   apiKey: string;
   system?: string;
   prompt: string;
   timeoutMs: number;
-  maxTokens?: number;
-  // Thinking is adaptive on current models; effort sets how much it does
-  // (lower = faster and cheaper). Sampling settings such as temperature are
-  // not sent: current models reject non-default values.
+  maxOutputTokens?: number;
+  // How much the model thinks before answering (lower = faster and cheaper),
+  // mapped to the model's own thinking setting.
   effort?: Effort;
-  // JSON schema for structured output (every object needs additionalProperties: false)
+  // JSON Schema for structured output
   schema?: Record<string, unknown>;
-  // Cache the system prompt (shared by consecutive calls, e.g. the style guide)
-  cacheSystem?: boolean;
 }
 
-interface ClaudeContentBlock {
-  type: string;
+interface GeminiPart {
   text?: string;
+  thought?: boolean;
 }
 
-export interface ClaudeResponse {
-  model: string;
-  content: ClaudeContentBlock[];
-  stop_reason: string | null;
-  stop_details?: { category?: string | null; explanation?: string | null } | null;
+export interface GeminiResponse {
+  candidates?: { content?: { parts?: GeminiPart[] }; finishReason?: string }[];
+  promptFeedback?: { blockReason?: string };
+  modelVersion?: string;
 }
 
-// Maps an Anthropic API error status to a message for the user (Arabic).
-function apiErrorMessage(status: number, detail: string, model: string): HttpError {
+// Gemini 3.x takes thinkingLevel; Gemini 2.5 takes thinkingBudget (0 = off on
+// Flash). Other models get no thinking setting.
+const THINKING_BUDGETS: Record<Effort, number> = { low: 0, medium: 1024, high: 4096 };
+
+function thinkingConfig(model: string, effort: Effort | undefined) {
+  if (!effort) return undefined;
+  if (/^gemini-3/.test(model)) return { thinkingLevel: effort };
+  if (/^gemini-2\.5/.test(model)) return { thinkingBudget: THINKING_BUDGETS[effort] };
+  return undefined;
+}
+
+// Finish reasons meaning the model declined or was blocked
+const BLOCKED_FINISH_REASONS = new Set(['SAFETY', 'RECITATION', 'BLOCKLIST', 'PROHIBITED_CONTENT', 'SPII', 'LANGUAGE']);
+
+// Maps a Gemini API error to a message for the user (Arabic). Gemini reports an
+// invalid key as 400 (API_KEY_INVALID), not 401.
+function apiError(status: number, detail: string, model: string): HttpError {
+  if (/API key not valid|API_KEY_INVALID/i.test(detail)) return new HttpError(401, 'المفتاح غير صالح');
   switch (status) {
     case 401:
       return new HttpError(401, 'المفتاح غير صالح');
     case 403:
-      return new HttpError(403, 'لا يملك هذا المفتاح صلاحية استخدام النموذج');
+      return new HttpError(403, 'لا يملك هذا المفتاح صلاحية استخدام Gemini API');
     case 404:
       return new HttpError(502, `النموذج ${model} غير متاح لهذا المفتاح`);
     case 429:
-      return new HttpError(429, 'تم تجاوز حد الطلبات لدى Anthropic، أعد المحاولة بعد قليل');
+      return new HttpError(429, 'تم تجاوز حد الطلبات لدى Gemini، أعد المحاولة بعد قليل');
     case 500:
     case 503:
-    case 529:
-      return new HttpError(503, 'خدمة Claude مزدحمة حالياً، أعد المحاولة بعد قليل');
+      return new HttpError(503, 'خدمة Gemini مزدحمة حالياً، أعد المحاولة بعد قليل');
     default:
-      return new HttpError(502, `خطأ من Anthropic API (${status}): ${detail}`.slice(0, 300));
+      return new HttpError(502, `خطأ من Gemini API (${status}): ${detail}`.slice(0, 300));
   }
 }
 
-export async function callClaude(req: ClaudeRequest): Promise<ClaudeResponse> {
-  const model = claudeModel();
-  const useFallback = FALLBACK_MODELS.has(model);
-  const outputConfig = {
-    ...(req.effort ? { effort: req.effort } : {}),
-    ...(req.schema ? { format: { type: 'json_schema', schema: req.schema } } : {}),
-  };
-
+export async function callGemini(req: GeminiRequest): Promise<GeminiResponse> {
+  const model = geminiModel();
+  const thinking = thinkingConfig(model, req.effort);
   const body = {
-    model,
-    max_tokens: req.maxTokens ?? MAX_TOKENS,
-    ...(req.system
-      ? { system: [{ type: 'text', text: req.system, ...(req.cacheSystem ? { cache_control: { type: 'ephemeral' } } : {}) }] }
-      : {}),
-    messages: [{ role: 'user', content: req.prompt }],
-    ...(Object.keys(outputConfig).length > 0 ? { output_config: outputConfig } : {}),
-    ...(useFallback ? { fallbacks: 'default' } : {}),
+    ...(req.system ? { systemInstruction: { parts: [{ text: req.system }] } } : {}),
+    contents: [{ role: 'user', parts: [{ text: req.prompt }] }],
+    generationConfig: {
+      maxOutputTokens: req.maxOutputTokens ?? MAX_OUTPUT_TOKENS,
+      ...(req.schema ? { responseMimeType: 'application/json', responseJsonSchema: req.schema } : {}),
+      ...(thinking ? { thinkingConfig: thinking } : {}),
+    },
   };
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), req.timeoutMs);
   try {
-    const res = await fetch(ANTHROPIC_API_URL, {
+    // The key goes in a header, as in Google's REST examples, so it never
+    // appears in a URL (logs, proxies, error messages).
+    const res = await fetch(`${GEMINI_API_BASE}/${encodeURIComponent(model)}:generateContent`, {
       method: 'POST',
-      headers: {
-        'x-api-key': req.apiKey,
-        'anthropic-version': ANTHROPIC_VERSION,
-        'content-type': 'application/json',
-        ...(useFallback ? { 'anthropic-beta': FALLBACK_BETA } : {}),
-      },
+      headers: { 'x-goog-api-key': req.apiKey, 'content-type': 'application/json' },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
     if (!res.ok) {
       const data = await res.json().catch(() => null);
-      throw apiErrorMessage(res.status, String(data?.error?.message ?? res.statusText), model);
+      throw apiError(res.status, String(data?.error?.message ?? res.statusText), model);
     }
-    return (await res.json()) as ClaudeResponse;
+    return (await res.json()) as GeminiResponse;
   } catch (error) {
     if (controller.signal.aborted) {
       throw new HttpError(504, `انتهت مهلة النموذج (${Math.round(req.timeoutMs / 1000)} ثانية)`);
@@ -182,22 +178,24 @@ export async function callClaude(req: ClaudeRequest): Promise<ClaudeResponse> {
   }
 }
 
-export function responseText(response: ClaudeResponse): string {
-  return response.content
-    .filter(b => b.type === 'text' && typeof b.text === 'string')
-    .map(b => b.text)
+// The answer text, without thought parts
+export function responseText(response: GeminiResponse): string {
+  return (response.candidates?.[0]?.content?.parts ?? [])
+    .filter(p => !p.thought && typeof p.text === 'string')
+    .map(p => p.text)
     .join('')
     .trim();
 }
 
 // A structured-output call: checks why the model stopped before parsing.
-export async function generateJson<T>(req: ClaudeRequest & { schema: Record<string, unknown> }): Promise<T> {
-  const response = await callClaude(req);
-  if (response.stop_reason === 'refusal') {
-    const category = response.stop_details?.category;
-    throw new HttpError(422, `امتنع النموذج عن تنفيذ الطلب${category ? ` (${category})` : ''}`);
+export async function generateJson<T>(req: GeminiRequest & { schema: Record<string, unknown> }): Promise<T> {
+  const response = await callGemini(req);
+  const blockReason = response.promptFeedback?.blockReason;
+  const finishReason = response.candidates?.[0]?.finishReason;
+  if (blockReason || (finishReason && BLOCKED_FINISH_REASONS.has(finishReason))) {
+    throw new HttpError(422, `امتنع النموذج عن تنفيذ الطلب (${blockReason ?? finishReason})`);
   }
-  if (response.stop_reason === 'max_tokens') {
+  if (finishReason === 'MAX_TOKENS') {
     throw new HttpError(502, 'انقطع رد النموذج عند الحد الأقصى للرموز؛ جرّب طولاً أقصر');
   }
   const text = responseText(response);

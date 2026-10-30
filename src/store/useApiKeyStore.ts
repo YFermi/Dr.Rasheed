@@ -6,7 +6,7 @@ import { getApiKey, setApiKey, removeApiKey, maskKey, fetchServerHasKey } from '
 interface ApiKeyStoreState {
   hasKey: boolean;
   maskedKey: string;
-  // Whether the server has its own ANTHROPIC_API_KEY (null until checked)
+  // Whether the server has its own GEMINI_API_KEY (null until checked)
   serverHasKey: boolean | null;
   isModalOpen: boolean;
 

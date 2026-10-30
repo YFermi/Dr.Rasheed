@@ -14,7 +14,7 @@ import {
   asString,
   asStringArray,
   ORDINALS,
-} from '../_lib/claude.js';
+} from '../_lib/gemini.js';
 
 const TIMEOUT_MS = 50_000; // under Vercel's 60 s limit
 const MIN_SECTION_WORDS = 300;

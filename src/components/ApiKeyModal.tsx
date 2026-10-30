@@ -5,8 +5,8 @@ import { KeyRound, Eye, EyeOff, ClipboardPaste, X, Loader2, ShieldAlert } from '
 
 type TestState = { status: 'idle' } | { status: 'testing' } | { status: 'valid'; source: string } | { status: 'invalid'; error: string };
 
-// The Anthropic Console's API keys page
-const KEY_URL = 'https://platform.claude.com/settings/keys';
+// Google AI Studio's API keys page (free key)
+const KEY_URL = 'https://aistudio.google.com/app/apikey';
 
 export const ApiKeyModal: React.FC = () => {
   const { isModalOpen, closeModal, hasKey, maskedKey, serverHasKey, saveKey, deleteKey } = useApiKeyStore();
@@ -78,9 +78,9 @@ export const ApiKeyModal: React.FC = () => {
         <div className="p-4 space-y-3.5 text-xs">
           {/* B) Explanation */}
           <p className="leading-relaxed text-gray-300">
-            أدخل مفتاح Anthropic API (<span dir="ltr" className="font-mono">ANTHROPIC_API_KEY</span>) لتفعيل ميزات الذكاء الاصطناعي
-            بنموذج Claude (استخراج الأفكار من السكريبتات + كتابة المقالات).
-            أنشئ المفتاح من صفحة API Keys في Anthropic Console:{' '}
+            أدخل مفتاح Gemini API (<span dir="ltr" className="font-mono">GEMINI_API_KEY</span>) لتفعيل ميزات الذكاء الاصطناعي
+            (استخراج الأفكار من السكريبتات + كتابة المقالات).
+            يمكنك الحصول على مفتاح مجاني من Google AI Studio:{' '}
             <a href={KEY_URL} target="_blank" rel="noopener noreferrer" dir="ltr" className="text-[#89b4fa] hover:underline select-text">
               {KEY_URL}
             </a>
@@ -107,7 +107,7 @@ export const ApiKeyModal: React.FC = () => {
                 value={value}
                 onChange={e => { setValue(e.target.value); setTest({ status: 'idle' }); }}
                 onKeyDown={e => e.key === 'Enter' && handleSave()}
-                placeholder="sk-ant-..."
+                placeholder="AIza..."
                 autoComplete="off"
                 spellCheck={false}
                 className="flex-1 bg-transparent text-white font-mono text-xs focus:outline-none select-text"

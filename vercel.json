@@ -9,7 +9,8 @@
       "includeFiles": "data/style-examples.json"
     },
     "api/extract-ideas.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "includeFiles": "data/style-examples.json"
     }
   },
   "rewrites": [

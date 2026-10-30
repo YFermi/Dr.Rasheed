@@ -1,10 +1,10 @@
-// The user's Anthropic API key (ANTHROPIC_API_KEY, from the Anthropic Console),
+// The user's Google Gemini API key (GEMINI_API_KEY, from Google AI Studio),
 // kept only in this browser (localStorage) under its own key — so it is never
 // part of the persisted project or its JSON export. Sent with every /api/*
-// request in the X-Anthropic-Api-Key header.
+// request in the X-Gemini-Api-Key header.
 
-const STORAGE_KEY = 'idea-builder-anthropic-key';
-export const API_KEY_HEADER = 'X-Anthropic-Api-Key';
+const STORAGE_KEY = 'idea-builder-gemini-key';
+export const API_KEY_HEADER = 'X-Gemini-Api-Key';
 
 export function getApiKey(): string | null {
   try {

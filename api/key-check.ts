@@ -1,16 +1,16 @@
-// GET  /api/key-check — does the server have its own ANTHROPIC_API_KEY? (never returns it)
+// GET  /api/key-check — does the server have its own GEMINI_API_KEY? (never returns it)
 // POST /api/key-check — validates the key that would be used for this request
-//   (the X-Anthropic-Api-Key header, else the server's key) by sending Claude a
-//   one-word "ping" with a tiny max_tokens: a few tokens per test.
+//   (the X-Gemini-Api-Key header, else the server's key) with a minimal
+//   generateContent call: a one-word "ping" and a tiny output limit.
 
-import { type ApiRequest, type ApiResponse, HttpError, MISSING_KEY_ERROR, callClaude, resolveApiKey } from './_lib/claude.js';
+import { type ApiRequest, type ApiResponse, HttpError, MISSING_KEY_ERROR, callGemini, resolveApiKey } from './_lib/gemini.js';
 
 const TIMEOUT_MS = 20_000;
-const PING_MAX_TOKENS = 32;
+const PING_MAX_OUTPUT_TOKENS = 16;
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method === 'GET') {
-    return res.status(200).json({ serverKey: Boolean(process.env.ANTHROPIC_API_KEY) });
+    return res.status(200).json({ serverKey: Boolean(process.env.GEMINI_API_KEY) });
   }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -18,8 +18,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (!resolved) return res.status(200).json({ valid: false, source: null, error: MISSING_KEY_ERROR });
 
   try {
-    // Any HTTP 200 proves the key works — even a reply cut off at max_tokens
-    await callClaude({ apiKey: resolved.key, prompt: 'ping', maxTokens: PING_MAX_TOKENS, effort: 'low', timeoutMs: TIMEOUT_MS });
+    // Any successful response proves the key works — even one cut off at the limit
+    await callGemini({ apiKey: resolved.key, prompt: 'ping', maxOutputTokens: PING_MAX_OUTPUT_TOKENS, effort: 'low', timeoutMs: TIMEOUT_MS });
     return res.status(200).json({ valid: true, source: resolved.source });
   } catch (error) {
     if (error instanceof HttpError) {
