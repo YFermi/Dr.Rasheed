@@ -10,7 +10,7 @@
 
 import mammoth from 'mammoth';
 import { existsSync } from 'node:fs';
-import { mkdir, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractVerses, normalizeArabic, containsQuranGlyphs, countGlyphChars } from '../src/utils/arabic';
@@ -646,6 +646,13 @@ async function writeCorpus(articles: BlogArticle[]): Promise<BlogCorpus> {
     ...(glyphStats.replaced > 0 ? { quranTextSource: QURAN_TEXT_ATTRIBUTION } : {}),
     articles,
   };
+  // `npm run build` runs this every time: keep the committed file (and its
+  // timestamp) when the content is unchanged.
+  if (existsSync(OUT_FILE)) {
+    const { generatedAt: _previousDate, ...previous } = JSON.parse(await readFile(OUT_FILE, 'utf8')) as BlogCorpus;
+    const { generatedAt: _newDate, ...next } = corpus;
+    if (JSON.stringify(previous) === JSON.stringify(next)) return { ...corpus, generatedAt: _previousDate };
+  }
   await mkdir(path.dirname(OUT_FILE), { recursive: true });
   await writeFile(OUT_FILE, JSON.stringify(corpus, null, 2), 'utf8');
   return corpus;

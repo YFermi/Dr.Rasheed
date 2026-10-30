@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import extractIdeasHandler from './api/extract-ideas';
+import articleOutlineHandler from './api/article/outline';
+import articleSectionHandler from './api/article/section';
+import articleStitchHandler from './api/article/stitch';
 
 // Loads .env into process.env; variables already set in the shell take precedence.
 dotenv.config();
@@ -20,6 +23,9 @@ app.use(express.json({ limit: '10mb' }));
 // Same handler as the Vercel function; it only uses req.method, req.body and
 // res.status().json(), which Express provides.
 app.post('/api/extract-ideas', (req, res) => extractIdeasHandler(req, res));
+app.post('/api/article/outline', (req, res) => articleOutlineHandler(req, res));
+app.post('/api/article/section', (req, res) => articleSectionHandler(req, res));
+app.post('/api/article/stitch', (req, res) => articleStitchHandler(req, res));
 
 // Vite integration
 if (!isProduction) {

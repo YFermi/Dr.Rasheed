@@ -1,8 +1,10 @@
 import React from 'react';
 import { useIdeaStore, getAllNodeList } from '../store/useIdeaStore';
 import { exportToWord } from '../utils/docxExport';
-import { 
-  FolderTree, 
+import { useArticleStore } from '../store/useArticleStore';
+import {
+  PenLine,
+  FolderTree,
   Sparkles, 
   FileDown, 
   RotateCcw, 
@@ -40,6 +42,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   const evidencesCount = allNodes.filter(n => n.type === 'evidence').length;
   const questionsCount = allNodes.filter(n => n.type === 'question').length;
   const includedCount = allNodes.filter(n => n.includeInDoc && n.type !== 'project').length;
+
+  const openGenerateModal = useArticleStore(state => state.openGenerateModal);
+  const isGeneratingArticle = useArticleStore(state => state.isGenerating);
 
   const handleExportDocx = () => {
     exportToWord(treeData, projectSettings);
@@ -155,6 +160,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">استيراد نص عصف</span>
+        </button>
+
+        <button
+          onClick={openGenerateModal}
+          disabled={isGeneratingArticle}
+          title="كتابة مقال نثري بأسلوب د. رشيد من شجرة الأفكار"
+          className="flex items-center gap-1.5 px-3 py-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-60 text-white rounded text-xs font-semibold transition shadow-xs"
+        >
+          <PenLine className="w-3.5 h-3.5" />
+          <span>{isGeneratingArticle ? 'جاري الكتابة...' : '✍️ كتابة المقال'}</span>
         </button>
 
         <button

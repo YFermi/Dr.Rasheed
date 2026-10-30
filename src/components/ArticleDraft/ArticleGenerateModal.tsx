@@ -1,0 +1,160 @@
+import React, { useMemo, useState } from 'react';
+import { useArticleStore, currentArticleInput } from '../../store/useArticleStore';
+import { useBlogStore } from '../../store/useBlogStore';
+import { useIdeaStore, getAllNodeList } from '../../store/useIdeaStore';
+import { hasEnoughContent } from '../../utils/articleBuilder';
+import { toArabicDigits } from '../../utils/arabic';
+import { ArticleOptions } from '../../types/article';
+import { PenLine, X, AlertTriangle, Lock } from 'lucide-react';
+
+const LENGTHS = [3000, 4000, 5000, 6000];
+
+export const ArticleGenerateModal: React.FC = () => {
+  const { isGenerateModalOpen, closeGenerateModal, generate, lastOptions, draft, sectionMeta, isGenerating } = useArticleStore();
+  const treeData = useIdeaStore(state => state.treeData);
+  const setLeftPanelView = useBlogStore(state => state.setLeftPanelView);
+  const [options, setOptions] = useState<ArticleOptions>(lastOptions);
+
+  const input = useMemo(
+    () => (isGenerateModalOpen ? currentArticleInput(options) : null),
+    // treeData: re-read the tree when it changes while the modal is open
+    [isGenerateModalOpen, options, treeData]
+  );
+  const deferredCount = useMemo(
+    () => getAllNodeList(treeData).filter(n => n.status === 'deferred' && n.includeInDoc).length,
+    [treeData]
+  );
+
+  if (!isGenerateModalOpen || !input) return null;
+
+  const enough = hasEnoughContent(input);
+  const ideaCount = input.sections.reduce((n, s) => n + s.nodes.filter(x => x.depth > 0).length, 0);
+  const lockedCount = draft ? draft.sections.filter(s => sectionMeta[s.id]?.locked).length : 0;
+
+  const handleStart = () => {
+    closeGenerateModal();
+    setLeftPanelView('draft');
+    generate(options);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 select-none" onClick={closeGenerateModal}>
+      <div
+        className="w-full max-w-md bg-[#1e1e2e] border border-[#313244] rounded-xl shadow-2xl text-[#cdd6f4] text-right"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="h-11 px-4 bg-[#181825] border-b border-[#313244] rounded-t-xl flex items-center justify-between">
+          <div className="flex items-center gap-2 font-bold text-sm text-white">
+            <PenLine className="w-4 h-4 text-amber-300" />
+            <span>✍️ كتابة المقال</span>
+          </div>
+          <button type="button" onClick={closeGenerateModal} title="إغلاق" className="text-gray-400 hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-4 space-y-4 text-xs">
+          {/* What will be written */}
+          <div className="p-3 bg-[#181825] border border-[#313244] rounded-lg space-y-1.5">
+            <div className="flex justify-between">
+              <span className="text-gray-400">المحاور التي ستُكتب</span>
+              <span className="font-mono text-white">{toArabicDigits(input.sections.length)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">الأفكار المدرجة</span>
+              <span className="font-mono text-white">{toArabicDigits(ideaCount)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-400">الآيات المسموح بالاستشهاد بها</span>
+              <span className="font-mono text-amber-300">{toArabicDigits(input.allowedVerseRefs.length)}</span>
+            </div>
+            {input.sections.length > 0 && (
+              <div className="pt-1.5 border-t border-[#313244] text-[10.5px] text-gray-400 leading-relaxed">
+                {input.sections.map(s => s.axisName).join(' • ')}
+              </div>
+            )}
+          </div>
+
+          {!enough && (
+            <div className="p-2.5 bg-rose-950/40 border border-rose-800/60 rounded text-rose-200 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>يلزم محوران على الأقل فيهما أفكار مدرجة في الوثيقة (غير مؤجلة أو مرفوضة) لكتابة المقال.</span>
+            </div>
+          )}
+
+          {/* Target length */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] text-gray-300 block">الطول المستهدف:</label>
+            <div className="grid grid-cols-4 gap-1">
+              {LENGTHS.map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setOptions({ ...options, targetLength: n })}
+                  className={`py-1.5 rounded border text-[11px] transition ${
+                    options.targetLength === n
+                      ? 'bg-amber-600/80 border-amber-500 text-white font-bold'
+                      : 'bg-[#181825] border-[#313244] text-gray-400 hover:text-white'
+                  }`}
+                >
+                  {toArabicDigits(n)} كلمة
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Style */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] text-gray-300 block">الأسلوب:</label>
+            <select
+              value={options.styleMode}
+              onChange={e => setOptions({ ...options, styleMode: e.target.value as ArticleOptions['styleMode'] })}
+              className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-white text-xs focus:outline-none"
+            >
+              <option value="rasheed-original">أسلوب د. رشيد الأصلي</option>
+            </select>
+          </div>
+
+          {/* Deferred ideas */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={options.includeDeferred}
+              onChange={e => setOptions({ ...options, includeDeferred: e.target.checked })}
+              className="accent-amber-500"
+            />
+            <span className="text-gray-300">تضمين الأفكار المؤجلة</span>
+            <span className="text-gray-500 font-mono">({toArabicDigits(deferredCount)})</span>
+          </label>
+
+          {lockedCount > 0 && (
+            <div className="p-2 bg-[#181825] border border-[#313244] rounded text-gray-300 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-amber-300" />
+              <span>{toArabicDigits(lockedCount)} محور مقفل سيبقى كما هو.</span>
+            </div>
+          )}
+
+          <p className="text-[10.5px] text-gray-500 leading-relaxed">
+            تُكتب المسودة محوراً محوراً (قد يستغرق ذلك دقيقة أو أكثر)، وتُدرَج نصوص الآيات من المصحف الموثّق لا من النموذج.
+            تبقى المسودة موسومة «مسودة بمساعدة الذكاء الاصطناعي» حتى تعتمدها.
+          </p>
+        </div>
+
+        <div className="px-4 py-3 bg-[#181825] border-t border-[#313244] rounded-b-xl flex justify-end gap-2">
+          <button type="button" onClick={closeGenerateModal} className="px-3 py-1.5 text-gray-400 hover:text-white text-xs">
+            إلغاء
+          </button>
+          <button
+            type="button"
+            onClick={handleStart}
+            disabled={!enough || isGenerating}
+            className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition"
+          >
+            <PenLine className="w-3.5 h-3.5" />
+            <span>ابدأ الكتابة</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

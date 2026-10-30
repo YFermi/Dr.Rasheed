@@ -6,9 +6,12 @@ import { MiddleTabPanel } from './components/MiddleColumn/MiddleTabPanel';
 import { LinkModal } from './components/LinkNavigator/LinkModal';
 import { ScriptImportModal } from './components/ScriptImportModal/ScriptImportModal';
 import { BlogReader } from './components/Blog/BlogReader';
+import { ArticleDraftView } from './components/ArticleDraft/ArticleDraftView';
+import { ArticleGenerateModal } from './components/ArticleDraft/ArticleGenerateModal';
 import { useIdeaStore } from './store/useIdeaStore';
 import { useBlogStore } from './store/useBlogStore';
-import { FileText, BookOpen } from 'lucide-react';
+import { useArticleStore } from './store/useArticleStore';
+import { FileText, BookOpen, PenLine, Loader2 } from 'lucide-react';
 import { toArabicDigits } from './utils/arabic';
 
 export default function App() {
@@ -31,6 +34,8 @@ export default function App() {
   const openArticlePart = useBlogStore(state =>
     state.corpus?.articles.find(a => a.id === state.openArticleId)?.partNumber
   );
+  const isGeneratingArticle = useArticleStore(state => state.isGenerating);
+  const hasStaleSections = useArticleStore(state => Object.values(state.sectionMeta).some(m => m.stale));
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -167,10 +172,27 @@ export default function App() {
                 </span>
               )}
             </button>
+            <button
+              type="button"
+              onClick={() => setLeftPanelView('draft')}
+              title="مسودة المقال المولّدة من الشجرة"
+              className={`px-4 flex items-center gap-1.5 transition border-r border-gray-300 ${
+                leftPanelView === 'draft'
+                  ? 'bg-white text-blue-800 font-bold border-b-2 border-blue-700'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-white/60'
+              }`}
+            >
+              <PenLine className="w-3.5 h-3.5" />
+              <span>المسودة</span>
+              {isGeneratingArticle && <Loader2 className="w-3 h-3 animate-spin text-blue-600" />}
+              {!isGeneratingArticle && hasStaleSections && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="محاور قديمة في المسودة" />
+              )}
+            </button>
           </div>
 
           <div className="flex-1 overflow-hidden relative">
-            {leftPanelView === 'blog' ? <BlogReader /> : <WordPreview />}
+            {leftPanelView === 'blog' ? <BlogReader /> : leftPanelView === 'draft' ? <ArticleDraftView /> : <WordPreview />}
           </div>
         </div>
       </div>
@@ -183,6 +205,9 @@ export default function App() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
       />
+
+      {/* Article generation options */}
+      <ArticleGenerateModal />
     </div>
   );
 }

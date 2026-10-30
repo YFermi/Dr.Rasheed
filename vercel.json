@@ -3,6 +3,12 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "vite",
+  "functions": {
+    "api/article/*.ts": {
+      "maxDuration": 60,
+      "includeFiles": "data/style-examples.json"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
