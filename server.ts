@@ -4,7 +4,6 @@ import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import extractIdeasHandler from './api/extract-ideas';
 
 // Loads .env into process.env; variables already set in the shell take precedence.
@@ -20,9 +19,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // Same handler as the Vercel function; it only uses req.method, req.body and
 // res.status().json(), which Express provides.
-app.post('/api/extract-ideas', (req, res) =>
-  extractIdeasHandler(req as unknown as VercelRequest, res as unknown as VercelResponse)
-);
+app.post('/api/extract-ideas', (req, res) => extractIdeasHandler(req, res));
 
 // Vite integration
 if (!isProduction) {

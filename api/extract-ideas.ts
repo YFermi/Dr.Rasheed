@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
 
 // POST /api/extract-ideas — Gemini extraction of ideas from a brainstorm transcript.
@@ -9,6 +8,18 @@ const MODEL = 'gemini-2.5-flash';
 const MAX_TRANSCRIPT_CHARS = 8000;
 const REQUEST_TIMEOUT_MS = 6000;
 const DEFAULT_SPEAKERS = 'د. رشيد، مصطفى، يوسف، زكريا، أبو هارون، علي نور';
+
+// The subset of the request/response API this handler uses. Vercel's Node
+// runtime and Express both provide it, so no @vercel/node types are needed.
+export interface ApiRequest {
+  method?: string;
+  body?: unknown;
+}
+
+export interface ApiResponse {
+  status(code: number): ApiResponse;
+  json(data: unknown): void;
+}
 
 interface ExtractRequestBody {
   transcript?: unknown;
@@ -91,12 +102,12 @@ export async function extractIdeas(apiKey: string, body: ExtractRequestBody) {
   return { fallback: false, ideas: parseIdeas(response.text?.trim() || '[]') };
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const body: ExtractRequestBody = req.body ?? {};
+  const body = (req.body ?? {}) as ExtractRequestBody;
   if (typeof body.transcript !== 'string' || !body.transcript.trim()) {
     return res.status(400).json({ error: 'يرجى تزويد نص العصف الذهني (transcript)' });
   }
