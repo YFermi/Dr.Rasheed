@@ -1,9 +1,10 @@
-// The user's Gemini API key, kept only in this browser (localStorage) under its
-// own key — so it is never part of the persisted project or its JSON export.
-// Sent with every /api/* request in the X-Gemini-Api-Key header.
+// The user's Anthropic API key (ANTHROPIC_API_KEY, from the Anthropic Console),
+// kept only in this browser (localStorage) under its own key — so it is never
+// part of the persisted project or its JSON export. Sent with every /api/*
+// request in the X-Anthropic-Api-Key header.
 
-const STORAGE_KEY = 'idea-builder-gemini-key';
-export const API_KEY_HEADER = 'X-Gemini-Api-Key';
+const STORAGE_KEY = 'idea-builder-anthropic-key';
+export const API_KEY_HEADER = 'X-Anthropic-Api-Key';
 
 export function getApiKey(): string | null {
   try {
@@ -74,7 +75,7 @@ export interface KeyTestResult {
   error?: string;
 }
 
-// Tests `key` (or, without one, the server's key) with a free countTokens call.
+// Tests `key` (or, without one, the server's key) with a tiny "ping" message.
 export async function testApiKey(key: string | null): Promise<KeyTestResult> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (key) headers[API_KEY_HEADER] = key.trim();

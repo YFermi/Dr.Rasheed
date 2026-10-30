@@ -14,9 +14,9 @@ import {
   asString,
   asStringArray,
   ORDINALS,
-} from '../_lib/gemini.js';
+} from '../_lib/claude.js';
 
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 50_000; // under Vercel's 60 s limit
 const MIN_SECTION_WORDS = 300;
 const CLOSING_LINE = 'وللحديث بقية';
 
@@ -41,10 +41,12 @@ const OUTLINE_SCHEMA = {
           coveredNodeIds: { type: 'array', items: { type: 'string' } },
         },
         required: ['id', 'axisName', 'thesis', 'keyMoves', 'verseRefs', 'transitionIn', 'transitionOut', 'wordBudget', 'coveredNodeIds'],
+        additionalProperties: false,
       },
     },
     closing: { type: 'string' },
   },
+  additionalProperties: false,
   required: ['title', 'opening', 'sections', 'closing'],
 };
 
@@ -171,9 +173,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       prompt,
       schema: OUTLINE_SCHEMA,
       timeoutMs: TIMEOUT_MS,
-      maxOutputTokens: 4096,
-      temperature: 0.6,
-      thinkingBudget: 1024,
+      effort: 'medium', // planning benefits from some thinking
     });
     return normalizeOutline(raw, input);
   });

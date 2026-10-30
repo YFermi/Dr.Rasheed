@@ -11,9 +11,9 @@ import {
   loadStylePack,
   asString,
   asStringArray,
-} from '../_lib/gemini.js';
+} from '../_lib/claude.js';
 
-const TIMEOUT_MS = 20_000;
+const TIMEOUT_MS = 30_000;
 const MAX_PARAGRAPHS_PER_SIDE = 2;
 
 const STITCH_SCHEMA = {
@@ -23,6 +23,7 @@ const STITCH_SCHEMA = {
     newB_start: { type: 'array', items: { type: 'string' } },
   },
   required: ['newA_ending', 'newB_start'],
+  additionalProperties: false,
 };
 
 export function buildStitchPrompt(req: StitchRequest, styleGuide: string): { system: string; prompt: string } {
@@ -86,9 +87,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       prompt,
       schema: STITCH_SCHEMA,
       timeoutMs: TIMEOUT_MS,
-      maxOutputTokens: 2048,
-      temperature: 0.5,
-      thinkingBudget: 0,
+      effort: 'low',
+      // Same style-guide system prompt for every boundary of the article
+      cacheSystem: true,
     });
     return normalizeStitch(raw, request);
   });

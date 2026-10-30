@@ -7,6 +7,9 @@
     "api/article/*.ts": {
       "maxDuration": 60,
       "includeFiles": "data/style-examples.json"
+    },
+    "api/extract-ideas.ts": {
+      "maxDuration": 60
     }
   },
   "rewrites": [
@@ -23,7 +26,10 @@
     {
       "source": "/blog/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
       ]
     }
   ]

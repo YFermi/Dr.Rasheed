@@ -23,7 +23,7 @@ import {
   asStringArray,
   wordCount,
   ORDINALS,
-} from '../_lib/gemini.js';
+} from '../_lib/claude.js';
 
 const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const MAX_EXAMPLES = 5;
@@ -42,12 +42,14 @@ const SECTION_SCHEMA = {
           ref: { type: 'string' },
         },
         required: ['type', 'text'],
+        additionalProperties: false,
       },
     },
     coveredNodeIds: { type: 'array', items: { type: 'string' } },
     wordCount: { type: 'integer' },
   },
   required: ['blocks', 'coveredNodeIds', 'wordCount'],
+  additionalProperties: false,
 };
 
 // The moves this section needs most; «افتراء» examples only when it has new ideas.
@@ -200,17 +202,18 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   return handleJson(req, res, async (body, apiKey) => {
     const request = validateInput(body);
     const pack = await loadStylePack();
-    const { system, prompt, heading, wordBudget } = buildSectionPrompt(request, pack.styleGuide, pickExamples(pack.examples, request.sectionNodes));
+    const { system, prompt, heading } = buildSectionPrompt(request, pack.styleGuide, pickExamples(pack.examples, request.sectionNodes));
     const raw = await generateJson<Partial<SectionResponse>>({
       apiKey,
       system,
       prompt,
       schema: SECTION_SCHEMA,
       timeoutMs: TIMEOUT_MS,
-      // Arabic prose runs ~2–3 tokens a word, plus JSON overhead
-      maxOutputTokens: Math.min(16_384, Math.max(4096, wordBudget * 4)),
-      temperature: 0.85,
-      thinkingBudget: 0, // speed: the outline already did the planning
+      // Speed: the outline already did the planning, and the 55 s limit leaves
+      // no room for long thinking before ~1,500 words of prose.
+      effort: 'low',
+      // Style guide + examples repeat across the article's section calls
+      cacheSystem: true,
     });
     return normalizeSection(raw, request, heading);
   });

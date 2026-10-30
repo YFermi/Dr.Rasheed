@@ -210,7 +210,7 @@ export default function App() {
       {/* Article generation options */}
       <ArticleGenerateModal />
 
-      {/* Gemini API key (stacked above the other modals) */}
+      {/* Anthropic API key (stacked above the other modals) */}
       <ApiKeyModal />
     </div>
   );

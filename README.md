@@ -12,7 +12,8 @@ A research workspace for organizing and exporting ideas extracted from brainstor
 - 📚 Blog corpus search — Dr. Rasheed Al-Jarrah's articles (بحث في مقالات المدونة)
 - 📖 Quranic verse indexing, cross-referenced with the blog (فهرسة الآيات وربطها بالمدونة)
 - 📊 Statistics dashboard (لوحة إحصائيات)
-- 📥 Script import with AI — Gemini (استيراد بالذكاء الاصطناعي)
+- 📥 Script import with AI — Claude (استيراد بالذكاء الاصطناعي)
+- ✍️ AI article drafting in Dr. Rasheed's style — Claude (كتابة المقالات بأسلوب د. رشيد)
 - 📤 Word/PDF export, with blog citations as footnotes (تصدير مع حواشي المراجع)
 
 The project tree is saved in the browser (`localStorage`). Use the tree's JSON export to back it up or move it to another machine.
@@ -31,10 +32,8 @@ The project tree is saved in the browser (`localStorage`). Use the tree's JSON e
 ```bash
 git clone https://github.com/YOUR_USERNAME/idea-builder.git
 cd idea-builder
-npm install --legacy-peer-deps
+npm install
 ```
-
-`--legacy-peer-deps` is required: the pinned `esbuild` version conflicts with Vite 8's optional peer range.
 
 ### Blog Corpus / مدونة المقالات
 
@@ -59,16 +58,16 @@ The articles cite verses with a Quran font whose glyphs are not readable text. `
 ```bash
 # Option 1: Express server (full features including AI)
 cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
+# Edit .env and add your ANTHROPIC_API_KEY
 npm run dev            # http://localhost:3000
 
 # Option 2: Vercel-like environment (requires: npm i -g vercel)
 npm run dev:vercel
 ```
 
-Without `GEMINI_API_KEY`, everything works except AI extraction, which falls back to local suggestions.
+The AI features use Anthropic's Claude (`claude-sonnet-5-5` by default; set `ANTHROPIC_MODEL` to change it). The key can come from the server (`ANTHROPIC_API_KEY`) or be entered by each user in the app (🔑 button in the navbar), stored only in that browser. Create a key at [platform.claude.com/settings/keys](https://platform.claude.com/settings/keys). Without any key, everything works except the AI features: script import falls back to local suggestions and article writing is disabled.
 
-بدون `GEMINI_API_KEY` تعمل كل الميزات ما عدا الاستخراج بالذكاء الاصطناعي، الذي يعود إلى اقتراحات محلية.
+تعمل ميزات الذكاء الاصطناعي بنموذج Claude من Anthropic. يُؤخذ المفتاح من الخادم (`ANTHROPIC_API_KEY`) أو يدخله المستخدم من زر 🔑 في الشريط العلوي فيُحفظ في متصفحه فقط. بدون مفتاح تعمل كل الميزات ما عدا ميزات الذكاء الاصطناعي.
 
 ### Scripts / الأوامر
 
@@ -77,7 +76,7 @@ Without `GEMINI_API_KEY`, everything works except AI extraction, which falls bac
 | `npm run dev` | Local dev server (Express + Vite, `server.ts`) |
 | `npm run dev:vercel` | Local Vercel emulation (`vercel dev`) |
 | `npm run blog` | Convert `.docx` → `public/blog/blog.json` (run manually before committing) |
-| `npm run build` | Production build (`vite build` → `dist/`) |
+| `npm run build` | Production build (blog + examples + `vite build` → `dist/`) |
 | `npm run preview` | Preview the production build |
 | `npm run lint` | Type-check (`tsc --noEmit`) |
 
@@ -85,18 +84,21 @@ Without `GEMINI_API_KEY`, everything works except AI extraction, which falls bac
 
 1. Push to GitHub / ارفع المشروع إلى GitHub
 2. Import the repo in the Vercel dashboard / استورد المستودع في لوحة Vercel
-3. Add the environment variable `GEMINI_API_KEY` in **Settings → Environment Variables**
-   أضف المتغير `GEMINI_API_KEY` من **Settings → Environment Variables**
+3. Optional: add `ANTHROPIC_API_KEY` in **Settings → Environment Variables** (otherwise each user enters a key in the app)
+   اختياري: أضف `ANTHROPIC_API_KEY` من **Settings → Environment Variables** (وإلا يدخل كل مستخدم مفتاحه في التطبيق)
 4. Deploy / انشر
 
-Build settings come from `vercel.json` (install with `--legacy-peer-deps`, output `dist/`). The AI endpoint runs as the serverless function `api/extract-ideas.ts`; `server.ts` is for local development only.
+Build settings and function limits come from `vercel.json`. The AI endpoints run as serverless functions under `api/`; `server.ts` is for local development only.
 
-إعدادات البناء موجودة في `vercel.json`. نقطة الذكاء الاصطناعي تعمل كدالة `api/extract-ideas.ts`، أما `server.ts` فللتشغيل المحلي فقط.
+إعدادات البناء وحدود الدوال موجودة في `vercel.json`. نقاط الذكاء الاصطناعي تعمل كدوال في مجلد `api/`، أما `server.ts` فللتشغيل المحلي فقط.
 
 ## Project Structure / بنية المشروع
 
 ```text
-api/extract-ideas.ts     Vercel serverless function (Gemini extraction)
+api/extract-ideas.ts     Serverless function: idea extraction (Claude)
+api/article/*.ts         Serverless functions: article outline / section / stitch (Claude)
+api/key-check.ts         Serverless function: API key status and test
+api/_lib/claude.ts       Anthropic Messages API calls (fetch), key resolution
 server.ts                Local dev server (mounts the same handler)
 content/blog/قصة لوط/    .docx sources (git-ignored)
 scripts/build-blog.ts    .docx → blog.json converter (mammoth)
@@ -109,6 +111,6 @@ src/
 
 ## Tech Stack
 
-React 19 · TypeScript · Vite 8 · Tailwind 4 · Zustand 5 · react-arborist · mammoth · docx · @google/genai
+React 19 · TypeScript · Vite 8 · Tailwind 4 · Zustand 5 · react-arborist · mammoth · docx · Anthropic Claude API
 
 Quran text: [Tanzil Project](https://tanzil.net) (CC BY 3.0, verbatim).

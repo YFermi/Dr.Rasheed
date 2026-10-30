@@ -181,9 +181,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           onClick={openKeyModal}
           title={
-            hasKey ? 'مفتاح Gemini محفوظ في هذا المتصفح' :
+            hasKey ? 'مفتاح Anthropic محفوظ في هذا المتصفح' :
             serverHasKey ? 'يُستعمل مفتاح الخادم — يمكنك إدخال مفتاحك' :
-            'أدخل مفتاح Gemini API لتفعيل ميزات الذكاء الاصطناعي'
+            'أدخل مفتاح Anthropic API لتفعيل ميزات الذكاء الاصطناعي (Claude)'
           }
           className="flex items-center gap-1.5 px-2.5 py-1 bg-[#181825] hover:bg-[#313244] border border-[#313244] text-[#cdd6f4] rounded text-xs transition"
         >

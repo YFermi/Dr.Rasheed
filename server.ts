@@ -27,7 +27,7 @@ app.post('/api/extract-ideas', (req, res) => extractIdeasHandler(req, res));
 app.post('/api/article/outline', (req, res) => articleOutlineHandler(req, res));
 app.post('/api/article/section', (req, res) => articleSectionHandler(req, res));
 app.post('/api/article/stitch', (req, res) => articleStitchHandler(req, res));
-// Express passes req.headers through, so the X-Gemini-Api-Key header reaches every handler.
+// Express passes req.headers through, so the X-Anthropic-Api-Key header reaches every handler.
 app.get('/api/key-check', (req, res) => keyCheckHandler(req, res));
 app.post('/api/key-check', (req, res) => keyCheckHandler(req, res));
 
