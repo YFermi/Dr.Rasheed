@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useIdeaStore, getAllNodeList } from '../../store/useIdeaStore';
+import { useApiKeyStore, selectAiAvailable } from '../../store/useApiKeyStore';
+import { callApiWithKey } from '../../utils/apiKey';
 import { ExtractedIdeaSuggestion } from '../../types';
 import { 
   X, 
@@ -54,6 +56,8 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
   const [suggestions, setSuggestions] = useState<ExtractedIdeaSuggestion[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [step, setStep] = useState<'input' | 'review'>('input');
+  const aiAvailable = useApiKeyStore(selectAiAvailable);
+  const openKeyModal = useApiKeyStore(state => state.openModal);
 
   if (!isOpen) return null;
 
@@ -78,21 +82,11 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
     setIsExtracting(true);
 
     try {
-      const response = await fetch('/api/extract-ideas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transcript,
-          speakers: selectedSpeakers,
-          axes: allAxes.map(a => ({ id: a.id, label: a.arabicLabel })),
-        }),
+      const data = await callApiWithKey('/api/extract-ideas', {
+        transcript,
+        speakers: selectedSpeakers,
+        axes: allAxes.map(a => ({ id: a.id, label: a.arabicLabel })),
       });
-
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
-      }
-
-      const data = await response.json();
       if (data.ideas && Array.isArray(data.ideas) && data.ideas.length > 0) {
         setSuggestions(data.ideas);
         setStep('review');
@@ -188,6 +182,17 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
 
         {/* Modal Body */}
         <div className="flex-1 overflow-auto custom-scrollbar p-5 space-y-4 text-xs font-sans">
+          {/* Without a key the extraction falls back to local suggestions */}
+          {!aiAvailable && (
+            <button
+              type="button"
+              onClick={openKeyModal}
+              className="w-full p-2.5 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 rounded text-amber-200 text-right flex items-center justify-between transition"
+            >
+              <span>🔑 أدخل مفتاح API لاستخراج الأفكار بالذكاء الاصطناعي</span>
+              <span className="text-[10.5px] underline">إدخال المفتاح</span>
+            </button>
+          )}
           {step === 'input' ? (
             <>
               {/* Presets buttons */}

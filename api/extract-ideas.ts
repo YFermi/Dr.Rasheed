@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { resolveApiKey } from './_lib/gemini.js';
 
 // POST /api/extract-ideas — Gemini extraction of ideas from a brainstorm transcript.
 // Runs as a Vercel serverless function; server.ts mounts the same handler for local dev.
@@ -14,6 +15,7 @@ const DEFAULT_SPEAKERS = 'د. رشيد، مصطفى، يوسف، زكريا، أ
 export interface ApiRequest {
   method?: string;
   body?: unknown;
+  headers?: Record<string, string | string[] | undefined>;
 }
 
 export interface ApiResponse {
@@ -112,7 +114,8 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return res.status(400).json({ error: 'يرجى تزويد نص العصف الذهني (transcript)' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  // The browser's key (header) first, then the server's GEMINI_API_KEY
+  const apiKey = resolveApiKey(req)?.key;
   if (!apiKey) {
     return res.status(500).json({ error: 'Missing GEMINI_API_KEY' });
   }

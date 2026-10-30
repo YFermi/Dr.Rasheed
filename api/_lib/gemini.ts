@@ -20,6 +20,8 @@ export function articleModel(): string {
 export interface ApiRequest {
   method?: string;
   body?: unknown;
+  // Node lower-cases header names (both Vercel and Express)
+  headers?: Record<string, string | string[] | undefined>;
 }
 
 export interface ApiResponse {
@@ -33,6 +35,19 @@ export class HttpError extends Error {
   }
 }
 
+export const API_KEY_HEADER = 'x-gemini-api-key';
+const MAX_KEY_LENGTH = 200;
+
+// Key resolution: 1. the browser's key (X-Gemini-Api-Key header, entered in the
+// UI), 2. the server's GEMINI_API_KEY. The key itself is never logged or returned.
+export function resolveApiKey(req: ApiRequest): { key: string; source: 'header' | 'env' } | null {
+  const raw = req.headers?.[API_KEY_HEADER];
+  const headerKey = (Array.isArray(raw) ? raw[0] : raw)?.trim();
+  if (headerKey && headerKey.length <= MAX_KEY_LENGTH && !/\s/.test(headerKey)) return { key: headerKey, source: 'header' };
+  const envKey = process.env.GEMINI_API_KEY;
+  return envKey ? { key: envKey, source: 'env' } : null;
+}
+
 // Method check, API key, error → status mapping. `run` gets the parsed body.
 export async function handleJson<T>(
   req: ApiRequest,
@@ -43,7 +58,7 @@ export async function handleJson<T>(
   const body = req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : null;
   if (!body) return res.status(400).json({ error: 'Expected a JSON body' });
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = resolveApiKey(req)?.key;
   if (!apiKey) return res.status(500).json({ error: 'Missing GEMINI_API_KEY' });
 
   try {

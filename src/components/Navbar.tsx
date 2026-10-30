@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useIdeaStore, getAllNodeList } from '../store/useIdeaStore';
 import { exportToWord } from '../utils/docxExport';
 import { useArticleStore } from '../store/useArticleStore';
+import { useApiKeyStore } from '../store/useApiKeyStore';
 import {
   PenLine,
   FolderTree,
@@ -45,6 +46,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const openGenerateModal = useArticleStore(state => state.openGenerateModal);
   const isGeneratingArticle = useArticleStore(state => state.isGenerating);
+  const { hasKey, serverHasKey, openModal: openKeyModal, checkServerKey } = useApiKeyStore();
+
+  useEffect(() => {
+    checkServerKey();
+  }, [checkServerKey]);
 
   const handleExportDocx = () => {
     exportToWord(treeData, projectSettings);
@@ -170,6 +176,19 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <PenLine className="w-3.5 h-3.5" />
           <span>{isGeneratingArticle ? 'جاري الكتابة...' : '✍️ كتابة المقال'}</span>
+        </button>
+
+        <button
+          onClick={openKeyModal}
+          title={
+            hasKey ? 'مفتاح Gemini محفوظ في هذا المتصفح' :
+            serverHasKey ? 'يُستعمل مفتاح الخادم — يمكنك إدخال مفتاحك' :
+            'أدخل مفتاح Gemini API لتفعيل ميزات الذكاء الاصطناعي'
+          }
+          className="flex items-center gap-1.5 px-2.5 py-1 bg-[#181825] hover:bg-[#313244] border border-[#313244] text-[#cdd6f4] rounded text-xs transition"
+        >
+          <span className={`w-2 h-2 rounded-full ${hasKey ? 'bg-emerald-400' : serverHasKey ? 'bg-amber-400' : 'bg-rose-500'}`} />
+          <span>{hasKey ? '🔑 المفتاح ✓' : serverHasKey ? '🔑 مفتاح الخادم' : '🔑 أدخل المفتاح'}</span>
         </button>
 
         <button

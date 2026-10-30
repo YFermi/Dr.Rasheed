@@ -12,6 +12,7 @@ import type {
   StitchResponse,
 } from '../types/article';
 import { extractVerses, containsQuranGlyphs, normalizeArabic, toArabicDigits } from './arabic';
+import { callApiWithKey } from './apiKey';
 
 // Client-side orchestration of article generation: tree → input, then the
 // /api/article/* calls one after another (outline → sections → stitches), then
@@ -169,24 +170,9 @@ export function computeSectionHash(section: ArticleSectionInput): string {
 
 // ---- API calls -------------------------------------------------------------------
 
+// Sends the browser's API key with the request (see utils/apiKey.ts)
 export async function callAPI<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
-  const res = await fetch(path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-    signal,
-  });
-  if (!res.ok) {
-    let message = `HTTP ${res.status}`;
-    try {
-      const data = await res.json();
-      if (data?.error) message = String(data.error);
-    } catch {
-      // keep the status text
-    }
-    throw new Error(message);
-  }
-  return (await res.json()) as T;
+  return callApiWithKey<T>(path, body, signal);
 }
 
 // ---- Paragraph helpers -----------------------------------------------------------

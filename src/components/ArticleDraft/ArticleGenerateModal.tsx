@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useArticleStore, currentArticleInput } from '../../store/useArticleStore';
 import { useBlogStore } from '../../store/useBlogStore';
 import { useIdeaStore, getAllNodeList } from '../../store/useIdeaStore';
+import { useApiKeyStore, selectAiAvailable } from '../../store/useApiKeyStore';
 import { hasEnoughContent } from '../../utils/articleBuilder';
 import { toArabicDigits } from '../../utils/arabic';
 import { ArticleOptions } from '../../types/article';
@@ -13,6 +14,8 @@ export const ArticleGenerateModal: React.FC = () => {
   const { isGenerateModalOpen, closeGenerateModal, generate, lastOptions, draft, sectionMeta, isGenerating } = useArticleStore();
   const treeData = useIdeaStore(state => state.treeData);
   const setLeftPanelView = useBlogStore(state => state.setLeftPanelView);
+  const aiAvailable = useApiKeyStore(selectAiAvailable);
+  const openKeyModal = useApiKeyStore(state => state.openModal);
   const [options, setOptions] = useState<ArticleOptions>(lastOptions);
 
   const input = useMemo(
@@ -74,6 +77,15 @@ export const ArticleGenerateModal: React.FC = () => {
               </div>
             )}
           </div>
+
+          {!aiAvailable && (
+            <div className="p-2.5 bg-amber-950/40 border border-amber-800/60 rounded text-amber-200 flex items-center justify-between gap-2">
+              <span>🔑 يرجى إدخال مفتاح API أولاً</span>
+              <button type="button" onClick={openKeyModal} className="text-[10.5px] underline hover:text-white flex-shrink-0">
+                إدخال المفتاح
+              </button>
+            </div>
+          )}
 
           {!enough && (
             <div className="p-2.5 bg-rose-950/40 border border-rose-800/60 rounded text-rose-200 flex items-start gap-2">
@@ -147,7 +159,7 @@ export const ArticleGenerateModal: React.FC = () => {
           <button
             type="button"
             onClick={handleStart}
-            disabled={!enough || isGenerating}
+            disabled={!enough || isGenerating || !aiAvailable}
             className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition"
           >
             <PenLine className="w-3.5 h-3.5" />

@@ -8,6 +8,7 @@ import { ScriptImportModal } from './components/ScriptImportModal/ScriptImportMo
 import { BlogReader } from './components/Blog/BlogReader';
 import { ArticleDraftView } from './components/ArticleDraft/ArticleDraftView';
 import { ArticleGenerateModal } from './components/ArticleDraft/ArticleGenerateModal';
+import { ApiKeyModal } from './components/ApiKeyModal';
 import { useIdeaStore } from './store/useIdeaStore';
 import { useBlogStore } from './store/useBlogStore';
 import { useArticleStore } from './store/useArticleStore';
@@ -208,6 +209,9 @@ export default function App() {
 
       {/* Article generation options */}
       <ArticleGenerateModal />
+
+      {/* Gemini API key (stacked above the other modals) */}
+      <ApiKeyModal />
     </div>
   );
 }
