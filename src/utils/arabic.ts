@@ -24,6 +24,21 @@ export function normalizeArabic(s: string): string {
     .trim();
 }
 
+// Quran-font glyph codes (e.g. Quran Word / KFGQPC fonts): the Private Use Area
+// plus Arabic Presentation Forms A and B. The ornate parentheses ﴾﴿ (U+FD3E/FD3F)
+// sit inside Forms-A but are ordinary verse brackets, so they are excluded.
+const QURAN_GLYPH_RE = /[-ﭐ-ﴽ﵀-﷿ﹰ-﻿]/;
+const QURAN_GLYPH_RE_GLOBAL = new RegExp(QURAN_GLYPH_RE.source, 'g');
+
+export function containsQuranGlyphs(text: string): boolean {
+  return QURAN_GLYPH_RE.test(text);
+}
+
+// Number of glyph characters (for diagnostics)
+export function countGlyphChars(text: string): number {
+  return text.match(QURAN_GLYPH_RE_GLOBAL)?.length ?? 0;
+}
+
 // Longest first, so "وال" wins over "و".
 const PREFIXES = ['ولل', 'وال', 'فال', 'بال', 'كال', 'لل', 'ال', 'و', 'ف', 'ب', 'ك', 'ل'];
 const SUFFIXES = ['ات', 'ين', 'ون', 'ان', 'ة', 'ه', 'ي', 'ن', 'ا'];
@@ -82,7 +97,7 @@ export function extractVerses(text: string, paragraphId: string, partNumber: num
       ? `${surah}:${ayahFrom}${ayahTo !== undefined && ayahTo !== ayahFrom ? `-${ayahTo}` : ''}`
       : `unref:${normalizeArabic(verseText).slice(0, 60)}`;
 
-    verses.push({ key, text: verseText, surah, ayahFrom, ayahTo, paragraphId, partNumber });
+    verses.push({ key, text: verseText, surah, ayahFrom, ayahTo, paragraphId, partNumber, replacedFromGlyphs: false });
   }
 
   return verses;

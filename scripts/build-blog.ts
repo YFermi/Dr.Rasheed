@@ -13,8 +13,9 @@ import { existsSync } from 'node:fs';
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { extractVerses, normalizeArabic } from '../src/utils/arabic';
-import type { BlogArticle, BlogCorpus, BlogParagraph } from '../src/types/blog';
+import { extractVerses, normalizeArabic, containsQuranGlyphs, countGlyphChars } from '../src/utils/arabic';
+import { getVerseText, getSurahNumber, QURAN_TEXT_ATTRIBUTION } from '../src/utils/quranLookup';
+import type { BlogArticle, BlogCorpus, BlogParagraph, BlogVerse } from '../src/types/blog';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SRC_DIR = path.resolve(process.argv[2] ?? path.join(ROOT, 'content', 'blog', 'قصة لوط'));
@@ -234,14 +235,352 @@ function partNumberFromFilename(file: string): number | null {
   return m ? Number(normalizeArabic(m[0])) : null;
 }
 
+// ---------------------------------------------------------------------------
+// Quran-font glyphs → canonical Tanzil text
+// ---------------------------------------------------------------------------
+//
+// Dr. Rasheed's files cite verses with a Quran font (Quran Word), stored as
+// glyph codes that are not Arabic letters. Each glyph verse with a parsable
+// reference is replaced by the Tanzil text of that reference: Uthmani for the
+// displayed HTML, Simple-Clean (standard spelling) for the search index.
+
+// A bracketed verse in mammoth HTML, either bracket order; may contain inline tags.
+const HTML_VERSE_RE = /[﴾﴿]([^﴾﴿]*?)[﴾﴿]/g;
+// The reference "[سورة: آية]" must start within this many characters after the verse.
+const REF_LOOKAHEAD_CHARS = 160;
+// A glyph citation shorter than this share of the canonical verse is likely partial.
+const PARTIAL_CITATION_RATIO = 0.6;
+
+interface VerseOutcome {
+  replaced: boolean;
+  originalText?: string;
+}
+
+const glyphStats = {
+  replaced: 0,
+  spanning: 0,
+  partial: 0,
+  unreplaceable: [] as string[],
+  ayahMismatches: [] as string[],
+  missingClosers: [] as string[],
+  misaligned: [] as string[],
+};
+
+const escapeHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// Inline tags inside a replaced verse are kept (emptied) so the HTML stays balanced.
+const tagsOf = (html: string) => html.match(/<[^>]+>/g)?.join('') ?? '';
+
+function describeRef(v: BlogVerse): string {
+  return v.ayahTo !== undefined ? `${v.surah}:${v.ayahFrom}-${v.ayahTo}` : `${v.surah}:${v.ayahFrom}`;
+}
+
+function checkCitation(glyphText: string, ref: BlogVerse, canonical: string, paragraphId: string) {
+  // Quran Word keeps the ayah-end numbers as ordinary digits (e.g. "٣٣").
+  const markers = (normalizeArabic(glyphText).match(/\d+/g) ?? []).map(Number);
+  const from = ref.ayahFrom!;
+  const to = ref.ayahTo ?? from;
+  const outside = markers.filter(n => n < from || n > to);
+  if (outside.length > 0) {
+    glyphStats.ayahMismatches.push(`${paragraphId}: reference ${describeRef(ref)}, but the glyph text marks ayah ${outside.join('، ')}`);
+  }
+  if (countGlyphChars(glyphText) < canonical.split(/\s+/).length * PARTIAL_CITATION_RATIO) {
+    glyphStats.partial++;
+  }
+}
+
+function replaceGlyphVerses(html: string, paragraphId: string): { html: string; searchHtml: string; outcomes: VerseOutcome[] } {
+  const outcomes: VerseOutcome[] = [];
+  let display = '';
+  let search = '';
+  let cursor = 0;
+
+  for (const m of html.matchAll(HTML_VERSE_RE)) {
+    const start = m.index!;
+    const end = start + m[0].length;
+    const between = html.slice(cursor, start);
+    display += between;
+    search += between;
+    cursor = end;
+
+    const keep = () => {
+      display += m[0];
+      search += m[0];
+    };
+    const inner = htmlToText(m[1]);
+    if (inner.length < 2) { keep(); continue; } // extractVerses ignores these too
+
+    if (!containsQuranGlyphs(inner)) {
+      outcomes.push({ replaced: false });
+      keep();
+      continue;
+    }
+
+    const following = htmlToText(html.slice(end, end + REF_LOOKAHEAD_CHARS * 3)).slice(0, REF_LOOKAHEAD_CHARS);
+    const [ref] = extractVerses(`﴿نص﴾ ${following}`, paragraphId, 0);
+    let reason: string | null = null;
+    let uthmani: string | null = null;
+    if (!ref?.surah || ref.ayahFrom === undefined) reason = 'no reference';
+    else if (getSurahNumber(ref.surah) === null) reason = `unknown surah «${ref.surah}»`;
+    else if (!(uthmani = getVerseText(ref.surah, ref.ayahFrom, ref.ayahTo))) reason = `ayah out of range (${describeRef(ref)})`;
+
+    if (reason || !uthmani) {
+      glyphStats.unreplaceable.push(`${paragraphId}: ${reason} — after: "${following.slice(0, 50)}"`);
+      outcomes.push({ replaced: false });
+      keep();
+      continue;
+    }
+
+    const simple = getVerseText(ref!.surah!, ref!.ayahFrom!, ref!.ayahTo, 'simple-clean')!;
+    checkCitation(inner, ref!, uthmani, paragraphId);
+    display += `﴿${escapeHtml(uthmani)}﴾${tagsOf(m[1])}`;
+    search += `﴿${escapeHtml(simple)}﴾${tagsOf(m[1])}`;
+    outcomes.push({ replaced: true, originalText: inner });
+    glyphStats.replaced++;
+  }
+
+  display += html.slice(cursor);
+  search += html.slice(cursor);
+  return { html: display, searchHtml: search, outcomes };
+}
+
+// Long citations can span several Word paragraphs: ﴿ opens in one, ﴾ [ref] closes
+// a few paragraphs later. The ayah-end numbers in the glyph text tell which
+// ayahs each paragraph holds, so each paragraph gets exactly its own ayahs.
+
+const GLYPH_CLASS = '\\uE000-\\uF8FF\\uFB50-\\uFD3D\\uFD40-\\uFDFF\\uFE70-\\uFEFF';
+// A glyph run, possibly with spaces, ayah numbers and inline tags inside it. It may
+// start with a number: an ayah split at a paragraph break leaves its number there.
+const GLYPH_RUN_RE = new RegExp(
+  `[${GLYPH_CLASS}\\u0660-\\u06690-9](?:[${GLYPH_CLASS}\\s\\u0660-\\u06690-9]|<[^>]+>)*`,
+  'g'
+);
+const GLYPH_ONLY_TEXT_RE = new RegExp(`^[${GLYPH_CLASS}\\s\\u0660-\\u06690-9]+$`);
+const BRACKET_RE = /[﴾﴿]/g;
+// Some citations run a whole passage one ayah per paragraph; the ayah-marker
+// validation below rejects a wrong pairing, so this limit can be generous.
+const MAX_SPAN_PARAGRAPHS = 150;
+
+const bracketPositions = (html: string) => [...html.matchAll(BRACKET_RE)].map(m => m.index!);
+const ayahMarkers = (text: string) => (normalizeArabic(text).match(/\d+/g) ?? []).map(Number);
+
+interface SpanPiece {
+  index: number;
+  start: number; // run position in that paragraph's HTML
+  run: string;
+}
+
+// The glyph run in one paragraph of a spanning verse, or null if the paragraph
+// holds anything other than verse glyphs on the verse side of its bracket.
+function spanPiece(html: string, index: number, role: 'first' | 'middle' | 'last'): SpanPiece | null {
+  const brackets = bracketPositions(html);
+  const from = role === 'first' ? brackets[brackets.length - 1] + 1 : 0;
+  const to = role === 'last' ? brackets[0] : html.length;
+  const region = html.slice(from, to);
+  const runs = [...region.matchAll(GLYPH_RUN_RE)];
+  if (runs.length !== 1) return null;
+  const outside = region.slice(0, runs[0].index!) + region.slice(runs[0].index! + runs[0][0].length);
+  if (htmlToText(outside).trim() !== '') return null;
+  return { index, start: from + runs[0].index!, run: runs[0][0] };
+}
+
+// "﴿glyphs ٣٢ [العنكبوت: 31-32]" — an opening bracket whose closing ﴾ was forgotten,
+// with the reference right after the glyph run in the same paragraph.
+// Where the glyph run after the paragraph's last (unmatched) bracket is.
+function locateUnclosedRun(html: string): { openAt: number; runStart: number; runEnd: number; run: string } | null {
+  const openAt = bracketPositions(html).at(-1);
+  if (openAt === undefined) return null;
+  const region = html.slice(openAt + 1);
+  const m = region.match(new RegExp(GLYPH_RUN_RE.source));
+  if (!m || htmlToText(region.slice(0, m.index!)).trim() !== '') return null;
+  const runStart = openAt + 1 + m.index!;
+  return { openAt, runStart, runEnd: runStart + m[0].length, run: m[0] };
+}
+
+function replaceUnclosedVerse(display: string[], search: string[], i: number, id: string, partNumber: number): BlogVerse | null {
+  const at = locateUnclosedRun(display[i]);
+  if (!at) return null;
+  const following = htmlToText(display[i].slice(at.runEnd, at.runEnd + REF_LOOKAHEAD_CHARS * 3)).slice(0, REF_LOOKAHEAD_CHARS);
+  const [ref] = extractVerses(`﴿نص﴾ ${following}`, id, partNumber);
+  if (!ref?.surah || ref.ayahFrom === undefined) return null;
+  const uthmani = getVerseText(ref.surah, ref.ayahFrom, ref.ayahTo);
+  const simple = getVerseText(ref.surah, ref.ayahFrom, ref.ayahTo, 'simple-clean');
+  if (!uthmani || !simple) return null;
+
+  // Located separately in each copy: earlier verses in the paragraph may differ in length.
+  const rebuild = (html: string, text: string) => {
+    const loc = locateUnclosedRun(html)!;
+    return html.slice(0, loc.openAt) + '﴿' + html.slice(loc.openAt + 1, loc.runStart) +
+      escapeHtml(text) + '﴾' + tagsOf(loc.run) + html.slice(loc.runEnd);
+  };
+  display[i] = rebuild(display[i], uthmani);
+  search[i] = rebuild(search[i], simple);
+  checkCitation(htmlToText(at.run), ref, uthmani, id);
+  glyphStats.missingClosers.push(`${id}: added the missing ﴾ before ${describeRef(ref)}`);
+  return { ...ref, text: uthmani, replacedFromGlyphs: true, originalText: htmlToText(at.run) };
+}
+
+// "glyphs ١٩٦﴾ [الشعراء: 196]" at the start of a paragraph — the opening ﴿ was forgotten.
+function locateUnopenedRun(html: string): { closeAt: number; runStart: number; runEnd: number; run: string } | null {
+  const closeAt = bracketPositions(html)[0];
+  if (closeAt === undefined) return null;
+  const region = html.slice(0, closeAt);
+  const runs = [...region.matchAll(GLYPH_RUN_RE)];
+  if (runs.length !== 1) return null;
+  const m = runs[0];
+  if (htmlToText(region.slice(0, m.index!) + region.slice(m.index! + m[0].length)).trim() !== '') return null;
+  return { closeAt, runStart: m.index!, runEnd: m.index! + m[0].length, run: m[0] };
+}
+
+function replaceUnopenedVerse(display: string[], search: string[], i: number, id: string, partNumber: number): BlogVerse | null {
+  const at = locateUnopenedRun(display[i]);
+  if (!at) return null;
+  const following = htmlToText(display[i].slice(at.closeAt + 1, at.closeAt + 1 + REF_LOOKAHEAD_CHARS * 3)).slice(0, REF_LOOKAHEAD_CHARS);
+  const [ref] = extractVerses(`﴿نص﴾ ${following}`, id, partNumber);
+  if (!ref?.surah || ref.ayahFrom === undefined) return null;
+  const uthmani = getVerseText(ref.surah, ref.ayahFrom, ref.ayahTo);
+  const simple = getVerseText(ref.surah, ref.ayahFrom, ref.ayahTo, 'simple-clean');
+  if (!uthmani || !simple) return null;
+
+  const rebuild = (html: string, text: string) => {
+    const loc = locateUnopenedRun(html)!;
+    return html.slice(0, loc.runStart) + '﴿' + escapeHtml(text) + tagsOf(loc.run) + html.slice(loc.runEnd, loc.closeAt) + '﴾' + html.slice(loc.closeAt + 1);
+  };
+  display[i] = rebuild(display[i], uthmani);
+  search[i] = rebuild(search[i], simple);
+  checkCitation(htmlToText(at.run), ref, uthmani, id);
+  glyphStats.missingClosers.push(`${id}: added the missing ﴿ before ${describeRef(ref)}`);
+  return { ...ref, text: uthmani, replacedFromGlyphs: true, originalText: htmlToText(at.run) };
+}
+
+function replaceSpanningVerses(display: string[], search: string[], ids: string[], partNumber: number): BlogVerse[] {
+  const verses: BlogVerse[] = [];
+  const oddBrackets = (i: number) => bracketPositions(display[i]).length % 2 === 1;
+
+  for (let i = 0; i < display.length; i++) {
+    if (!oddBrackets(i) || !containsQuranGlyphs(htmlToText(display[i]))) continue;
+
+    const repaired =
+      replaceUnclosedVerse(display, search, i, ids[i], partNumber) ??
+      replaceUnopenedVerse(display, search, i, ids[i], partNumber);
+    if (repaired) {
+      verses.push(repaired);
+      glyphStats.replaced++;
+      continue;
+    }
+
+    let j = i + 1;
+    while (j < display.length && j - i < MAX_SPAN_PARAGRAPHS && !oddBrackets(j)) j++;
+    const fail = (reason: string) => glyphStats.unreplaceable.push(`${ids[i]}…${ids[j] ?? 'end'}: multi-paragraph verse, ${reason}`);
+    if (j >= display.length || j - i >= MAX_SPAN_PARAGRAPHS) { fail('closing bracket not found'); continue; }
+
+    const closeAt = bracketPositions(display[j])[0];
+    const following = htmlToText(display[j].slice(closeAt + 1, closeAt + 1 + REF_LOOKAHEAD_CHARS * 3)).slice(0, REF_LOOKAHEAD_CHARS);
+    const [ref] = extractVerses(`﴿نص﴾ ${following}`, ids[i], partNumber);
+    if (!ref?.surah || ref.ayahFrom === undefined || getSurahNumber(ref.surah) === null) { fail('no usable reference'); i = j; continue; }
+    const last = ref.ayahTo ?? ref.ayahFrom;
+
+    const pieces: SpanPiece[] = [];
+    for (let k = i; k <= j; k++) {
+      const role = k === i ? 'first' : k === j ? 'last' : 'middle';
+      if (role === 'middle') {
+        const text = htmlToText(display[k]);
+        // Separators ("*** ***") or the author's commentary between parts of the verse
+        if (!containsQuranGlyphs(text)) continue;
+        if (!GLYPH_ONLY_TEXT_RE.test(text)) { pieces.length = 0; break; }
+      }
+      const piece = spanPiece(display[k], k, role);
+      if (!piece) { pieces.length = 0; break; }
+      pieces.push(piece);
+    }
+    if (pieces.length === 0) { fail('paragraphs mix verse glyphs with other text'); i = j; continue; }
+
+    // Each paragraph covers the ayahs up to its last ayah-end marker.
+    let next = ref.ayahFrom;
+    const ranges = pieces.map(p => {
+      const markers = ayahMarkers(htmlToText(p.run));
+      if (markers.length === 0) return null; // ayah continues in the next paragraph
+      const range = { from: next, to: markers[markers.length - 1] };
+      next = range.to + 1;
+      return range;
+    });
+    const covered = ranges.filter((r): r is { from: number; to: number } => r !== null);
+    const valid = covered.length > 0 && next === last + 1 && covered.every(r => r.from <= r.to);
+    if (!valid) { fail(`ayah markers do not match ${describeRef(ref)}`); i = j; continue; }
+
+    // Replace from the last paragraph backwards so earlier positions stay valid.
+    for (let p = pieces.length - 1; p >= 0; p--) {
+      const { index, start, run } = pieces[p];
+      const range = ranges[p];
+      const uthmani = range ? getVerseText(ref.surah, range.from, range.to)! : '';
+      const simple = range ? getVerseText(ref.surah, range.from, range.to, 'simple-clean')! : '';
+      const swap = (html: string, text: string) => html.slice(0, start) + escapeHtml(text) + tagsOf(run) + html.slice(start + run.length);
+      display[index] = swap(display[index], uthmani);
+      search[index] = swap(search[index], simple);
+    }
+    // Normalize the outer brackets to ﴿ … ﴾ (positions differ between the two versions)
+    const setChar = (s: string, at: number, ch: string) => s.slice(0, at) + ch + s.slice(at + 1);
+    for (const arr of [display, search]) {
+      arr[i] = setChar(arr[i], bracketPositions(arr[i]).at(-1)!, '﴿');
+      arr[j] = setChar(arr[j], bracketPositions(arr[j])[0], '﴾');
+    }
+
+    verses.push({
+      key: ref.key,
+      text: getVerseText(ref.surah, ref.ayahFrom, last)!,
+      surah: ref.surah,
+      ayahFrom: ref.ayahFrom,
+      ...(ref.ayahTo !== undefined ? { ayahTo: ref.ayahTo } : {}),
+      paragraphId: ids[i],
+      partNumber,
+      replacedFromGlyphs: true,
+      originalText: pieces.map(p => htmlToText(p.run)).join(' '),
+    });
+    glyphStats.replaced++;
+    glyphStats.spanning++;
+    i = j;
+  }
+  return verses;
+}
+
 function buildArticle(section: Section, id: string, paragraphPrefix: string, sourceFile: string): BlogArticle {
+  const verses: BlogVerse[] = [];
+  const ids = section.blocks.map((_, i) => `${paragraphPrefix}-${i}`);
+
+  // 1. Verses whose brackets are within one paragraph
+  const perBlock = section.blocks.map((b, i) => replaceGlyphVerses(b.html, ids[i]));
+  const display = perBlock.map(r => r.html);
+  const search = perBlock.map(r => r.searchHtml);
+  // 2. Verses spanning several paragraphs
+  const spanningVerses = replaceSpanningVerses(display, search, ids, section.partNumber);
+
   const paragraphs: BlogParagraph[] = section.blocks.map((b, i) => {
+    const paragraphId = ids[i];
     const level = headingLevelOf(b.tag);
+    const { outcomes } = perBlock[i];
+    const html = display[i];
+    const searchHtml = search[i];
+    const text = htmlToText(html);
+
+    // Verses come out of the text in the same order as the replacement outcomes.
+    const paragraphVerses = extractVerses(text, paragraphId, section.partNumber);
+    if (paragraphVerses.length === outcomes.length) {
+      paragraphVerses.forEach((v, k) => {
+        if (outcomes[k].replaced) {
+          v.replacedFromGlyphs = true;
+          v.originalText = outcomes[k].originalText;
+        }
+      });
+    } else if (outcomes.some(o => o.replaced)) {
+      glyphStats.misaligned.push(paragraphId);
+    }
+    verses.push(...paragraphVerses);
+    verses.push(...spanningVerses.filter(v => v.paragraphId === paragraphId));
+
     return {
-      id: `${paragraphPrefix}-${i}`,
-      html: b.html,
-      text: b.text,
-      norm: b.norm,
+      id: paragraphId,
+      html,
+      text,
+      norm: normalizeArabic(htmlToText(searchHtml)),
       isHeading: level !== undefined,
       ...(level !== undefined ? { headingLevel: level } : {}),
     };
@@ -253,9 +592,44 @@ function buildArticle(section: Section, id: string, paragraphPrefix: string, sou
     title: section.title,
     sourceFile,
     paragraphs,
-    verses: paragraphs.flatMap(p => extractVerses(p.text, p.id, section.partNumber)),
-    wordCount: wordsIn(section.blocks),
+    verses,
+    wordCount: paragraphs.reduce((n, p) => n + (p.text.match(/\S+/g)?.length ?? 0), 0),
   };
+}
+
+function printVerseSummary(corpus: BlogCorpus) {
+  const all = corpus.articles.flatMap(a => a.verses);
+  const replaced = all.filter(v => v.replacedFromGlyphs).length;
+  const stillGlyphs = all.filter(v => !v.replacedFromGlyphs && containsQuranGlyphs(v.text)).length;
+  const glyphParagraphs = corpus.articles.flatMap(a => a.paragraphs).filter(p => containsQuranGlyphs(p.text)).length;
+  const list = (items: string[], max: number) => {
+    items.slice(0, max).forEach(item => console.log(`      ${item}`));
+    if (items.length > max) console.log(`      … and ${items.length - max} more`);
+  };
+
+  console.log('\nQuran verse text (Tanzil):');
+  console.log(`  total verses:                          ${all.length}`);
+  console.log(`  replaced from glyphs:                  ${replaced} (${glyphStats.spanning} spanning several paragraphs)`);
+  console.log(`  glyphs but unreplaceable:              ${stillGlyphs} (+ ${glyphStats.unreplaceable.length - stillGlyphs} multi-paragraph passages)`);
+  console.log(`  already in Arabic (unchanged):         ${all.length - replaced - stillGlyphs}`);
+  console.log(`  partial citations shown as full verse: ${glyphStats.partial}`);
+  console.log(`  paragraphs still containing glyphs:    ${glyphParagraphs} (mostly short quotes without ﴿﴾ or reference)`);
+
+  if (glyphStats.unreplaceable.length > 0) {
+    console.warn(`  ⚠ Unreplaceable glyph verses (fix the reference in the .docx):`);
+    list(glyphStats.unreplaceable, Infinity);
+  }
+  if (glyphStats.ayahMismatches.length > 0) {
+    console.warn(`  ⚠ ${glyphStats.ayahMismatches.length} reference/ayah-number mismatches (possible reference typos):`);
+    list(glyphStats.ayahMismatches, 20);
+  }
+  if (glyphStats.missingClosers.length > 0) {
+    console.warn(`  ℹ ${glyphStats.missingClosers.length} verses had a missing bracket (added):`);
+    list(glyphStats.missingClosers, 20);
+  }
+  if (glyphStats.misaligned.length > 0) {
+    console.warn(`  ⚠ ${glyphStats.misaligned.length} paragraphs where replacement flags could not be matched to verses: ${glyphStats.misaligned.slice(0, 10).join(', ')}`);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +643,7 @@ async function writeCorpus(articles: BlogArticle[]): Promise<BlogCorpus> {
     totalArticles: articles.length,
     totalParagraphs: articles.reduce((n, a) => n + a.paragraphs.length, 0),
     totalVerses: articles.reduce((n, a) => n + a.verses.length, 0),
+    ...(glyphStats.replaced > 0 ? { quranTextSource: QURAN_TEXT_ATTRIBUTION } : {}),
     articles,
   };
   await mkdir(path.dirname(OUT_FILE), { recursive: true });
@@ -352,6 +727,7 @@ async function main() {
   console.log(
     `✓ ${corpus.totalArticles} articles, ${corpus.totalParagraphs} paragraphs, ${corpus.totalVerses} verses → ${path.relative(ROOT, OUT_FILE)}`
   );
+  printVerseSummary(corpus);
 }
 
 main().catch(err => {

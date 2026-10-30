@@ -50,6 +50,10 @@ The `.docx` sources are **not** in git (too large). Only the generated `public/b
 
 If the folder is empty, `npm run blog` keeps the existing `blog.json` instead of overwriting it.
 
+The articles cite verses with a Quran font whose glyphs are not readable text. `npm run blog` replaces each cited verse with the canonical text of its reference `[سورة: آية]` from the [Tanzil Project](https://tanzil.net) (see `data/quran/README.md`), and prints a summary listing any verse it could not replace.
+
+تُستبدل رموز خط المصحف في الآيات بالنص القرآني من [مشروع تنزيل](https://tanzil.net) اعتماداً على المرجع `[سورة: آية]`، ويطبع الأمر قائمة بالآيات التي تعذّر استبدالها.
+
 ### Local Development / التشغيل المحلي
 
 ```bash
@@ -106,3 +110,5 @@ src/
 ## Tech Stack
 
 React 19 · TypeScript · Vite 8 · Tailwind 4 · Zustand 5 · react-arborist · mammoth · docx · @google/genai
+
+Quran text: [Tanzil Project](https://tanzil.net) (CC BY 3.0, verbatim).

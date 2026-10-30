@@ -344,6 +344,15 @@ export const BlogReader: React.FC = () => {
                   {toArabicDigits(article.wordCount)} كلمة • {toArabicDigits(article.verses.length)} آية
                 </span>
               </div>
+              {/* Required by the Tanzil terms of use for the canonical verse text */}
+              {article.verses.some(v => v.replacedFromGlyphs) && (
+                <div className="mt-2 text-[10.5px] text-gray-400 font-sans">
+                  نص الآيات الكريمة من{' '}
+                  <a href="https://tanzil.net" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    مشروع تنزيل (tanzil.net)
+                  </a>
+                </div>
+              )}
             </article>
           </div>
 

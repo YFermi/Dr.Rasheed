@@ -15,6 +15,9 @@ export interface BlogVerse {
   ayahTo?: number;
   paragraphId: string;
   partNumber: number;
+  // True when `text` is canonical Tanzil text that replaced Quran-font glyphs
+  replacedFromGlyphs: boolean;
+  originalText?: string; // the glyph version, for diagnostics
 }
 
 export interface BlogArticle {
@@ -33,6 +36,8 @@ export interface BlogCorpus {
   totalArticles: number;
   totalParagraphs: number;
   totalVerses: number;
+  // Attribution for canonical verse text (required by Tanzil's terms of use)
+  quranTextSource?: string;
   articles: BlogArticle[];
 }
 

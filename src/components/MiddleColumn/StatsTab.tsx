@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useIdeaStore, getAllNodeList } from '../../store/useIdeaStore';
 import { useBlogStore } from '../../store/useBlogStore';
-import { formatArabicCount, toArabicDigits } from '../../utils/arabic';
+import { formatArabicCount, toArabicDigits, containsQuranGlyphs } from '../../utils/arabic';
 import { countSharedTreeVerses, findRefArticle } from '../../utils/blogLinks';
 import { 
   BarChart3, 
@@ -119,6 +119,9 @@ export const StatsTab: React.FC = () => {
   });
   const mostCitedArticle = [...citationsByArticle.values()].sort((a, b) => b.count - a.count)[0];
   const sharedVerses = countSharedTreeVerses(allNodes, blogArticles);
+  const blogVerses = blogArticles.flatMap(a => a.verses);
+  const canonicalVerses = blogVerses.filter(v => v.replacedFromGlyphs).length;
+  const versesNeedingReview = blogVerses.filter(v => !v.replacedFromGlyphs && containsQuranGlyphs(v.text)).length;
 
   return (
     <div className="h-full flex flex-col bg-[#252536] text-[#cdd6f4] select-none text-right font-sans">
@@ -390,6 +393,16 @@ export const StatsTab: React.FC = () => {
                   <span className="text-gray-300">الآيات في المدونة</span>
                   <span className="font-mono text-amber-300 font-semibold">{corpus?.totalVerses}</span>
                 </div>
+                <div className="flex items-center justify-between" title="نص الآية مأخوذ من مشروع تنزيل (tanzil.net) بدلاً من رموز خط المصحف">
+                  <span className="text-gray-300">آيات بنص قرآني موثق</span>
+                  <span className="font-mono text-emerald-400 font-semibold">{canonicalVerses}</span>
+                </div>
+                {versesNeedingReview > 0 && (
+                  <div className="flex items-center justify-between" title="آيات بقيت برموز خط المصحف لعدم وجود مرجع (سورة: آية) بعدها">
+                    <span className="text-gray-300">آيات بحاجة للمراجعة اليدوية</span>
+                    <span className="font-mono text-rose-400 font-semibold">{versesNeedingReview}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-gray-300">المراجع في الشجرة</span>
                   <span className="font-mono text-indigo-300 font-semibold">{allBlogRefs.length}</span>
