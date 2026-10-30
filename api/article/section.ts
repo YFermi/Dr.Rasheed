@@ -25,9 +25,22 @@ import {
   ORDINALS,
 } from '../_lib/gemini.js';
 
-const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
-const MAX_EXAMPLES = 5;
+// Kept small for speed: a section is ~2,048 output tokens at most, which holds
+// about 600 Arabic words of prose plus the JSON around it.
+const MAX_OUTPUT_TOKENS = 2048;
+export const MAX_SECTION_WORDS = 600;
+const MAX_EXAMPLES = 3;
+const EXAMPLE_MAX_WORDS = 40;
 const BLOCK_TYPES = new Set(['heading', 'subheading', 'paragraph', 'verse']);
+
+// The essentials of data/style-guide.md, for the per-section calls (the outline
+// and stitch calls still get the full guide).
+const CORE_STYLE_RULES = `## قواعد الأسلوب الأساسية
+- ضمير المتكلم الجمع مع التحوّط: «نظن»، «لا أظن»، «في رأينا»، «إننا»؛ لا جزم مطلق.
+- نبرة حوارية: مخاطبة «عزيزي القارئ»، وأسئلة كثيرة («لماذا…؟»، «السؤال: …»).
+- تطوير الفكرة: سؤال ← شاهد قرآني ← تفكيك اللفظ ومقابلته بمواضعه الأخرى في كتاب الله ← كشف وهم التفسير الموروث بأدب («ألا ترون – يا سادة – …») ← فهم جديد ← «النتيجة: …».
+- «افتراء من عند أنفسنا: …» لفكرة isNew فقط ومرة واحدة على الأكثر؛ والفكرة المنشورة سابقاً: «كما بيّنا في الجزء …».
+- فقرات قصيرة متصلة؛ لا تعداد نقطي، ولا عناوين إنجليزية، ولا «في الختام» أو «خلاصة القول».`;
 
 const SECTION_SCHEMA = {
   type: 'object',
@@ -52,34 +65,45 @@ const SECTION_SCHEMA = {
   additionalProperties: false,
 };
 
-// The moves this section needs most; «افتراء» examples only when it has new ideas.
+// A short excerpt: whole sentences up to EXAMPLE_MAX_WORDS words.
+function shortExample(e: StyleExample): StyleExample {
+  const sentences = e.text.replace(/\s+/g, ' ').split(/(?<=[.؟!:])\s+/);
+  let text = sentences[0];
+  for (const s of sentences.slice(1)) {
+    if (wordCount(`${text} ${s}`) > EXAMPLE_MAX_WORDS) break;
+    text = `${text} ${s}`;
+  }
+  const words = text.split(/\s+/);
+  return { ...e, text: words.length > EXAMPLE_MAX_WORDS ? `${words.slice(0, EXAMPLE_MAX_WORDS).join(' ')}…` : text };
+}
+
+// Three short examples of the core moves; «افتراء» only when the section has new ideas.
 export function pickExamples(examples: StyleExample[], nodes: ArticleNodeInput[]): StyleExample[] {
-  const wanted = ['verse', 'question', 'refutation', ...(nodes.some(n => n.isNew) ? ['iftiraa'] : ['opinion']), 'result', 'transition'];
+  const wanted = ['question', nodes.some(n => n.isNew) ? 'iftiraa' : 'opinion', 'result', 'refutation'];
   const picked: StyleExample[] = [];
   for (const category of wanted) {
     const example = examples.find(e => e.category === category && !picked.includes(e));
     if (example) picked.push(example);
     if (picked.length >= MAX_EXAMPLES) break;
   }
-  return picked;
+  return picked.map(shortExample);
 }
 
 export function buildSectionPrompt(
   req: SectionRequest,
-  styleGuide: string,
   examples: StyleExample[]
 ): { system: string; prompt: string; heading: string; wordBudget: number } {
   const outline = req.outline;
   const index = outline.sections.findIndex(s => s.id === req.sectionId);
   const plan = outline.sections[index];
   const heading = `المحور ${ORDINALS[index] ?? index + 1}: ${plan.axisName}`;
-  const wordBudget = req.wordBudget ?? plan.wordBudget;
+  const wordBudget = Math.min(req.wordBudget ?? plan.wordBudget, MAX_SECTION_WORDS);
 
-  const system = `أنت تكتب بأسلوب د. رشيد الجراح محوراً واحداً من جزء جديد في سلسلته. التزم بدليل الأسلوب التالي التزاماً تاماً.
+  const system = `أنت تكتب بأسلوب د. رشيد الجراح محوراً واحداً من جزء جديد في سلسلته.
 
-${styleGuide}
+${CORE_STYLE_RULES}
 
-## أمثلة حقيقية من كتابته (الآيات فيها مختصرة إلى ﴿…﴾؛ لا تنسخ عباراتها حرفياً بل حاكِ أسلوبها)
+## أمثلة قصيرة من كتابته (حاكِ الأسلوب ولا تنسخ العبارات)
 ${formatExamples(examples)}
 
 ## قواعد الإخراج
@@ -202,16 +226,16 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   return handleJson(req, res, async (body, apiKey) => {
     const request = validateInput(body);
     const pack = await loadStylePack();
-    const { system, prompt, heading } = buildSectionPrompt(request, pack.styleGuide, pickExamples(pack.examples, request.sectionNodes));
+    const { system, prompt, heading } = buildSectionPrompt(request, pickExamples(pack.examples, request.sectionNodes));
     const raw = await generateJson<Partial<SectionResponse>>({
       apiKey,
       system,
       prompt,
       schema: SECTION_SCHEMA,
-      timeoutMs: TIMEOUT_MS,
-      // Speed: the outline already did the planning, and the 55 s limit leaves
-      // no room for long thinking before ~1,500 words of prose.
-      effort: 'low',
+      maxOutputTokens: MAX_OUTPUT_TOKENS,
+      // Speed: the outline already did the planning; thinking tokens would also
+      // eat into the 2,048-token output limit.
+      effort: 'minimal',
     });
     return normalizeSection(raw, request, heading);
   });

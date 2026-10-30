@@ -13,7 +13,7 @@ import {
   asStringArray,
 } from '../_lib/gemini.js';
 
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const MAX_PARAGRAPHS_PER_SIDE = 2;
 
 const STITCH_SCHEMA = {
@@ -87,7 +87,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       prompt,
       schema: STITCH_SCHEMA,
       timeoutMs: TIMEOUT_MS,
-      effort: 'low',
+      effort: 'minimal',
     });
     return normalizeStitch(raw, request);
   });

@@ -34,6 +34,13 @@ export function hasApiKey(): boolean {
   return !!getApiKey();
 }
 
+// Gemini API keys from Google AI Studio start with this prefix
+export const KEY_PREFIX = 'AIzaSy';
+
+export function hasValidKeyFormat(key: string): boolean {
+  return key.trim().startsWith(KEY_PREFIX);
+}
+
 // "AIza...x7Kq"
 export function maskKey(key: string): string {
   return key.length <= 8 ? '•'.repeat(key.length) : `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;

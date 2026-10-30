@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApiKeyStore } from '../store/useApiKeyStore';
-import { getApiKey, testApiKey } from '../utils/apiKey';
+import { getApiKey, testApiKey, hasValidKeyFormat, KEY_PREFIX } from '../utils/apiKey';
 import { KeyRound, Eye, EyeOff, ClipboardPaste, X, Loader2, ShieldAlert } from 'lucide-react';
 
 type TestState = { status: 'idle' } | { status: 'testing' } | { status: 'valid'; source: string } | { status: 'invalid'; error: string };
@@ -34,8 +34,11 @@ export const ApiKeyModal: React.FC = () => {
     }
   };
 
+  const typed = value.trim();
+  const formatError = typed !== '' && !hasValidKeyFormat(typed);
+
   const handleSave = () => {
-    if (!value.trim()) return;
+    if (!typed || formatError) return;
     saveKey(value);
     closeModal();
   };
@@ -100,7 +103,7 @@ export const ApiKeyModal: React.FC = () => {
           {/* C) Input */}
           <div className="space-y-1">
             <label className="text-[11px] text-gray-300 block">{hasKey ? 'استبدال المفتاح:' : 'المفتاح:'}</label>
-            <div className="flex items-center gap-1 bg-[#181825] border border-[#313244] rounded px-2 py-1 focus-within:border-amber-500/60">
+            <div className={`flex items-center gap-1 bg-[#181825] border rounded px-2 py-1 ${formatError ? 'border-rose-500' : 'border-[#313244] focus-within:border-amber-500/60'}`}>
               <input
                 type={visible ? 'text' : 'password'}
                 dir="ltr"
@@ -119,6 +122,9 @@ export const ApiKeyModal: React.FC = () => {
                 <ClipboardPaste className="w-3.5 h-3.5" />
               </button>
             </div>
+            <p role={formatError ? 'alert' : undefined} className={`text-[10.5px] ${formatError ? 'text-rose-400 font-semibold' : 'text-gray-500'}`}>
+              {formatError ? '⚠️ ' : ''}المفتاح يجب أن يبدأ بـ <span dir="ltr" className="font-mono">{KEY_PREFIX}</span>
+            </p>
           </div>
 
           {/* F) Test */}
@@ -126,7 +132,7 @@ export const ApiKeyModal: React.FC = () => {
             <button
               type="button"
               onClick={handleTest}
-              disabled={test.status === 'testing' || (!value.trim() && !hasKey && !serverHasKey)}
+              disabled={test.status === 'testing' || formatError || (!typed && !hasKey && !serverHasKey)}
               className="px-2.5 py-1 bg-[#313244] hover:bg-[#45475a] disabled:opacity-40 text-white rounded text-[11px] transition"
             >
               🧪 اختبار الاتصال
@@ -162,7 +168,7 @@ export const ApiKeyModal: React.FC = () => {
             <button
               type="button"
               onClick={handleSave}
-              disabled={!value.trim()}
+              disabled={!typed || formatError}
               className="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 text-white rounded text-xs font-semibold transition"
             >
               💾 حفظ

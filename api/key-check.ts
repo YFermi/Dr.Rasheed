@@ -5,7 +5,7 @@
 
 import { type ApiRequest, type ApiResponse, HttpError, MISSING_KEY_ERROR, callGemini, resolveApiKey } from './_lib/gemini.js';
 
-const TIMEOUT_MS = 20_000;
+const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const PING_MAX_OUTPUT_TOKENS = 16;
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
@@ -19,7 +19,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
 
   try {
     // Any successful response proves the key works — even one cut off at the limit
-    await callGemini({ apiKey: resolved.key, prompt: 'ping', maxOutputTokens: PING_MAX_OUTPUT_TOKENS, effort: 'low', timeoutMs: TIMEOUT_MS });
+    await callGemini({ apiKey: resolved.key, prompt: 'ping', maxOutputTokens: PING_MAX_OUTPUT_TOKENS, effort: 'minimal', timeoutMs: TIMEOUT_MS });
     return res.status(200).json({ valid: true, source: resolved.source });
   } catch (error) {
     if (error instanceof HttpError) {

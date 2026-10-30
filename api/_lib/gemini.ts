@@ -11,10 +11,13 @@ import path from 'node:path';
 import type { StylePack, StyleExample } from '../../src/types/article';
 
 export const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-// gemini-1.5-flash was shut down in 2025; gemini-3.8-flash is the current stable
-// Flash model. Override with GEMINI_MODEL.
-export const DEFAULT_MODEL = 'gemini-3.8-flash';
+// gemini-1.5-flash was shut down in 2025 (requests to it fail). For speed the
+// default is gemini-3.5-flash-lite, Google's fastest current model, whose
+// thinking defaults to "minimal". Override with GEMINI_MODEL.
+export const DEFAULT_MODEL = 'gemini-3.5-flash-lite';
 export const MAX_OUTPUT_TOKENS = 8192; // includes thinking tokens
+// Every call stays under Vercel's 60 s function limit (vercel.json maxDuration)
+export const DEFAULT_TIMEOUT_MS = 55_000;
 
 export function geminiModel(): string {
   return process.env.GEMINI_MODEL || DEFAULT_MODEL;
@@ -78,13 +81,13 @@ export async function handleJson<T>(
 
 // ---- Gemini generateContent (REST) ---------------------------------------------
 
-export type Effort = 'low' | 'medium' | 'high';
+export type Effort = 'minimal' | 'low' | 'medium' | 'high';
 
 export interface GeminiRequest {
   apiKey: string;
   system?: string;
   prompt: string;
-  timeoutMs: number;
+  timeoutMs?: number; // default DEFAULT_TIMEOUT_MS
   maxOutputTokens?: number;
   // How much the model thinks before answering (lower = faster and cheaper),
   // mapped to the model's own thinking setting.
@@ -106,11 +109,16 @@ export interface GeminiResponse {
 
 // Gemini 3.x takes thinkingLevel; Gemini 2.5 takes thinkingBudget (0 = off on
 // Flash). Other models get no thinking setting.
-const THINKING_BUDGETS: Record<Effort, number> = { low: 0, medium: 1024, high: 4096 };
+const THINKING_BUDGETS: Record<Effort, number> = { minimal: 0, low: 0, medium: 1024, high: 4096 };
+// "minimal" exists only on some 3.x models (Flash-Lite, 3.6 Flash); elsewhere
+// the lowest level is "low".
+const MINIMAL_THINKING_MODELS = /flash-lite|^gemini-3\.6-flash/;
 
 function thinkingConfig(model: string, effort: Effort | undefined) {
   if (!effort) return undefined;
-  if (/^gemini-3/.test(model)) return { thinkingLevel: effort };
+  if (/^gemini-3/.test(model)) {
+    return { thinkingLevel: effort === 'minimal' && !MINIMAL_THINKING_MODELS.test(model) ? 'low' : effort };
+  }
   if (/^gemini-2\.5/.test(model)) return { thinkingBudget: THINKING_BUDGETS[effort] };
   return undefined;
 }
@@ -152,8 +160,9 @@ export async function callGemini(req: GeminiRequest): Promise<GeminiResponse> {
     },
   };
 
+  const timeoutMs = req.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), req.timeoutMs);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     // The key goes in a header, as in Google's REST examples, so it never
     // appears in a URL (logs, proxies, error messages).
@@ -170,7 +179,7 @@ export async function callGemini(req: GeminiRequest): Promise<GeminiResponse> {
     return (await res.json()) as GeminiResponse;
   } catch (error) {
     if (controller.signal.aborted) {
-      throw new HttpError(504, `انتهت مهلة النموذج (${Math.round(req.timeoutMs / 1000)} ثانية)`);
+      throw new HttpError(504, `انتهت مهلة النموذج (${Math.round(timeoutMs / 1000)} ثانية)`);
     }
     throw error;
   } finally {

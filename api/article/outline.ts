@@ -16,7 +16,7 @@ import {
   ORDINALS,
 } from '../_lib/gemini.js';
 
-const TIMEOUT_MS = 50_000; // under Vercel's 60 s limit
+const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const MIN_SECTION_WORDS = 300;
 const CLOSING_LINE = 'وللحديث بقية';
 
@@ -173,7 +173,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       prompt,
       schema: OUTLINE_SCHEMA,
       timeoutMs: TIMEOUT_MS,
-      effort: 'medium', // planning benefits from some thinking
+      effort: 'low', // speed: a light plan is enough
     });
     return normalizeOutline(raw, input);
   });

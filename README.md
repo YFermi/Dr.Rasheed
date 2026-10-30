@@ -65,7 +65,7 @@ npm run dev            # http://localhost:3000
 npm run dev:vercel
 ```
 
-The AI features use Google Gemini through its REST API (`gemini-3.8-flash` by default; set `GEMINI_MODEL` to change it). The key can come from the server (`GEMINI_API_KEY`) or be entered by each user in the app (🔑 button in the navbar), stored only in that browser. Get a free key at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey). Without any key, everything works except the AI features: script import falls back to local suggestions and article writing is disabled.
+The AI features use Google Gemini through its REST API (`gemini-3.5-flash-lite` by default, Google's fastest current model; set `GEMINI_MODEL` to change it, e.g. `gemini-3.8-flash` for richer prose). The key can come from the server (`GEMINI_API_KEY`) or be entered by each user in the app (🔑 button in the navbar), stored only in that browser. Get a free key at [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey). Without any key, everything works except the AI features: script import falls back to local suggestions and article writing is disabled.
 
 تعمل ميزات الذكاء الاصطناعي بنموذج Gemini من Google. يُؤخذ المفتاح من الخادم (`GEMINI_API_KEY`) أو يدخله المستخدم من زر 🔑 في الشريط العلوي فيُحفظ في متصفحه فقط. المفتاح مجاني من [Google AI Studio](https://aistudio.google.com/app/apikey). بدون مفتاح تعمل كل الميزات ما عدا ميزات الذكاء الاصطناعي.
 

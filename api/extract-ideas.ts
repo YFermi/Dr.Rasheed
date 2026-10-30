@@ -5,7 +5,7 @@
 import { type ApiRequest, type ApiResponse, handleJson, generateJson, loadStylePack, HttpError } from './_lib/gemini.js';
 
 const MAX_TRANSCRIPT_CHARS = 8000;
-const REQUEST_TIMEOUT_MS = 50_000; // under Vercel's 60 s limit
+const REQUEST_TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const DEFAULT_SPEAKERS = 'د. رشيد، مصطفى، يوسف، زكريا، أبو هارون، علي نور';
 
 interface ExtractRequestBody {
@@ -82,7 +82,7 @@ export async function extractIdeas(apiKey: string, body: ExtractRequestBody) {
     prompt: buildPrompt(transcript, body.speakers ?? [], body.axes ?? []),
     schema: IDEA_SCHEMA,
     timeoutMs: REQUEST_TIMEOUT_MS,
-    effort: 'low', // extraction, not reasoning
+    effort: 'minimal', // extraction, not reasoning
   });
   return { fallback: false, ideas: Array.isArray(result.ideas) ? result.ideas : [] };
 }
