@@ -1,0 +1,6 @@
+{
+  "name": "Idea Builder (باني الأفكار)",
+  "description": "Professional research IDE for structuring, organizing, and exporting academic and religious research ideas with COMSOL-inspired tree hierarchy and live Word preview.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

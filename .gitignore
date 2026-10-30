@@ -1,0 +1,30 @@
+node_modules/
+build/
+dist/
+coverage/
+*.log
+
+# Environment (secrets) — only the example file is committed
+.env
+.env.*
+!.env.example
+*.local
+
+# Vercel CLI
+.vercel/
+
+# Blog source files (too large for GitHub) — no Word file is ever committed,
+# wherever it is placed (content/blog/ or public/blog/), including ~$ lock files
+*.docx
+# NOTE: public/blog/blog.json is generated from them and MUST be committed
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build artifacts
+*.tsbuildinfo
