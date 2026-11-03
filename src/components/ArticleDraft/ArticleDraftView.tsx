@@ -32,7 +32,7 @@ const paragraphsOf = (text: string) => text.split(/\n{2,}/).map(p => p.trim()).f
 function VerseBlock({ block }: { block: DraftBlock }) {
   if (block.unresolved || !block.text) {
     return (
-      <div className="my-3 mx-2 p-3 border-2 border-dashed border-rose-300 bg-rose-50 rounded-lg text-center text-[13px] text-rose-700 font-sans">
+      <div className="my-3 mx-2 p-3 border-2 border-dashed border-rose-300 bg-rose-50 rounded-lg text-center fs-13 text-rose-700 font-sans">
         ⚠ تعذر العثور على الآية: {block.ref ?? '—'}
       </div>
     );
@@ -42,8 +42,8 @@ function VerseBlock({ block }: { block: DraftBlock }) {
       title={`النص القرآني الموثّق (تنزيل) — ${block.ref}:\n${block.text}`}
       className="my-3 mx-2 p-3.5 bg-[#fef9c3]/90 border-y border-[#ca8a04]/40 border-r-4 border-r-[#ca8a04] rounded-lg shadow-xs text-center"
     >
-      <p className="font-quran text-[18px] text-[#78350f] font-bold leading-relaxed">﴿{block.text}﴾</p>
-      <span className="text-[11px] text-amber-800/70 font-sans">[{block.ref?.replace(':', ': ')}]</span>
+      <p className="font-quran fs-18 text-[#78350f] font-bold leading-relaxed">﴿{block.text}﴾</p>
+      <span className="fs-11 text-amber-800/70 font-sans">[{block.ref?.replace(':', ': ')}]</span>
     </div>
   );
 }
@@ -55,15 +55,15 @@ function SectionBlocks({ section }: { section: DraftSection }) {
         if (b.type === 'heading') {
           return (
             <div key={i} className="mt-2 mb-3 border-b border-blue-900/15 pb-1">
-              <h2 className="text-[21px] font-bold text-[#1e3a8a] leading-tight font-quran">{b.text}</h2>
+              <h2 className="fs-21 font-bold text-[#1e3a8a] leading-tight font-quran">{b.text}</h2>
             </div>
           );
         }
         if (b.type === 'subheading') {
-          return <h3 key={i} className="mt-4 mb-2 text-[17px] font-bold text-[#374151] font-quran">{b.text}</h3>;
+          return <h3 key={i} className="mt-4 mb-2 fs-17 font-bold text-[#374151] font-quran">{b.text}</h3>;
         }
         if (b.type === 'verse') return <VerseBlock key={i} block={b} />;
-        return <p key={i} className="text-[16px] text-[#1f2937] leading-[1.9] text-justify font-quran my-2">{b.text}</p>;
+        return <p key={i} className="fs-16 text-[#1f2937] leading-[1.9] text-justify font-quran my-2">{b.text}</p>;
       })}
     </>
   );
@@ -77,24 +77,24 @@ function SectionToolbar({ section, index }: { section: DraftSection; index: numb
   const locked = Boolean(meta?.locked);
   const busy = isGenerating || locked;
 
-  const button = 'px-1.5 py-1 rounded flex items-center gap-1 text-[11px] transition disabled:opacity-40 disabled:cursor-not-allowed';
+  const button = 'px-1.5 py-1 rounded flex items-center gap-1 fs-11 transition disabled:opacity-40 disabled:cursor-not-allowed';
 
   return (
     <div className="no-print select-none -mx-2 mb-2 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg space-y-1.5 font-sans">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0 text-[11.5px]">
-          <span className="text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1.5 rounded-full">
+        <div className="flex items-center gap-1.5 min-w-0 fs-11.5">
+          <span className="fs-10 font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1.5 rounded-full">
             {toArabicDigits(index + 1)}
           </span>
           <span className="font-bold text-gray-700 truncate">{section.axisName}</span>
-          <span className="text-gray-400 font-mono text-[10px] flex-shrink-0">{toArabicDigits(section.wordCount)} كلمة</span>
+          <span className="text-gray-400 font-mono fs-10 flex-shrink-0">{toArabicDigits(section.wordCount)} كلمة</span>
           {meta?.generating && (
-            <span className="flex items-center gap-1 text-blue-600 text-[10.5px]">
+            <span className="flex items-center gap-1 text-blue-600 fs-10.5">
               <Loader2 className="w-3 h-3 animate-spin" /> جاري الكتابة...
             </span>
           )}
           {meta?.stale && !meta.generating && (
-            <span className="text-[10.5px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 rounded-full flex-shrink-0">
+            <span className="fs-10.5 bg-amber-100 text-amber-800 border border-amber-300 px-1.5 rounded-full flex-shrink-0">
               ⚠️ يحتاج تحديث – انقر ⟳
             </span>
           )}
@@ -149,7 +149,7 @@ function SectionToolbar({ section, index }: { section: DraftSection; index: numb
       )}
 
       {section.rejectedRefs && section.rejectedRefs.length > 0 && (
-        <div className="text-[10.5px] text-rose-700">
+        <div className="fs-10.5 text-rose-700">
           ⚠ استُبعدت آيات خارج المراجع المسموح بها: {section.rejectedRefs.join('، ')}
         </div>
       )}
@@ -163,9 +163,9 @@ function MissingSection({ section }: { section: ArticleSectionInput }) {
   const ideas = section.nodes.filter(n => n.depth > 0).length;
   return (
     <div className="no-print select-none -mx-2 p-3 border-2 border-dashed border-gray-300 bg-gray-50/70 rounded-lg flex items-center justify-between gap-2 font-sans">
-      <div className="min-w-0 text-[11.5px]">
+      <div className="min-w-0 fs-11.5">
         <span className="font-bold text-gray-700 font-quran">{section.axisName}</span>
-        <span className="block text-[10.5px] text-gray-500">
+        <span className="block fs-10.5 text-gray-500">
           محور في الشجرة لم يُكتب بعد ({toArabicDigits(ideas)} أفكار)
         </span>
       </div>
@@ -174,7 +174,7 @@ function MissingSection({ section }: { section: ArticleSectionInput }) {
         disabled={isGenerating}
         onClick={() => generateMissingSection(section.id)}
         title="كتابة هذا المحور في موضعه من المقال"
-        className="px-2.5 py-1 bg-blue-700 hover:bg-blue-800 disabled:opacity-40 text-white rounded text-[11px] font-semibold flex items-center gap-1 flex-shrink-0"
+        className="px-2.5 py-1 bg-blue-700 hover:bg-blue-800 disabled:opacity-40 text-white rounded fs-11 font-semibold flex items-center gap-1 flex-shrink-0"
       >
         <Sparkles className="w-3.5 h-3.5" /> توليد
       </button>
@@ -277,16 +277,16 @@ export const ArticleDraftView: React.FC = () => {
           <span className="font-bold text-sm text-blue-900 truncate">مسودة المقال</span>
           {draft && (
             isDraftLabelled ? (
-              <span className="text-[10.5px] bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
+              <span className="fs-10.5 bg-amber-100 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
                 <Sparkles className="w-3 h-3" /> {AI_DRAFT_LABEL}
               </span>
             ) : (
-              <span className="text-[10.5px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
+              <span className="fs-10.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1 flex-shrink-0">
                 <CheckCircle2 className="w-3 h-3" /> معتمدة
               </span>
             )
           )}
-          {draft && <span className="hidden xl:inline text-[11px] text-gray-400 font-mono">{toArabicDigits(articleWordCount(draft))} كلمة</span>}
+          {draft && <span className="hidden xl:inline fs-11 text-gray-400 font-mono">{toArabicDigits(articleWordCount(draft))} كلمة</span>}
         </div>
 
         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -349,8 +349,8 @@ export const ArticleDraftView: React.FC = () => {
               <span>{progress.label}</span>
             </span>
             <span className="flex items-center gap-2">
-              <span className="font-mono text-[11px]">{toArabicDigits(percent)}٪</span>
-              <button type="button" onClick={cancelGeneration} className="text-[11px] text-rose-700 hover:underline">إلغاء</button>
+              <span className="font-mono fs-11">{toArabicDigits(percent)}٪</span>
+              <button type="button" onClick={cancelGeneration} className="fs-11 text-rose-700 hover:underline">إلغاء</button>
             </span>
           </div>
           <div className="h-1.5 bg-blue-100 rounded-full overflow-hidden">
@@ -406,15 +406,15 @@ export const ArticleDraftView: React.FC = () => {
         ) : (
           <>
             <article className="relative bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print flex-shrink-0 w-full max-w-[794px] min-h-[1123px] px-12 py-14 lg:p-[96px] text-right text-gray-900 mb-6">
-              <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between text-[11px] text-gray-400 font-quran">
+              <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between fs-11 text-gray-400 font-quran">
                 <span>{draft.title}</span>
                 {isDraftLabelled && <span className="text-amber-600 font-sans">{AI_DRAFT_LABEL}</span>}
               </div>
 
-              <h1 className="text-[26px] font-bold text-[#1e3a8a] font-quran text-center mb-8">{draft.title}</h1>
+              <h1 className="fs-26 font-bold text-[#1e3a8a] font-quran text-center mb-8">{draft.title}</h1>
 
               {paragraphsOf(draft.opening).map((p, i) => (
-                <p key={`o${i}`} className="text-[16px] text-[#1f2937] leading-[1.9] text-justify font-quran my-2">{p}</p>
+                <p key={`o${i}`} className="fs-16 text-[#1f2937] leading-[1.9] text-justify font-quran my-2">{p}</p>
               ))}
 
               {rows.map(row => row.kind === 'draft' ? (
@@ -430,11 +430,11 @@ export const ArticleDraftView: React.FC = () => {
 
               <div className="mt-8">
                 {paragraphsOf(draft.closing).map((p, i) => (
-                  <p key={`c${i}`} className="text-[16px] text-[#1f2937] leading-[1.9] text-justify font-quran my-2">{p}</p>
+                  <p key={`c${i}`} className="fs-16 text-[#1f2937] leading-[1.9] text-justify font-quran my-2">{p}</p>
                 ))}
               </div>
 
-              <div className="mt-16 pt-4 border-t border-gray-200 flex items-center justify-between text-[10.5px] text-gray-400 font-sans">
+              <div className="mt-16 pt-4 border-t border-gray-200 flex items-center justify-between fs-10.5 text-gray-400 font-sans">
                 <span>
                   نص الآيات الكريمة من{' '}
                   <a href="https://tanzil.net" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">مشروع تنزيل (tanzil.net)</a>
@@ -456,7 +456,7 @@ export const ArticleDraftView: React.FC = () => {
                 </div>
                 {coverage.uncovered.length > 0 && (
                   <div className="space-y-1">
-                    <span className="text-[11px] text-gray-500 block">أفكار لم يتناولها المقال بعد:</span>
+                    <span className="fs-11 text-gray-500 block">أفكار لم يتناولها المقال بعد:</span>
                     {coverage.uncovered.map(n => {
                       const locked = sectionMeta[n.sectionId]?.locked;
                       return (
@@ -467,7 +467,7 @@ export const ArticleDraftView: React.FC = () => {
                             disabled={isGenerating || locked}
                             onClick={() => regenerateSection(n.sectionId, { instruction: `أدرج في هذا المحور الفكرة «${n.label}» (المعرف ${n.id}) وتناولها بوضوح، دون إسقاط ما سواها.` })}
                             title={locked ? 'محورها مقفل' : 'إعادة كتابة محورها مع هذه الفكرة'}
-                            className="px-2 py-0.5 bg-blue-700 hover:bg-blue-800 disabled:opacity-40 text-white rounded text-[10.5px] flex items-center gap-1 flex-shrink-0"
+                            className="px-2 py-0.5 bg-blue-700 hover:bg-blue-800 disabled:opacity-40 text-white rounded fs-10.5 flex items-center gap-1 flex-shrink-0"
                           >
                             <Plus className="w-3 h-3" /> إضافة للمقال
                           </button>
@@ -477,7 +477,7 @@ export const ArticleDraftView: React.FC = () => {
                   </div>
                 )}
                 {coverage.newAxes.length > 0 && (
-                  <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded p-2">
+                  <div className="fs-11 text-amber-800 bg-amber-50 border border-amber-200 rounded p-2">
                     محاور جديدة في الشجرة ليست في المسودة: {coverage.newAxes.join('، ')} — اضغط «توليد» في موضعها من المقال لكتابتها.
                   </div>
                 )}

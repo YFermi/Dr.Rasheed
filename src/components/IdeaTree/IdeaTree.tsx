@@ -141,15 +141,15 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
   const getStatusBadge = (status: NodeStatus) => {
     switch (status) {
       case 'published':
-        return <span className="text-[10px] text-emerald-400" title="منشور">منشور</span>;
+        return <span className="fs-10 text-emerald-400" title="منشور">منشور</span>;
       case 'draft':
-        return <span className="text-[10px] text-amber-400" title="مسودة">مسودة</span>;
+        return <span className="fs-10 text-amber-400" title="مسودة">مسودة</span>;
       case 'deferred':
-        return <span className="text-[10px] text-rose-400" title="مؤجل">مؤجل</span>;
+        return <span className="fs-10 text-rose-400" title="مؤجل">مؤجل</span>;
       case 'brainstorm':
-        return <span className="text-[10px] text-blue-400" title="جديد من العصف">عصف</span>;
+        return <span className="fs-10 text-blue-400" title="جديد من العصف">عصف</span>;
       case 'rejected':
-        return <span className="text-[10px] text-gray-400" title="مرفوض">مرفوض</span>;
+        return <span className="fs-10 text-gray-400" title="مرفوض">مرفوض</span>;
     }
   };
 
@@ -346,7 +346,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
 
         {/* Release to link tooltip during Ctrl drag */}
         {isTarget && isCtrlDrag && draggedNodeId !== node.id && (
-          <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 bg-indigo-600 text-white font-sans text-[10px] px-2 py-0.5 rounded shadow-lg flex items-center gap-1">
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 z-30 bg-indigo-600 text-white font-sans fs-10 px-2 py-0.5 rounded shadow-lg flex items-center gap-1">
             <Link2 className="w-3 h-3" />
             <span>أفلت لإنشاء رابط (Release to link)</span>
           </div>
@@ -477,7 +477,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
               />
             ) : (
               <span 
-                className={`truncate font-quran text-[13px] ${
+                className={`truncate font-quran fs-13 ${
                   !node.includeInDoc ? 'line-through opacity-50' : ''
                 }`}
                 title={referenceTooltip ?? node.arabicLabel}
@@ -488,7 +488,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
           </div>
 
           {/* Left side: Links icon + child count badge + status */}
-          <div className="flex items-center gap-1.5 flex-shrink-0 mr-2 text-[11px] font-sans">
+          <div className="flex items-center gap-1.5 flex-shrink-0 mr-2 fs-11 font-sans">
             {/* Linked ideas chain icon */}
             {hasLinks && (
               <span 
@@ -496,14 +496,14 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
                 className="text-amber-400 bg-amber-950/40 px-1 py-0.2 rounded flex items-center gap-0.5"
               >
                 <Link2 className="w-3 h-3" />
-                <span className="text-[10px]">{node.linkedIdeas.length}</span>
+                <span className="fs-10">{node.linkedIdeas.length}</span>
               </span>
             )}
 
             {/* Child count badge */}
             {childCount > 0 && (
               <span 
-                className="px-1.5 py-0.2 bg-[#0a0a0a] text-[#c2b691] rounded-full text-[10px] font-mono border border-[#2e2817]"
+                className="px-1.5 py-0.2 bg-[#0a0a0a] text-[#c2b691] rounded-full fs-10 font-mono border border-[#2e2817]"
                 title={`العناصر التابعة: ${childCount}`}
               >
                 {childCount}
@@ -511,7 +511,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
             )}
 
             {/* Status indicator text */}
-            <span className="opacity-80 font-mono text-[10px]">
+            <span className="opacity-80 font-mono fs-10">
               {getStatusBadge(node.status)}
             </span>
           </div>
@@ -574,7 +574,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
         <button
           onClick={() => addChildNode(selectedNodeId || 'root-project', 'axis')}
           title="إضافة محور رئيسي جديد (Axis)"
-          className="flex items-center gap-1 px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] text-blue-300 rounded transition font-medium text-[11px]"
+          className="flex items-center gap-1 px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] text-blue-300 rounded transition font-medium fs-11"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>+ محور</span>
@@ -583,7 +583,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
         <button
           onClick={() => addChildNode(selectedNodeId || 'root-project', 'idea')}
           title="إضافة فكرة فرعية تابعة (Idea)"
-          className="flex items-center gap-1 px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] text-amber-300 rounded transition font-medium text-[11px]"
+          className="flex items-center gap-1 px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] text-amber-300 rounded transition font-medium fs-11"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>+ فكرة</span>
@@ -625,7 +625,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
         <button
           onClick={onOpenImportModal}
           title="استيراد وتفكيك نص العصف الذهني بالذكاء الاصطناعي"
-          className="flex items-center gap-1 px-2 py-1 bg-indigo-900/50 hover:bg-indigo-800/70 border border-indigo-700/60 text-indigo-200 rounded transition text-[11px] font-medium"
+          className="flex items-center gap-1 px-2 py-1 bg-indigo-900/50 hover:bg-indigo-800/70 border border-indigo-700/60 text-indigo-200 rounded transition fs-11 font-medium"
         >
           <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
           <span>📥 استيراد نص عصف</span>
@@ -663,7 +663,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
         {filterKeyword && (
           <button
             onClick={() => setFilterKeyword('')}
-            className="text-[10px] text-gray-400 hover:text-white px-1"
+            className="fs-10 text-gray-400 hover:text-white px-1"
           >
             مسح
           </button>
@@ -708,7 +708,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
       </div>
 
       {/* Status Bar Legend */}
-      <div className="h-6 px-3 bg-[#0a0a0a] border-t border-[#2e2817] flex items-center justify-between text-[10px] text-[#c2b691] font-sans">
+      <div className="h-6 px-3 bg-[#0a0a0a] border-t border-[#2e2817] flex items-center justify-between fs-10 text-[#c2b691] font-sans">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span> منشور

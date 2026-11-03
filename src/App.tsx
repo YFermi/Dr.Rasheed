@@ -10,6 +10,7 @@ import { BlogReader } from './components/Blog/BlogReader';
 import { ArticleDraftView } from './components/ArticleDraft/ArticleDraftView';
 import { ArticleGenerateModal } from './components/ArticleDraft/ArticleGenerateModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { TutorialTour } from './components/TutorialTour';
 import { useIdeaStore } from './store/useIdeaStore';
 import { useBlogStore } from './store/useBlogStore';
 import { useArticleStore } from './store/useArticleStore';
@@ -171,7 +172,7 @@ export default function App() {
               <BookOpen className="w-3.5 h-3.5" />
               <span>المقال</span>
               {openArticlePart !== undefined && (
-                <span className="text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1.5 rounded-full">
+                <span className="fs-10 font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1.5 rounded-full">
                   {toArabicDigits(openArticlePart)}
                 </span>
               )}
@@ -218,6 +219,9 @@ export default function App() {
 
       {/* Gemini API key (stacked above the other modals) */}
       <ApiKeyModal />
+
+      {/* Guided tour (first visit, or «مساعدة» in the navbar) */}
+      <TutorialTour />
     </div>
   );
 }

@@ -21,14 +21,15 @@ export const MiddleTabPanel: React.FC = () => {
     <div className="h-full flex flex-col bg-[#171717] text-[#efe6cf] select-none text-right font-sans overflow-hidden">
       
       {/* Tab bar, right to left: الخصائص | المقالات | الآيات | التشابكات | الإحصائيات */}
-      <div className="h-10 bg-[#0b0b0b] border-b border-[#2e2817] flex items-center justify-between text-xs px-1 flex-shrink-0">
+      <div className="min-h-10 bg-[#0b0b0b] border-b border-[#2e2817] flex items-stretch justify-between text-xs px-1 flex-shrink-0">
         
         {/* TAB 1: الخصائص */}
         <button
           type="button"
+          data-tour="params-tab"
           onClick={() => setActiveMiddleTab('params')}
           title="خصائص الفكرة المحددة في الشجرة"
-          className={`flex-1 h-full flex items-center justify-center gap-1 font-medium transition-all text-[11px] relative ${
+          className={`flex-1 min-w-0 py-1 flex flex-col items-center justify-center gap-0.5 font-medium transition-all fs-11 relative ${
             activeMiddleTab === 'params'
               ? 'border-b-2 border-[#d4af37] text-[#d4af37] bg-[#121212] font-bold shadow-xs'
               : 'text-[#8a7f66] hover:text-[#efe6cf] hover:bg-[#121212]/50'
@@ -49,7 +50,7 @@ export const MiddleTabPanel: React.FC = () => {
           type="button"
           onClick={() => setActiveMiddleTab('blog')}
           title="مقالات د. رشيد: البحث والتصفح"
-          className={`flex-1 h-full flex items-center justify-center gap-1 font-medium transition-all text-[11px] ${
+          className={`flex-1 min-w-0 py-1 flex flex-col items-center justify-center gap-0.5 font-medium transition-all fs-11 ${
             activeMiddleTab === 'blog'
               ? 'border-b-2 border-[#d4af37] text-[#d4af37] bg-[#121212] font-bold shadow-xs'
               : 'text-[#8a7f66] hover:text-[#efe6cf] hover:bg-[#121212]/50'
@@ -64,7 +65,7 @@ export const MiddleTabPanel: React.FC = () => {
           type="button"
           onClick={() => setActiveMiddleTab('verses')}
           title="فهرس الشواهد والآيات القرآنية"
-          className={`flex-1 h-full flex items-center justify-center gap-1 font-medium transition-all text-[11px] ${
+          className={`flex-1 min-w-0 py-1 flex flex-col items-center justify-center gap-0.5 font-medium transition-all fs-11 ${
             activeMiddleTab === 'verses'
               ? 'border-b-2 border-[#d4af37] text-[#d4af37] bg-[#121212] font-bold shadow-xs'
               : 'text-[#8a7f66] hover:text-[#efe6cf] hover:bg-[#121212]/50'
@@ -79,7 +80,7 @@ export const MiddleTabPanel: React.FC = () => {
           type="button"
           onClick={() => setActiveMiddleTab('links')}
           title="شجرة الروابط والتشابكات المعرفية"
-          className={`flex-1 h-full flex items-center justify-center gap-1 font-medium transition-all text-[11px] ${
+          className={`flex-1 min-w-0 py-1 flex flex-col items-center justify-center gap-0.5 font-medium transition-all fs-11 ${
             activeMiddleTab === 'links'
               ? 'border-b-2 border-[#d4af37] text-[#d4af37] bg-[#121212] font-bold shadow-xs'
               : 'text-[#8a7f66] hover:text-[#efe6cf] hover:bg-[#121212]/50'
@@ -94,7 +95,7 @@ export const MiddleTabPanel: React.FC = () => {
           type="button"
           onClick={() => setActiveMiddleTab('stats')}
           title="لوحة الإحصائيات وتوزيع الحالات"
-          className={`flex-1 h-full flex items-center justify-center gap-1 font-medium transition-all text-[11px] ${
+          className={`flex-1 min-w-0 py-1 flex flex-col items-center justify-center gap-0.5 font-medium transition-all fs-11 ${
             activeMiddleTab === 'stats'
               ? 'border-b-2 border-[#d4af37] text-[#d4af37] bg-[#121212] font-bold shadow-xs'
               : 'text-[#8a7f66] hover:text-[#efe6cf] hover:bg-[#121212]/50'

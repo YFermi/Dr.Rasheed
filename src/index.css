@@ -29,18 +29,47 @@
   --color-indigo-800: #614c12;
   --color-indigo-900: #4a3a0e;
   --color-indigo-950: #2b2208;
-  /* Interface: Dosis has no Arabic glyphs, so Latin letters and digits render in
-     Dosis and Arabic falls through to Adobe Arabic (when installed) or Amiri. */
-  --font-sans: 'Dosis', 'Adobe Arabic', 'Amiri', serif;
+  /* Interface font and size follow the viewer's choice (useUIStore sets
+     --ui-font and --ui-scale on <html>). Dosis has no Arabic glyphs, so Latin
+     letters and digits render in Dosis and Arabic falls through to the next font. */
+  --font-sans: var(--ui-font);
+  --text-xs: calc(0.75rem * var(--ui-scale));
+  --text-sm: calc(0.875rem * var(--ui-scale));
+  --text-base: calc(1rem * var(--ui-scale));
+  --text-lg: calc(1.125rem * var(--ui-scale));
+  --text-xl: calc(1.25rem * var(--ui-scale));
+  --text-2xl: calc(1.5rem * var(--ui-scale));
+}
+
+/* Pixel font sizes that follow the interface scale: fs-11 = 11px × --ui-scale */
+@utility fs-* {
+  font-size: calc(--value(number) * 1px * var(--ui-scale, 1));
 }
 
 :root {
-  font-family: 'Dosis', 'Adobe Arabic', 'Amiri', serif;
+  /* Defaults before the store applies the saved choice (keep in useUIStore) */
+  --ui-scale: 1.25;
+  --ui-font: 'Dosis', 'Adobe Arabic', 'Amiri', serif;
+  font-family: var(--ui-font);
   color-scheme: dark light;
 }
 
-/* The A4 sheets keep their reading fonts: Amiri for the text, IBM Plex for small labels */
+/* Large interface sizes: the navbar hides its stats, layout presets and the
+   settings buttons' labels (data-ui-large, set by useUIStore) */
+:root[data-ui-large] .nav-secondary {
+  display: none !important;
+}
+
+/* The A4 sheets keep their reading fonts and sizes whatever the interface
+   settings: Amiri for the text, IBM Plex for small labels, scale 1 */
 .a4-page-print {
+  --ui-scale: 1;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
   --font-sans: 'IBM Plex Sans Arabic', -apple-system, 'Segoe UI', sans-serif;
   font-family: 'Amiri', 'Traditional Arabic', serif;
 }

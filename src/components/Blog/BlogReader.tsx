@@ -187,27 +187,27 @@ export const BlogReader: React.FC = () => {
         }`}
       >
         {/* Paragraph number (hover) */}
-        <span className="absolute -right-9 top-1.5 w-6 text-center text-[10px] font-mono text-gray-400 opacity-0 group-hover:opacity-100 transition select-none no-print">
+        <span className="absolute -right-9 top-1.5 w-6 text-center fs-10 font-mono text-gray-400 opacity-0 group-hover:opacity-100 transition select-none no-print">
           {toArabicDigits(paragraphNumber(p.id))}
         </span>
 
         {p.isHeading && level === 1 && (
           <div className="mt-6 mb-2 border-b border-blue-900/15 pb-1">
-            <h2 className="text-[21px] font-bold text-[#1e3a8a] leading-tight font-quran">{p.text}</h2>
+            <h2 className="fs-21 font-bold text-[#1e3a8a] leading-tight font-quran">{p.text}</h2>
           </div>
         )}
         {p.isHeading && level === 2 && (
-          <h3 className="mt-4 mb-2 text-[17px] font-bold text-[#374151] leading-snug font-quran flex items-center gap-2">
+          <h3 className="mt-4 mb-2 fs-17 font-bold text-[#374151] leading-snug font-quran flex items-center gap-2">
             <span className="text-amber-600 text-xs font-mono">●</span>
             <span>{p.text}</span>
           </h3>
         )}
         {p.isHeading && level > 2 && (
-          <h4 className="mt-3 mb-1 text-[15px] font-bold text-[#4b5563] font-quran">{p.text}</h4>
+          <h4 className="mt-3 mb-1 fs-15 font-bold text-[#4b5563] font-quran">{p.text}</h4>
         )}
         {!p.isHeading && (
           <div
-            className="blog-content font-quran text-[16px] text-[#1f2937] leading-[1.8] text-justify py-0.5"
+            className="blog-content font-quran fs-16 text-[#1f2937] leading-[1.8] text-justify py-0.5"
             dangerouslySetInnerHTML={{ __html: decoratedHtml.get(p.id) ?? p.html }}
           />
         )}
@@ -260,13 +260,13 @@ export const BlogReader: React.FC = () => {
 
           {article && (
             <>
-              <span className="text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full flex-shrink-0">
+              <span className="fs-11 font-semibold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full flex-shrink-0">
                 الجزء {toArabicDigits(article.partNumber)}
               </span>
               <span className="text-sm font-bold text-blue-900 truncate font-quran" title={article.title}>
                 {article.title}
               </span>
-              <span className="hidden xl:flex items-center gap-1 text-[10.5px] text-gray-400 truncate flex-shrink min-w-0" title={article.sourceFile}>
+              <span className="hidden xl:flex items-center gap-1 fs-10.5 text-gray-400 truncate flex-shrink min-w-0" title={article.sourceFile}>
                 <FileText className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">{article.sourceFile}</span>
               </span>
@@ -291,7 +291,7 @@ export const BlogReader: React.FC = () => {
               className={`px-1.5 py-1 rounded transition flex items-center gap-1 ${showVerses ? 'bg-white text-amber-700 shadow-xs' : 'hover:bg-white text-gray-600'}`}
             >
               <BookMarked className="w-3.5 h-3.5" />
-              <span className="font-mono text-[10.5px]">{toArabicDigits(article.verses.length)}</span>
+              <span className="font-mono fs-10.5">{toArabicDigits(article.verses.length)}</span>
             </button>
           </div>
         )}
@@ -302,14 +302,14 @@ export const BlogReader: React.FC = () => {
           {/* Headings navigation (right side in RTL) */}
           {showHeadings && headings.length > 0 && (
             <nav className="w-44 flex-shrink-0 bg-[#f3f4f6] border-l border-gray-300 overflow-auto word-scrollbar py-2 no-print select-none">
-              <div className="px-3 pb-1.5 text-[10.5px] font-bold text-gray-500">العناوين</div>
+              <div className="px-3 pb-1.5 fs-10.5 font-bold text-gray-500">العناوين</div>
               {headings.map(h => (
                 <button
                   key={h.id}
                   type="button"
                   onClick={() => scrollToParagraph(h.id)}
                   title={h.text}
-                  className="w-full text-right py-1 pl-2 text-[11.5px] text-gray-700 hover:text-blue-700 hover:bg-white truncate transition font-quran"
+                  className="w-full text-right py-1 pl-2 fs-11.5 text-gray-700 hover:text-blue-700 hover:bg-white truncate transition font-quran"
                   style={{ paddingRight: `${0.75 + ((h.headingLevel ?? 1) - 1) * 0.6}rem` }}
                 >
                   {h.text}
@@ -328,7 +328,7 @@ export const BlogReader: React.FC = () => {
           >
             <article ref={articleRef} className="relative bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print flex-shrink-0 w-full max-w-[794px] min-h-[1123px] px-12 py-14 lg:p-[96px] text-right text-gray-900 mb-12">
               {/* Running Header */}
-              <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between text-[11px] text-gray-400 font-quran">
+              <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between fs-11 text-gray-400 font-quran">
                 <span>مقالات د. رشيد الجراح — قصة لوط</span>
                 <span>الجزء {toArabicDigits(article.partNumber)}</span>
               </div>
@@ -338,7 +338,7 @@ export const BlogReader: React.FC = () => {
               </div>
 
               {/* Running Footer */}
-              <div className="mt-16 pt-4 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-400 font-sans">
+              <div className="mt-16 pt-4 border-t border-gray-200 flex items-center justify-between fs-11 text-gray-400 font-sans">
                 <span>{article.sourceFile}</span>
                 <span className="font-mono">
                   {toArabicDigits(article.wordCount)} كلمة • {toArabicDigits(article.verses.length)} آية
@@ -346,7 +346,7 @@ export const BlogReader: React.FC = () => {
               </div>
               {/* Required by the Tanzil terms of use for the canonical verse text */}
               {article.verses.some(v => v.replacedFromGlyphs) && (
-                <div className="mt-2 text-[10.5px] text-gray-400 font-sans">
+                <div className="mt-2 fs-10.5 text-gray-400 font-sans">
                   نص الآيات الكريمة من{' '}
                   <a href="https://tanzil.net" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     مشروع تنزيل (tanzil.net)
@@ -359,12 +359,12 @@ export const BlogReader: React.FC = () => {
           {/* Verse sidebar (left side in RTL) */}
           {showVerses && (
             <aside className="w-56 flex-shrink-0 bg-[#fffbeb] border-r border-amber-200 overflow-auto word-scrollbar no-print select-none">
-              <div className="px-3 py-2 text-[11px] font-bold text-amber-900 border-b border-amber-200 flex items-center gap-1.5">
+              <div className="px-3 py-2 fs-11 font-bold text-amber-900 border-b border-amber-200 flex items-center gap-1.5">
                 <BookMarked className="w-3.5 h-3.5" />
                 <span>آيات المقال ({toArabicDigits(article.verses.length)})</span>
               </div>
               {article.verses.length === 0 ? (
-                <div className="p-3 text-[11px] text-amber-800/70">لا توجد آيات في هذا المقال.</div>
+                <div className="p-3 fs-11 text-amber-800/70">لا توجد آيات في هذا المقال.</div>
               ) : (
                 article.verses.map((v, i) => (
                   <button
@@ -375,8 +375,8 @@ export const BlogReader: React.FC = () => {
                       v.paragraphId === highlightedParagraphId ? 'bg-amber-100' : ''
                     }`}
                   >
-                    <div className="text-[11px] font-bold text-amber-900">📖 {verseLabel(v)}</div>
-                    <div className="text-[12px] text-[#78350f] font-quran truncate">
+                    <div className="fs-11 font-bold text-amber-900">📖 {verseLabel(v)}</div>
+                    <div className="fs-12 text-[#78350f] font-quran truncate">
                       {v.text.split(/\s+/).slice(0, VERSE_PREVIEW_WORDS).join(' ')}…
                     </div>
                   </button>
@@ -409,7 +409,7 @@ export const BlogReader: React.FC = () => {
               <span>أضف كشاهد في الشجرة</span>
             </span>
             {selectedNodeLabel && (
-              <span className="text-[10px] text-gray-400 max-w-[220px] truncate">تحت: {selectedNodeLabel}</span>
+              <span className="fs-10 text-gray-400 max-w-[220px] truncate">تحت: {selectedNodeLabel}</span>
             )}
           </button>
         </div>

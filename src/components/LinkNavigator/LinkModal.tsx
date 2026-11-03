@@ -134,14 +134,14 @@ export const LinkModal: React.FC = () => {
           <div className="p-3 bg-[#0a0a0a] border border-[#2e2817] rounded-lg space-y-2">
             {/* Source Node */}
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-gray-400 font-mono w-16 text-left">الأصل (Source):</span>
+              <span className="fs-10 text-gray-400 font-mono w-16 text-left">الأصل (Source):</span>
               <span className="text-white font-quran font-bold text-xs truncate flex-1">
                 {sourceNode ? sourceNode.arabicLabel : linkModalState.sourceId}
               </span>
             </div>
 
             {/* Connecting Direction Indicator */}
-            <div className="flex items-center justify-center gap-2 text-indigo-400 text-[11px] font-mono py-0.5">
+            <div className="flex items-center justify-center gap-2 text-indigo-400 fs-11 font-mono py-0.5">
               <span>───▶</span>
               <span className="font-bold">{relationshipOptions.find(o => o.type === selectedType)?.label}</span>
               <span>───▶</span>
@@ -149,7 +149,7 @@ export const LinkModal: React.FC = () => {
 
             {/* Target Node */}
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-gray-400 font-mono w-16 text-left">الهدف (Target):</span>
+              <span className="fs-10 text-gray-400 font-mono w-16 text-left">الهدف (Target):</span>
               <span className="text-white font-quran font-bold text-xs truncate flex-1">
                 {targetNode ? targetNode.arabicLabel : linkModalState.targetId}
               </span>
@@ -158,7 +158,7 @@ export const LinkModal: React.FC = () => {
 
           {/* Relationship Type Selection Cards */}
           <div className="space-y-1.5">
-            <label className="text-[11px] font-medium text-gray-300 block">
+            <label className="fs-11 font-medium text-gray-300 block">
               طبيعة العلاقة الدلالية (Relationship Type):
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -181,10 +181,10 @@ export const LinkModal: React.FC = () => {
                       </span>
                       <span className="text-xs">{option.icon}</span>
                     </div>
-                    <span className="text-[9.5px] font-mono text-gray-500 uppercase">
+                    <span className="fs-9.5 font-mono text-gray-500 uppercase">
                       {option.enLabel}
                     </span>
-                    <p className="text-[10px] text-gray-400 leading-snug line-clamp-2 mt-0.5">
+                    <p className="fs-10 text-gray-400 leading-snug line-clamp-2 mt-0.5">
                       {option.desc}
                     </p>
                   </button>
@@ -195,7 +195,7 @@ export const LinkModal: React.FC = () => {
 
           {/* Relationship Note */}
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-gray-300 block">
+            <label className="fs-11 font-medium text-gray-300 block">
               ملاحظة حول أثر الارتباط وتوجيهه (Notes - اختياري):
             </label>
             <textarea

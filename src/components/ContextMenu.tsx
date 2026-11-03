@@ -84,9 +84,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       style={{ top: `${adjustedY}px`, left: `${adjustedX}px` }}
       className="fixed z-50 w-56 bg-[#121212] border border-[#4a4027] rounded-md shadow-2xl py-1 text-xs text-[#efe6cf] select-none backdrop-blur-md animate-in fade-in-50 duration-100"
     >
-      <div className="px-3 py-1.5 border-b border-[#2e2817] text-[11px] font-semibold text-[#d4af37] truncate flex items-center justify-between">
+      <div className="px-3 py-1.5 border-b border-[#2e2817] fs-11 font-semibold text-[#d4af37] truncate flex items-center justify-between">
         <span className="truncate">{node.arabicLabel}</span>
-        <span className="text-[10px] text-[#c2b691] font-mono uppercase bg-[#2e2817] px-1 rounded">
+        <span className="fs-10 text-[#c2b691] font-mono uppercase bg-[#2e2817] px-1 rounded">
           {node.type}
         </span>
       </div>
@@ -100,7 +100,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <FolderPlus className="w-3.5 h-3.5 text-blue-400" />
             <span>إضافة عنصر فرعي (Child)</span>
           </div>
-          <span className="text-[10px] text-gray-500 font-mono">Ins</span>
+          <span className="fs-10 text-gray-500 font-mono">Ins</span>
         </button>
 
         {node.type !== 'project' && (
@@ -112,7 +112,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
               <span>إضافة عنصر موازٍ (Sibling)</span>
             </div>
-            <span className="text-[10px] text-gray-500 font-mono">Enter</span>
+            <span className="fs-10 text-gray-500 font-mono">Enter</span>
           </button>
         )}
       </div>
@@ -129,7 +129,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <Scissors className="w-3.5 h-3.5 text-amber-400" />
             <span>قص (Cut)</span>
           </div>
-          <span className="text-[10px] text-gray-500 font-mono">Ctrl+X</span>
+          <span className="fs-10 text-gray-500 font-mono">Ctrl+X</span>
         </button>
 
         <button
@@ -140,7 +140,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <Copy className="w-3.5 h-3.5 text-indigo-400" />
             <span>نسخ (Copy)</span>
           </div>
-          <span className="text-[10px] text-gray-500 font-mono">Ctrl+C</span>
+          <span className="fs-10 text-gray-500 font-mono">Ctrl+C</span>
         </button>
 
         <button
@@ -152,7 +152,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <Clipboard className="w-3.5 h-3.5 text-teal-400" />
             <span>لصق كفرع (Paste)</span>
           </div>
-          <span className="text-[10px] text-gray-500 font-mono">Ctrl+V</span>
+          <span className="fs-10 text-gray-500 font-mono">Ctrl+V</span>
         </button>
 
         <button
@@ -164,7 +164,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <Layers className="w-3.5 h-3.5 text-purple-400" />
             <span>مضاعفة العنصر (Duplicate)</span>
           </div>
-          <span className="text-[10px] text-gray-500 font-mono">Ctrl+D</span>
+          <span className="fs-10 text-gray-500 font-mono">Ctrl+D</span>
         </button>
       </div>
 
@@ -180,7 +180,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <ArrowUp className="w-3.5 h-3.5 text-gray-400" />
             <span>تحريك للأعلى (Move Up)</span>
           </div>
-          <span className="text-[10px] text-gray-500 font-mono">Alt+↑</span>
+          <span className="fs-10 text-gray-500 font-mono">Alt+↑</span>
         </button>
 
         <button
@@ -192,7 +192,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <ArrowDown className="w-3.5 h-3.5 text-gray-400" />
             <span>تحريك للأسفل (Move Down)</span>
           </div>
-          <span className="text-[10px] text-gray-500 font-mono">Alt+↓</span>
+          <span className="fs-10 text-gray-500 font-mono">Alt+↓</span>
         </button>
       </div>
 
@@ -216,7 +216,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               </>
             )}
           </div>
-          <span className="text-[10px] text-gray-500 font-mono">Space</span>
+          <span className="fs-10 text-gray-500 font-mono">Space</span>
         </button>
 
         {node.type !== 'project' && (
@@ -253,7 +253,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               <Trash2 className="w-3.5 h-3.5" />
               <span>حذف العنصر (Delete)</span>
             </div>
-            <span className="text-[10px] text-red-400/60 font-mono">Del</span>
+            <span className="fs-10 text-red-400/60 font-mono">Del</span>
           </button>
         )}
       </div>

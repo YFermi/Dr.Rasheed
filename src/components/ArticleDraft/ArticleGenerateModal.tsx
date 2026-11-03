@@ -80,7 +80,7 @@ export const ArticleGenerateModal: React.FC = () => {
               <span className="font-mono text-amber-300">{toArabicDigits(input.allowedVerseRefs.length)}</span>
             </div>
             {input.sections.length > 0 && (
-              <div className="pt-1.5 border-t border-[#2e2817] text-[10.5px] text-gray-400 leading-relaxed">
+              <div className="pt-1.5 border-t border-[#2e2817] fs-10.5 text-gray-400 leading-relaxed">
                 {input.sections.map(s => s.axisName).join(' • ')}
               </div>
             )}
@@ -89,7 +89,7 @@ export const ArticleGenerateModal: React.FC = () => {
           {!aiAvailable && (
             <div className="p-2.5 bg-amber-950/40 border border-amber-800/60 rounded text-amber-200 flex items-center justify-between gap-2">
               <span>🔑 يرجى إدخال مفتاح API أولاً</span>
-              <button type="button" onClick={openKeyModal} className="text-[10.5px] underline hover:text-white flex-shrink-0">
+              <button type="button" onClick={openKeyModal} className="fs-10.5 underline hover:text-white flex-shrink-0">
                 إدخال المفتاح
               </button>
             </div>
@@ -104,14 +104,14 @@ export const ArticleGenerateModal: React.FC = () => {
 
           {/* Length per axis */}
           <div className="space-y-1.5">
-            <label className="text-[11px] text-gray-300 block">طول كل محور:</label>
+            <label className="fs-11 text-gray-300 block">طول كل محور:</label>
             <div className="grid grid-cols-3 gap-1">
               {SECTION_LENGTHS.map(({ words, label }) => (
                 <button
                   key={words}
                   type="button"
                   onClick={() => setOptions({ ...options, sectionLength: words })}
-                  className={`py-1.5 rounded border text-[11px] transition ${
+                  className={`py-1.5 rounded border fs-11 transition ${
                     options.sectionLength === words
                       ? 'bg-amber-600/80 border-amber-500 text-white font-bold'
                       : 'bg-[#0a0a0a] border-[#2e2817] text-gray-400 hover:text-white'
@@ -121,7 +121,7 @@ export const ArticleGenerateModal: React.FC = () => {
                 </button>
               ))}
             </div>
-            <p className="text-[10.5px] text-gray-500">
+            <p className="fs-10.5 text-gray-500">
               المقال كله نحو {formatWords(options.sectionLength * input.sections.length)} كلمة؛
               يُكتب كل محور على {toArabicDigits(partCount(options.sectionLength))} {partCount(options.sectionLength) > 1 ? 'أجزاء متتالية' : 'جزء واحد'}.
             </p>
@@ -129,7 +129,7 @@ export const ArticleGenerateModal: React.FC = () => {
 
           {/* Story → reference article (style) and story passages */}
           <div className="space-y-1.5">
-            <label className="text-[11px] text-gray-300 block">القصة:</label>
+            <label className="fs-11 text-gray-300 block">القصة:</label>
             <select
               value={options.storyName}
               onChange={e => setOptions({ ...options, storyName: e.target.value })}
@@ -138,23 +138,23 @@ export const ArticleGenerateModal: React.FC = () => {
               {storyChoices.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
             {reference ? (
-              <p className="text-[10.5px] text-sky-300 leading-relaxed">📌 مرجع الأسلوب: «{reference.title}» (أحدث مقال مرجعي لهذه القصة)</p>
+              <p className="fs-10.5 text-sky-300 leading-relaxed">📌 مرجع الأسلوب: «{reference.title}» (أحدث مقال مرجعي لهذه القصة)</p>
             ) : (
-              <p className="text-[10.5px] text-amber-300/90 leading-relaxed">
+              <p className="fs-10.5 text-amber-300/90 leading-relaxed">
                 ⚠️ لا يوجد مقال مرجعي لهذه القصة؛ يُكتب المقال بدليل الأسلوب العام فقط.{' '}
                 <button type="button" onClick={openReferenceModal} className="underline hover:text-white">إدخال مقال مرجعي</button>
               </p>
             )}
           </div>
 
-          <p className="text-[10.5px] text-gray-400">
+          <p className="fs-10.5 text-gray-400">
             الموديل: <span className="text-gray-200">{modelLabel(model)}</span>{' '}
             <button type="button" onClick={openKeyModal} className="underline hover:text-white">تغيير</button>
           </p>
 
           {/* Style */}
           <div className="space-y-1.5">
-            <label className="text-[11px] text-gray-300 block">الأسلوب:</label>
+            <label className="fs-11 text-gray-300 block">الأسلوب:</label>
             <select
               value={options.styleMode}
               onChange={e => setOptions({ ...options, styleMode: e.target.value as ArticleOptions['styleMode'] })}
@@ -183,7 +183,7 @@ export const ArticleGenerateModal: React.FC = () => {
             </div>
           )}
 
-          <p className="text-[10.5px] text-gray-500 leading-relaxed">
+          <p className="fs-10.5 text-gray-500 leading-relaxed">
             تُكتب المسودة محوراً محوراً وجزءاً جزءاً (قد يستغرق المقال الطويل عدة دقائق)، وتُدرَج نصوص الآيات من المصحف الموثّق لا من النموذج.
             تبقى المسودة موسومة «مسودة بمساعدة الذكاء الاصطناعي» حتى تعتمدها.
           </p>

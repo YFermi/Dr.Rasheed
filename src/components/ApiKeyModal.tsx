@@ -94,15 +94,15 @@ export const ApiKeyModal: React.FC = () => {
             <span className={hasKey ? 'text-emerald-300' : 'text-amber-300'}>
               {hasKey ? '✅ المفتاح محفوظ' : '⚠️ لم يتم إدخال مفتاح'}
             </span>
-            {hasKey && <span dir="ltr" className="font-mono text-[11px] text-gray-300">{maskedKey}</span>}
+            {hasKey && <span dir="ltr" className="font-mono fs-11 text-gray-300">{maskedKey}</span>}
           </div>
           {!hasKey && serverHasKey && (
-            <p className="text-[10.5px] text-gray-400">الخادم مزوّد بمفتاح خاص، فالميزات تعمل الآن؛ مفتاحك — إن أدخلته — يُستعمل بدلاً منه.</p>
+            <p className="fs-10.5 text-gray-400">الخادم مزوّد بمفتاح خاص، فالميزات تعمل الآن؛ مفتاحك — إن أدخلته — يُستعمل بدلاً منه.</p>
           )}
 
           {/* C) Input */}
           <div className="space-y-1">
-            <label className="text-[11px] text-gray-300 block">{hasKey ? 'استبدال المفتاح:' : 'المفتاح:'}</label>
+            <label className="fs-11 text-gray-300 block">{hasKey ? 'استبدال المفتاح:' : 'المفتاح:'}</label>
             <div className={`flex items-center gap-1 bg-[#0a0a0a] border rounded px-2 py-1 ${formatError ? 'border-rose-500' : 'border-[#2e2817] focus-within:border-amber-500/60'}`}>
               <input
                 type={visible ? 'text' : 'password'}
@@ -122,14 +122,14 @@ export const ApiKeyModal: React.FC = () => {
                 <ClipboardPaste className="w-3.5 h-3.5" />
               </button>
             </div>
-            <p role={formatError ? 'alert' : undefined} className={`text-[10.5px] ${formatError ? 'text-rose-400 font-semibold' : 'text-gray-500'}`}>
+            <p role={formatError ? 'alert' : undefined} className={`fs-10.5 ${formatError ? 'text-rose-400 font-semibold' : 'text-gray-500'}`}>
               {formatError ? '⚠️ ' : ''}المفتاح يجب أن يبدأ بـ <span dir="ltr" className="font-mono">{KEY_PREFIX}</span>
             </p>
           </div>
 
           {/* Model: applies at once, kept in this browser */}
           <div className="space-y-1">
-            <label className="text-[11px] text-gray-300 block">الموديل:</label>
+            <label className="fs-11 text-gray-300 block">الموديل:</label>
             <select
               value={model}
               onChange={e => { chooseModel(e.target.value); setTest({ status: 'idle' }); }}
@@ -137,7 +137,7 @@ export const ApiKeyModal: React.FC = () => {
             >
               {MODEL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
-            <p className="text-[10.5px] text-gray-500">
+            <p className="fs-10.5 text-gray-500">
               لكل ميزات الذكاء الاصطناعي. الأقوى أجود كتابةً لكنه أبطأ وأغلى؛ «اختبار الاتصال» يختبر المفتاح مع الموديل المختار.
             </p>
           </div>
@@ -148,7 +148,7 @@ export const ApiKeyModal: React.FC = () => {
               type="button"
               onClick={handleTest}
               disabled={test.status === 'testing' || formatError || (!typed && !hasKey && !serverHasKey)}
-              className="px-2.5 py-1 bg-[#2e2817] hover:bg-[#4a4027] disabled:opacity-40 text-white rounded text-[11px] transition"
+              className="px-2.5 py-1 bg-[#2e2817] hover:bg-[#4a4027] disabled:opacity-40 text-white rounded fs-11 transition"
             >
               🧪 اختبار الاتصال
             </button>
@@ -160,7 +160,7 @@ export const ApiKeyModal: React.FC = () => {
           </div>
 
           {/* Security note */}
-          <p className="flex items-start gap-1.5 text-[10.5px] text-amber-200/80 leading-relaxed">
+          <p className="flex items-start gap-1.5 fs-10.5 text-amber-200/80 leading-relaxed">
             <ShieldAlert className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
             <span>⚠️ المفتاح محفوظ في متصفحك فقط. لا تشاركه مع الآخرين.</span>
           </p>

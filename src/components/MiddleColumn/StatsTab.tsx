@@ -132,7 +132,7 @@ export const StatsTab: React.FC = () => {
           <BarChart3 className="w-4 h-4 text-emerald-400" />
           <span className="font-bold text-xs text-white">لوحة الإحصائيات (Statistics Dashboard)</span>
         </div>
-        <span className="text-[10px] text-gray-400 font-mono">
+        <span className="fs-10 text-gray-400 font-mono">
           {totalNonRoot} عنصر
         </span>
       </div>
@@ -144,7 +144,7 @@ export const StatsTab: React.FC = () => {
         <div className="grid grid-cols-2 gap-2">
           <div className="p-2.5 bg-[#0a0a0a] border border-blue-900/40 rounded-lg flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-gray-400 block">المحاور (Axes)</span>
+              <span className="fs-10 text-gray-400 block">المحاور (Axes)</span>
               <span className="text-xl font-bold font-mono text-blue-400">{axes.length}</span>
             </div>
             <span className="text-xl">📐</span>
@@ -152,7 +152,7 @@ export const StatsTab: React.FC = () => {
 
           <div className="p-2.5 bg-[#0a0a0a] border border-amber-900/40 rounded-lg flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-gray-400 block">الأفكار (Ideas)</span>
+              <span className="fs-10 text-gray-400 block">الأفكار (Ideas)</span>
               <span className="text-xl font-bold font-mono text-amber-400">{ideas.length}</span>
             </div>
             <span className="text-xl">💡</span>
@@ -160,7 +160,7 @@ export const StatsTab: React.FC = () => {
 
           <div className="p-2.5 bg-[#0a0a0a] border border-emerald-900/40 rounded-lg flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-gray-400 block">الآيات والشواهد</span>
+              <span className="fs-10 text-gray-400 block">الآيات والشواهد</span>
               <span className="text-xl font-bold font-mono text-emerald-400">{versesCount}</span>
             </div>
             <span className="text-xl">📖</span>
@@ -168,7 +168,7 @@ export const StatsTab: React.FC = () => {
 
           <div className="p-2.5 bg-[#0a0a0a] border border-indigo-900/40 rounded-lg flex items-center justify-between">
             <div>
-              <span className="text-[10px] text-gray-400 block">التشابكات (Links)</span>
+              <span className="fs-10 text-gray-400 block">التشابكات (Links)</span>
               <span className="text-xl font-bold font-mono text-indigo-400">{totalLinks}</span>
             </div>
             <span className="text-xl">🔗</span>
@@ -177,15 +177,15 @@ export const StatsTab: React.FC = () => {
 
         {/* 2. Status Breakdown */}
         <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
+          <div className="flex items-center justify-between fs-11 font-bold text-gray-200">
             <span>توزيع الحالات (Status Breakdown):</span>
-            <span className="text-[10px] text-gray-400 font-mono">100%</span>
+            <span className="fs-10 text-gray-400 font-mono">100%</span>
           </div>
 
-          <div className="space-y-1.5 text-[11px]">
+          <div className="space-y-1.5 fs-11">
             {/* Published */}
             <div>
-              <div className="flex justify-between text-[10.5px] mb-0.5">
+              <div className="flex justify-between fs-10.5 mb-0.5">
                 <span className="text-emerald-400 flex items-center gap-1">
                   <span>🟢 منشور (Published)</span>
                 </span>
@@ -203,7 +203,7 @@ export const StatsTab: React.FC = () => {
 
             {/* Draft */}
             <div>
-              <div className="flex justify-between text-[10.5px] mb-0.5">
+              <div className="flex justify-between fs-10.5 mb-0.5">
                 <span className="text-amber-400 flex items-center gap-1">
                   <span>🟡 مسودة (Draft)</span>
                 </span>
@@ -221,7 +221,7 @@ export const StatsTab: React.FC = () => {
 
             {/* Brainstorm */}
             <div>
-              <div className="flex justify-between text-[10.5px] mb-0.5">
+              <div className="flex justify-between fs-10.5 mb-0.5">
                 <span className="text-blue-400 flex items-center gap-1">
                   <span>🔵 عصف (Brainstorm)</span>
                 </span>
@@ -239,7 +239,7 @@ export const StatsTab: React.FC = () => {
 
             {/* Deferred */}
             <div>
-              <div className="flex justify-between text-[10.5px] mb-0.5">
+              <div className="flex justify-between fs-10.5 mb-0.5">
                 <span className="text-rose-400 flex items-center gap-1">
                   <span>🔴 مؤجل (Deferred)</span>
                 </span>
@@ -259,11 +259,11 @@ export const StatsTab: React.FC = () => {
 
         {/* 3. Source Breakdown */}
         <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
+          <div className="flex items-center justify-between fs-11 font-bold text-gray-200">
             <span>مصادر الأفكار (Source Breakdown):</span>
           </div>
 
-          <div className="space-y-1.5 text-[10.5px]">
+          <div className="space-y-1.5 fs-10.5">
             <div className="flex items-center justify-between">
               <span className="text-gray-300">مقال د. رشيد</span>
               <span className="font-mono text-blue-300 font-semibold">{sourceCounts.rasheed_article} ({Math.round((sourceCounts.rasheed_article / totalNonRoot) * 100)}%)</span>
@@ -300,7 +300,7 @@ export const StatsTab: React.FC = () => {
 
         {/* 4. Speaker Contribution */}
         <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
+          <div className="flex items-center justify-between fs-11 font-bold text-gray-200">
             <span>مساهمات المتحدثين (Speaker Contribution):</span>
           </div>
 
@@ -310,7 +310,7 @@ export const StatsTab: React.FC = () => {
               const barPercent = Math.round((count / maxCount) * 100);
               return (
                 <div key={spk} className="space-y-0.5">
-                  <div className="flex justify-between text-[10.5px]">
+                  <div className="flex justify-between fs-10.5">
                     <span className="font-bold text-gray-300">{spk}</span>
                     <span className="font-mono text-indigo-300">{count} فكرة</span>
                   </div>
@@ -325,14 +325,14 @@ export const StatsTab: React.FC = () => {
 
         {/* 5. Axis Completion Progress */}
         <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
+          <div className="flex items-center justify-between fs-11 font-bold text-gray-200">
             <span>إنجاز المحاور (Axis Completion):</span>
           </div>
 
           <div className="space-y-2">
             {axisCompletion.map(({ axis, percent }) => (
               <div key={axis.id} className="space-y-0.5">
-                <div className="flex justify-between text-[10.5px]">
+                <div className="flex justify-between fs-10.5">
                   <span className="font-quran font-bold text-gray-300 truncate max-w-[160px]">
                     {axis.arabicLabel}
                   </span>
@@ -356,31 +356,31 @@ export const StatsTab: React.FC = () => {
         {/* 6. Document Word Count & Estimated Pages */}
         <div className="p-3 bg-gradient-to-tr from-blue-950/40 to-indigo-950/40 border border-blue-800/40 rounded-lg flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="text-[10px] text-blue-300 block">إحصاء كلمات المستند:</span>
+            <span className="fs-10 text-blue-300 block">إحصاء كلمات المستند:</span>
             <div className="flex items-center gap-2">
               <span className="font-bold font-mono text-base text-white">{totalDocWords}</span>
-              <span className="text-[10px] text-gray-400">كلمة</span>
+              <span className="fs-10 text-gray-400">كلمة</span>
             </div>
           </div>
           <div className="text-left space-y-0.5 border-r border-blue-800/40 pr-3">
-            <span className="text-[10px] text-blue-300 block">الصفحات التقديرية (A4):</span>
+            <span className="fs-10 text-blue-300 block">الصفحات التقديرية (A4):</span>
             <span className="font-bold font-mono text-base text-emerald-400">{estimatedPages} صفحات</span>
           </div>
         </div>
 
         {/* 7. Blog Corpus Statistics */}
         <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
+          <div className="flex items-center justify-between fs-11 font-bold text-gray-200">
             <span>📚 إحصائيات المدونة:</span>
           </div>
 
           {blogArticles.length === 0 ? (
-            <div className="text-[10.5px] text-gray-500">
+            <div className="fs-10.5 text-gray-500">
               لا توجد مقالات محمّلة. ضع ملفات Word في content/blog/قصة لوط/ ثم شغّل npm run blog.
             </div>
           ) : (
             <>
-              <div className="space-y-1 text-[10.5px]">
+              <div className="space-y-1 fs-10.5">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-300">المقالات المحمّلة</span>
                   <span className="font-mono text-blue-300 font-semibold">{corpus?.totalArticles}</span>
@@ -409,7 +409,7 @@ export const StatsTab: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-1.5 border-t border-[#2e2817] text-[10.5px] space-y-0.5">
+              <div className="pt-1.5 border-t border-[#2e2817] fs-10.5 space-y-0.5">
                 <span className="text-gray-400 block">أكثر مقال استشهاداً:</span>
                 {mostCitedArticle ? (
                   <span className="text-white font-semibold">
@@ -422,7 +422,7 @@ export const StatsTab: React.FC = () => {
                 )}
               </div>
 
-              <div className="pt-1.5 border-t border-[#2e2817] flex items-center justify-between text-[10.5px]">
+              <div className="pt-1.5 border-t border-[#2e2817] flex items-center justify-between fs-10.5">
                 <span className="text-gray-300">آيات مشتركة (شجرة + مدونة)</span>
                 <span className="font-mono text-emerald-400 font-semibold">{sharedVerses}</span>
               </div>

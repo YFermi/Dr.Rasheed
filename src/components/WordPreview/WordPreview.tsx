@@ -81,9 +81,9 @@ export const WordPreview: React.FC = () => {
         {/* Axis / Heading 1 */}
         {node.type === 'axis' && (
           <div className="mt-6 mb-2 border-b border-blue-900/15 pb-1">
-            <h2 className="text-[21px] font-bold text-[#1e3a8a] leading-tight font-quran flex items-center justify-between">
+            <h2 className="fs-21 font-bold text-[#1e3a8a] leading-tight font-quran flex items-center justify-between">
               <span>{node.arabicLabel}</span>
-              <span className="text-[11px] font-sans font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full no-print">
+              <span className="fs-11 font-sans font-normal text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full no-print">
                 محور رئيسي
               </span>
             </h2>
@@ -93,7 +93,7 @@ export const WordPreview: React.FC = () => {
         {/* Idea / Heading 2 */}
         {node.type === 'idea' && (
           <div className="mt-4 mb-2">
-            <h3 className="text-[17px] font-bold text-[#374151] leading-snug font-quran flex items-center gap-2">
+            <h3 className="fs-17 font-bold text-[#374151] leading-snug font-quran flex items-center gap-2">
               <span className="text-amber-600 text-xs font-mono">●</span>
               <span>{node.arabicLabel}</span>
             </h3>
@@ -102,7 +102,7 @@ export const WordPreview: React.FC = () => {
 
         {/* Evidence / الشاهد */}
         {node.type === 'evidence' && (
-          <div className="mt-2 mb-1 flex items-center gap-2 text-[14px] font-semibold text-[#854d0e] font-quran">
+          <div className="mt-2 mb-1 flex items-center gap-2 fs-14 font-semibold text-[#854d0e] font-quran">
             <span className="text-sm">📖</span>
             <span>الشاهد: {node.arabicLabel}</span>
           </div>
@@ -110,7 +110,7 @@ export const WordPreview: React.FC = () => {
 
         {/* Question / مسألة بحثية */}
         {node.type === 'question' && (
-          <div className="mt-3 mb-1 p-2 bg-sky-50/80 border-r-4 border-sky-600 rounded text-[14px] font-medium text-[#0369a1] font-quran flex items-start gap-2">
+          <div className="mt-3 mb-1 p-2 bg-sky-50/80 border-r-4 border-sky-600 rounded fs-14 font-medium text-[#0369a1] font-quran flex items-start gap-2">
             <span className="text-base leading-none">❓</span>
             <div>
               <span className="font-bold">مسألة بحثية مفتوحة: </span>
@@ -122,10 +122,10 @@ export const WordPreview: React.FC = () => {
         {/* Quranic Verse Box */}
         {node.quranicVerses && node.quranicVerses.trim() && (
           <div className="my-3 mx-2 p-3.5 bg-[#fef9c3]/90 border-y border-[#ca8a04]/40 border-r-4 border-r-[#ca8a04] rounded-lg shadow-xs text-center relative overflow-hidden">
-            <div className="absolute top-1 left-2 text-[10px] text-amber-800/60 font-sans tracking-wider uppercase font-semibold">
+            <div className="absolute top-1 left-2 fs-10 text-amber-800/60 font-sans tracking-wider uppercase font-semibold">
               شاهد قرآني
             </div>
-            <p className="font-quran text-[18px] md:text-[19px] text-[#78350f] font-bold leading-relaxed tracking-wide selection:bg-amber-200">
+            <p className="font-quran fs-18 md:fs-19 text-[#78350f] font-bold leading-relaxed tracking-wide selection:bg-amber-200">
               {node.quranicVerses}
             </p>
           </div>
@@ -133,21 +133,21 @@ export const WordPreview: React.FC = () => {
 
         {/* Body Notes */}
         {node.notes && node.notes.trim() && (
-          <p className="text-[15px] text-[#1f2937] leading-[1.85] text-justify font-quran whitespace-pre-wrap my-1.5 px-1">
+          <p className="fs-15 text-[#1f2937] leading-[1.85] text-justify font-quran whitespace-pre-wrap my-1.5 px-1">
             {node.notes}
           </p>
         )}
 
         {/* Footnote-like metadata tags */}
         {(node.speakers.length > 0 || node.crossReferences.length > 0 || node.sessionRef) && node.type !== 'project' && (
-          <div className="mt-1 mb-2 pt-1 border-t border-gray-100 flex flex-wrap items-center gap-2 text-[11.5px] text-gray-500 font-sans">
+          <div className="mt-1 mb-2 pt-1 border-t border-gray-100 flex flex-wrap items-center gap-2 fs-11.5 text-gray-500 font-sans">
             {node.speakers.length > 0 && (
               <span className="bg-gray-100/90 text-gray-700 px-1.5 py-0.5 rounded">
                 المتحدث: {node.speakers.join('، ')}
               </span>
             )}
             {node.crossReferences.length > 0 && (
-              <span className="bg-amber-50 text-amber-900 border border-amber-200/60 px-1.5 py-0.5 rounded font-mono text-[10.5px]">
+              <span className="bg-amber-50 text-amber-900 border border-amber-200/60 px-1.5 py-0.5 rounded font-mono fs-10.5">
                 شواهد: {node.crossReferences.join(' | ')}
               </span>
             )}
@@ -157,7 +157,7 @@ export const WordPreview: React.FC = () => {
               </span>
             )}
             {node.linkedIdeas.length > 0 && (
-              <span className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded text-[11px] font-sans">
+              <span className="text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded fs-11 font-sans">
                 🔗 مرتبط بـ {node.linkedIdeas.length} أفكار
               </span>
             )}
@@ -173,7 +173,7 @@ export const WordPreview: React.FC = () => {
   return (
     <div className="h-full flex flex-col bg-[#e5e7eb] select-text">
       {/* Top Document Toolbar */}
-      <div className="h-11 bg-white border-b border-gray-300 px-4 flex items-center justify-between shadow-xs no-print select-none">
+      <div className="min-h-11 py-1 bg-white border-b border-gray-300 px-4 flex flex-wrap items-center justify-between gap-y-1 shadow-xs no-print select-none">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-blue-900 font-bold text-sm">
             <BookOpen className="w-4 h-4 text-blue-700" />
@@ -206,7 +206,7 @@ export const WordPreview: React.FC = () => {
           <button 
             onClick={() => setWordPreviewZoom(100)}
             title="إعادة ضبط القياس 100%"
-            className="px-1.5 py-0.5 hover:bg-white rounded text-[11px] text-gray-600 border-r border-gray-300 mr-1"
+            className="px-1.5 py-0.5 hover:bg-white rounded fs-11 text-gray-600 border-r border-gray-300 mr-1"
           >
             100%
           </button>
@@ -235,16 +235,16 @@ export const WordPreview: React.FC = () => {
       </div>
 
       {/* MS Word-style Metric Ruler Bar */}
-      <div className="h-6 bg-[#f3f4f6] border-b border-gray-300 flex items-center justify-center text-[10px] text-gray-500 font-mono select-none overflow-hidden no-print">
+      <div className="h-6 bg-[#f3f4f6] border-b border-gray-300 flex items-center justify-center fs-10 text-gray-500 font-mono select-none overflow-hidden no-print">
         <div 
           className="flex items-center border-l border-r border-gray-400 bg-white shadow-inner h-4 relative"
           style={{ width: `${(794 * wordPreviewZoom) / 100}px` }}
         >
           {/* Margin markers on left & right */}
-          <div className="absolute left-0 top-0 bottom-0 w-[96px] bg-gray-200/80 border-r border-gray-400 flex items-center justify-center text-[9px] text-gray-600">
+          <div className="absolute left-0 top-0 bottom-0 w-[96px] bg-gray-200/80 border-r border-gray-400 flex items-center justify-center fs-9 text-gray-600">
             2.54cm
           </div>
-          <div className="absolute right-0 top-0 bottom-0 w-[96px] bg-gray-200/80 border-l border-gray-400 flex items-center justify-center text-[9px] text-gray-600">
+          <div className="absolute right-0 top-0 bottom-0 w-[96px] bg-gray-200/80 border-l border-gray-400 flex items-center justify-center fs-9 text-gray-600">
             2.54cm
           </div>
           {/* Centimeter ticks */}
@@ -252,7 +252,7 @@ export const WordPreview: React.FC = () => {
             {Array.from({ length: 16 }).map((_, i) => (
               <span key={i} className="flex flex-col items-center">
                 <span className="h-1.5 w-px bg-gray-400"></span>
-                <span className="text-[8px] leading-none text-gray-500">{i + 1}</span>
+                <span className="fs-8 leading-none text-gray-500">{i + 1}</span>
               </span>
             ))}
           </div>
@@ -276,22 +276,22 @@ export const WordPreview: React.FC = () => {
           className="absolute top-0 left-0 bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print w-[794px] min-h-[1123px] h-auto p-[96px] text-right text-gray-900"
         >
           {/* Running Header */}
-          <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between text-[11px] text-gray-400 font-quran">
+          <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between fs-11 text-gray-400 font-quran">
             <span>{projectSettings.title}</span>
             <span>بيت العنكبوت — دراسة استقرائية وتفكيك دلالي</span>
           </div>
 
           {/* Document Title Header */}
           <div className="text-center mb-8">
-            <h1 className={`text-[28px] font-bold font-quran tracking-tight mb-2 ${projectSettings.title ? 'text-[#1e3a8a]' : 'text-gray-300'}`}>
+            <h1 className={`fs-28 font-bold font-quran tracking-tight mb-2 ${projectSettings.title ? 'text-[#1e3a8a]' : 'text-gray-300'}`}>
               {projectSettings.title || PROJECT_TITLE_PLACEHOLDER}
             </h1>
             {projectSettings.subtitle && (
-              <p className="text-[15px] text-gray-600 font-quran italic mb-3">
+              <p className="fs-15 text-gray-600 font-quran italic mb-3">
                 {projectSettings.subtitle}
               </p>
             )}
-            <div className="inline-flex items-center gap-3 text-[12px] text-gray-500 font-sans border-y border-blue-100 py-1 px-4 bg-blue-50/30 rounded">
+            <div className="inline-flex items-center gap-3 fs-12 text-gray-500 font-sans border-y border-blue-100 py-1 px-4 bg-blue-50/30 rounded">
               <span><strong>الباحث / الفريق:</strong> {projectSettings.author}</span>
               <span>•</span>
               <span><strong>التاريخ:</strong> {projectSettings.date}</span>
@@ -300,7 +300,7 @@ export const WordPreview: React.FC = () => {
 
           {/* Document Abstract / Overview */}
           {projectSettings.description && (
-            <div className="p-4 bg-gray-50 border-r-3 border-blue-600 rounded mb-6 text-[13.5px] leading-relaxed text-gray-700 font-quran">
+            <div className="p-4 bg-gray-50 border-r-3 border-blue-600 rounded mb-6 fs-13.5 leading-relaxed text-gray-700 font-quran">
               <strong className="text-blue-900 block mb-1">التوطئة:</strong>
               {projectSettings.description}
             </div>
@@ -312,7 +312,7 @@ export const WordPreview: React.FC = () => {
           </div>
 
           {/* Running Footer */}
-          <div className="mt-16 pt-4 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-400 font-sans">
+          <div className="mt-16 pt-4 border-t border-gray-200 flex items-center justify-between fs-11 text-gray-400 font-sans">
             <span>تم استخراج المستند عبر «بيت العنكبوت»</span>
             <div className="flex items-center gap-1 font-mono">
               <span title="تقدير من ارتفاع المحتوى ÷ ارتفاع صفحة A4">عدد الصفحات ≈ {pageCount}</span>

@@ -117,7 +117,7 @@ export const BlogTab: React.FC = () => {
         type="button"
         onClick={onRead}
         title="فتح المقال في لوحة القراءة"
-        className="px-1.5 py-0.5 bg-[#2e2817] hover:bg-[#4a4027] text-[#efe6cf] rounded text-[10px] flex items-center gap-0.5 transition"
+        className="px-1.5 py-0.5 bg-[#2e2817] hover:bg-[#4a4027] text-[#efe6cf] rounded fs-10 flex items-center gap-0.5 transition"
       >
         <BookOpen className="w-2.5 h-2.5" />
         <span>اقرأ</span>
@@ -126,7 +126,7 @@ export const BlogTab: React.FC = () => {
         type="button"
         onClick={onGoTo}
         title="الانتقال مباشرة إلى الفقرة داخل المقال"
-        className="px-1.5 py-0.5 bg-[#d4af37]/90 hover:bg-[#d4af37] text-[#121212] rounded text-[10px] font-semibold flex items-center gap-0.5 transition"
+        className="px-1.5 py-0.5 bg-[#d4af37]/90 hover:bg-[#d4af37] text-[#121212] rounded fs-10 font-semibold flex items-center gap-0.5 transition"
       >
         <MapPin className="w-2.5 h-2.5" />
         <span>اذهب</span>
@@ -153,14 +153,14 @@ export const BlogTab: React.FC = () => {
           <p className="text-xs text-gray-300 leading-relaxed">
             لا توجد مقالات. ضع ملفات Word في المجلد:
           </p>
-          <code dir="ltr" className="block text-[10.5px] font-mono bg-[#0a0a0a] text-amber-300 px-2 py-1 rounded border border-[#2e2817]">
+          <code dir="ltr" className="block fs-10.5 font-mono bg-[#0a0a0a] text-amber-300 px-2 py-1 rounded border border-[#2e2817]">
             content/blog/قصة لوط/
           </code>
           <p className="text-xs text-gray-300">ثم شغّل:</p>
-          <code dir="ltr" className="block text-[10.5px] font-mono bg-[#0a0a0a] text-emerald-300 px-2 py-1 rounded border border-[#2e2817]">
+          <code dir="ltr" className="block fs-10.5 font-mono bg-[#0a0a0a] text-emerald-300 px-2 py-1 rounded border border-[#2e2817]">
             npm run blog
           </code>
-          {error && <p className="text-[10px] text-rose-400 pt-1">{error}</p>}
+          {error && <p className="fs-10 text-rose-400 pt-1">{error}</p>}
         </div>
       );
     }
@@ -181,20 +181,20 @@ export const BlogTab: React.FC = () => {
               key={paragraph.id}
               className="p-2 bg-[#121212] border border-[#2e2817] hover:border-[#d4af37]/50 rounded-lg space-y-1 transition"
             >
-              <div className="flex items-center gap-1.5 text-[11px] min-w-0">
+              <div className="flex items-center gap-1.5 fs-11 min-w-0">
                 <FileText className="w-3 h-3 text-[#d4af37] flex-shrink-0" />
-                <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 rounded flex-shrink-0">
+                <span className="fs-10 font-mono bg-[#2e2817] text-[#d4af37] px-1.5 rounded flex-shrink-0">
                   {toArabicDigits(article.partNumber)}
                 </span>
                 <span className="font-bold text-white truncate" title={article.title}>
                   {article.title}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-[10px] text-gray-500">
+              <div className="flex items-center justify-between fs-10 text-gray-500">
                 <span>¶ الفقرة {toArabicDigits(paragraphNumber(paragraph.id))}</span>
                 <span className="font-mono" title="عدد التطابقات">×{toArabicDigits(matchCount)}</span>
               </div>
-              <p className="font-quran text-[12.5px] leading-relaxed text-[#efe6cf] line-clamp-3 select-text">
+              <p className="font-quran fs-12.5 leading-relaxed text-[#efe6cf] line-clamp-3 select-text">
                 {highlightStems(snippet, stems)}
               </p>
               {renderActions(
@@ -204,7 +204,7 @@ export const BlogTab: React.FC = () => {
             </div>
           ))}
           {filteredResults.length > MAX_RENDERED_RESULTS && (
-            <div className="text-center text-[10px] text-gray-500 py-1">
+            <div className="text-center fs-10 text-gray-500 py-1">
               عرض أول {toArabicDigits(MAX_RENDERED_RESULTS)} نتيجة — حدّد البحث أكثر
             </div>
           )}
@@ -225,13 +225,13 @@ export const BlogTab: React.FC = () => {
               key={`${verse.paragraphId}-${i}`}
               className="p-2 bg-[#fef3c7] text-[#78350f] border border-amber-300 rounded-lg space-y-1"
             >
-              <div className="flex items-center justify-between text-[10.5px] border-b border-amber-200/80 pb-0.5">
+              <div className="flex items-center justify-between fs-10.5 border-b border-amber-200/80 pb-0.5">
                 <span className="font-bold text-amber-900">📖 {verseLabel(verse)}</span>
-                <span className="text-[9.5px] bg-amber-100 text-amber-800 px-1.5 rounded font-mono">
+                <span className="fs-9.5 bg-amber-100 text-amber-800 px-1.5 rounded font-mono">
                   المقال {toArabicDigits(article.partNumber)}
                 </span>
               </div>
-              <p className="font-quran text-[13.5px] font-bold leading-relaxed text-center line-clamp-3 select-text">
+              <p className="font-quran fs-13.5 font-bold leading-relaxed text-center line-clamp-3 select-text">
                 ﴿{verse.text}﴾
               </p>
               {renderActions(
@@ -267,15 +267,15 @@ export const BlogTab: React.FC = () => {
                   title="فتح المقال في لوحة القراءة"
                   className="flex-1 min-w-0 p-2 pr-0.5 text-right hover:bg-[#2e2817]/40 transition space-y-1"
                 >
-                  <div className="flex items-center gap-1.5 text-[11px] min-w-0">
-                    <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 rounded flex-shrink-0">
+                  <div className="flex items-center gap-1.5 fs-11 min-w-0">
+                    <span className="fs-10 font-mono bg-[#2e2817] text-[#d4af37] px-1.5 rounded flex-shrink-0">
                       {toArabicDigits(article.partNumber)}
                     </span>
                     <span className="font-bold text-white truncate" title={article.title}>
                       {article.title}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                  <div className="flex items-center gap-2 fs-10 text-gray-500">
                     <span>{toArabicDigits(article.wordCount)} كلمة</span>
                     <span>•</span>
                     <span className="text-amber-300/80">{toArabicDigits(article.verses.length)} آية</span>
@@ -286,14 +286,14 @@ export const BlogTab: React.FC = () => {
               {isExpanded && (
                 <div className="border-t border-[#2e2817] bg-[#0a0a0a] py-1">
                   {headings.length === 0 ? (
-                    <div className="px-3 py-1 text-[10px] text-gray-500">لا توجد عناوين فرعية.</div>
+                    <div className="px-3 py-1 fs-10 text-gray-500">لا توجد عناوين فرعية.</div>
                   ) : (
                     headings.map(h => (
                       <button
                         key={h.id}
                         type="button"
                         onClick={() => handleGoTo(article.id, h.id)}
-                        className="w-full text-right px-3 py-1 text-[10.5px] text-gray-300 hover:text-[#d4af37] hover:bg-[#171717] truncate transition"
+                        className="w-full text-right px-3 py-1 fs-10.5 text-gray-300 hover:text-[#d4af37] hover:bg-[#171717] truncate transition"
                         style={{ paddingRight: `${0.75 + ((h.headingLevel ?? 1) - 1) * 0.6}rem` }}
                         title={h.text}
                       >
@@ -321,7 +321,7 @@ export const BlogTab: React.FC = () => {
           <BookOpen className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
           <span className="font-bold text-xs text-white truncate">مقالات د. رشيد — قصة لوط</span>
           {hasArticles && (
-            <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 py-0.2 rounded-full border border-blue-900/40">
+            <span className="fs-10 font-mono bg-[#2e2817] text-[#d4af37] px-1.5 py-0.2 rounded-full border border-blue-900/40">
               {toArabicDigits(articles.length)}
             </span>
           )}
@@ -353,17 +353,17 @@ export const BlogTab: React.FC = () => {
         </div>
 
         {isSearching && (
-          <div className={`text-[10px] ${filteredResults.length ? 'text-[#d4af37]' : 'text-gray-500'}`}>
+          <div className={`fs-10 ${filteredResults.length ? 'text-[#d4af37]' : 'text-gray-500'}`}>
             {formatResultCount(filteredResults.length)}
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-1.5 text-[11px]">
+        <div className="flex items-center justify-between gap-1.5 fs-11">
           <select
             value={articleFilter}
             onChange={(e) => setArticleFilter(e.target.value)}
             disabled={!hasArticles}
-            className="flex-1 min-w-0 bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none disabled:opacity-50"
+            className="flex-1 min-w-0 bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-0.5 text-white fs-10.5 focus:outline-none disabled:opacity-50"
           >
             <option value="all">كل المقالات ({toArabicDigits(articles.length)})</option>
             {articles.map(a => (
@@ -378,7 +378,7 @@ export const BlogTab: React.FC = () => {
             onClick={() => setVersesOnly(!versesOnly)}
             disabled={!hasArticles}
             title="عرض الفقرات التي تحتوي على آيات فقط"
-            className={`px-2 py-0.5 rounded border text-[10.5px] flex items-center gap-1 flex-shrink-0 transition disabled:opacity-50 ${
+            className={`px-2 py-0.5 rounded border fs-10.5 flex items-center gap-1 flex-shrink-0 transition disabled:opacity-50 ${
               versesOnly
                 ? 'bg-amber-600/80 border-amber-500 text-white'
                 : 'bg-[#0a0a0a] border-[#2e2817] text-gray-400 hover:text-white'
@@ -397,7 +397,7 @@ export const BlogTab: React.FC = () => {
 
       {/* 4. Bottom Stats Summary */}
       {hasArticles && corpus && (
-        <div className="p-2 bg-[#121212] border-t border-[#2e2817] text-[10px] text-gray-300 flex items-center justify-between flex-shrink-0">
+        <div className="p-2 bg-[#121212] border-t border-[#2e2817] fs-10 text-gray-300 flex items-center justify-between flex-shrink-0">
           <div>
             <span>الفقرات: </span>
             <strong className="text-white font-mono">{toArabicDigits(corpus.totalParagraphs)}</strong>

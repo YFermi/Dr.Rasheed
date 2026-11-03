@@ -221,7 +221,7 @@ export const VersesTab: React.FC = () => {
         <div className="flex items-center gap-1.5">
           <BookMarked className="w-4 h-4 text-amber-400" />
           <span className="font-bold text-xs text-white">فهرس الشواهد والآيات</span>
-          <span className="text-[10px] font-mono bg-[#2e2817] text-amber-300 px-1.5 py-0.2 rounded-full border border-amber-900/40">
+          <span className="fs-10 font-mono bg-[#2e2817] text-amber-300 px-1.5 py-0.2 rounded-full border border-amber-900/40">
             {totalVerses}
           </span>
         </div>
@@ -229,7 +229,7 @@ export const VersesTab: React.FC = () => {
         <button
           type="button"
           onClick={() => setIsAddFormOpen(!isAddFormOpen)}
-          className="px-2 py-0.5 bg-amber-600/80 hover:bg-amber-500 text-white rounded text-[11px] flex items-center gap-1 transition"
+          className="px-2 py-0.5 bg-amber-600/80 hover:bg-amber-500 text-white rounded fs-11 flex items-center gap-1 transition"
         >
           <Plus className="w-3 h-3" />
           <span>إضافة شاهد</span>
@@ -239,7 +239,7 @@ export const VersesTab: React.FC = () => {
       {/* Add Verse Form (Collapsible) */}
       {isAddFormOpen && (
         <form onSubmit={handleAddVerseSubmit} className="p-3 bg-[#0a0a0a] border-b border-amber-600/40 space-y-2 text-xs">
-          <div className="flex items-center justify-between text-amber-300 font-bold text-[11px]">
+          <div className="flex items-center justify-between text-amber-300 font-bold fs-11">
             <span>إضافة شاهد قرآني جديد لفكرة:</span>
             <button type="button" onClick={() => setIsAddFormOpen(false)} className="text-gray-400 hover:text-white">
               <X className="w-3.5 h-3.5" />
@@ -248,7 +248,7 @@ export const VersesTab: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-1.5">
             <div>
-              <label className="text-[10px] text-gray-400 block mb-0.5">السورة:</label>
+              <label className="fs-10 text-gray-400 block mb-0.5">السورة:</label>
               <input
                 type="text"
                 value={newSurah}
@@ -257,7 +257,7 @@ export const VersesTab: React.FC = () => {
               />
             </div>
             <div>
-              <label className="text-[10px] text-gray-400 block mb-0.5">رقم الآية:</label>
+              <label className="fs-10 text-gray-400 block mb-0.5">رقم الآية:</label>
               <input
                 type="text"
                 placeholder="81"
@@ -269,7 +269,7 @@ export const VersesTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">نص الآية الكريمة:</label>
+            <label className="fs-10 text-gray-400 block mb-0.5">نص الآية الكريمة:</label>
             <textarea
               rows={2}
               value={newText}
@@ -280,11 +280,11 @@ export const VersesTab: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-[10px] text-gray-400 block mb-0.5">ربط بالفكرة:</label>
+            <label className="fs-10 text-gray-400 block mb-0.5">ربط بالفكرة:</label>
             <select
               value={targetIdeaId}
               onChange={(e) => setTargetIdeaId(e.target.value)}
-              className="w-full bg-[#171717] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
+              className="w-full bg-[#171717] border border-[#2e2817] rounded px-1.5 py-1 text-white fs-11 focus:outline-none"
               required
             >
               <option value="">-- اختر الفكرة لإلحاق الشاهد بها --</option>
@@ -323,7 +323,7 @@ export const VersesTab: React.FC = () => {
               key={mode.id}
               type="button"
               onClick={() => setViewMode(mode.id)}
-              className={`flex-1 px-1 py-0.5 rounded text-[9.5px] whitespace-nowrap transition ${
+              className={`flex-1 px-1 py-0.5 rounded fs-9.5 whitespace-nowrap transition ${
                 viewMode === mode.id
                   ? 'bg-amber-600/80 text-white font-bold'
                   : 'text-gray-400 hover:text-white hover:bg-[#2e2817]/60'
@@ -345,12 +345,12 @@ export const VersesTab: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center justify-between text-[11px]">
-          <span className="text-gray-400 text-[10px]">تصفية بالسورة:</span>
+        <div className="flex items-center justify-between fs-11">
+          <span className="text-gray-400 fs-10">تصفية بالسورة:</span>
           <select
             value={selectedSurah}
             onChange={(e) => setSelectedSurah(e.target.value)}
-            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 text-white text-[10.5px] focus:outline-none"
+            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 text-white fs-10.5 focus:outline-none"
           >
             <option value="all">كافة السور ({uniqueSurahs.length})</option>
             {uniqueSurahs.map(surah => (
@@ -375,38 +375,38 @@ export const VersesTab: React.FC = () => {
               className="p-3 bg-[#fef3c7] text-[#78350f] border border-amber-300 rounded-lg shadow-xs space-y-2 select-text"
             >
               {/* Surah & Ayah Badge */}
-              <div className="flex items-center justify-between border-b border-amber-200/80 pb-1 text-[11px]">
+              <div className="flex items-center justify-between border-b border-amber-200/80 pb-1 fs-11">
                 <div className="flex items-center gap-1 font-bold text-amber-900">
                   <span className="text-xs">📖</span>
                   <span>{verse.fullReference ? verse.fullReference : `${verse.surah} ${verse.ayah}`}</span>
                 </div>
                 {verse.origin === 'tree' ? (
-                  <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-mono font-semibold">
+                  <span className="fs-10 bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-mono font-semibold">
                     مستشهد به {verse.referencingIdeas.length}x
                   </span>
                 ) : (
-                  <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded font-semibold">
+                  <span className="fs-10 bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded font-semibold">
                     في المدونة فقط
                   </span>
                 )}
               </div>
 
               {/* Verse Text in Amiri 14pt */}
-              <p className="font-quran text-[15px] font-bold leading-relaxed text-center py-1 selection:bg-amber-300">
+              <p className="font-quran fs-15 font-bold leading-relaxed text-center py-1 selection:bg-amber-300">
                 {verse.text}
               </p>
 
               {/* Referenced Ideas List */}
               {verse.origin === 'tree' && (
-              <div className="pt-1.5 border-t border-amber-200/80 text-[10.5px] space-y-1">
-                <span className="text-amber-900/80 font-bold block text-[10px]">
+              <div className="pt-1.5 border-t border-amber-200/80 fs-10.5 space-y-1">
+                <span className="text-amber-900/80 font-bold block fs-10">
                   في الشجرة:
                 </span>
                 <div className="space-y-1">
                   {verse.referencingIdeas.map(idea => (
                     <div
                       key={idea.id}
-                      className="flex items-center justify-between p-1 bg-white/70 hover:bg-white rounded border border-amber-200 transition text-[10.5px]"
+                      className="flex items-center justify-between p-1 bg-white/70 hover:bg-white rounded border border-amber-200 transition fs-10.5"
                     >
                       <span className="font-quran text-gray-900 font-semibold truncate flex-1" title={idea.label}>
                         💡 {idea.label}
@@ -414,7 +414,7 @@ export const VersesTab: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleGoToIdea(idea.id)}
-                        className="px-1.5 py-0.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-[9.5px] flex items-center gap-0.5 flex-shrink-0 transition mr-1 font-sans"
+                        className="px-1.5 py-0.5 bg-amber-600 hover:bg-amber-700 text-white rounded fs-9.5 flex items-center gap-0.5 flex-shrink-0 transition mr-1 font-sans"
                         title="انتقال للفكرة وتعديل خصائصها"
                       >
                         <MapPin className="w-2.5 h-2.5" />
@@ -428,15 +428,15 @@ export const VersesTab: React.FC = () => {
 
               {/* Occurrences in the blog corpus */}
               {verse.blogMatches.length > 0 && (
-                <div className="pt-1.5 border-t border-amber-200/80 text-[10.5px] space-y-1">
-                  <span className="text-amber-900/80 font-bold block text-[10px]">
+                <div className="pt-1.5 border-t border-amber-200/80 fs-10.5 space-y-1">
+                  <span className="text-amber-900/80 font-bold block fs-10">
                     في المدونة:
                   </span>
                   <div className="space-y-1">
                     {uniqueByParagraph(verse.blogMatches).map(({ article, verse: blogVerse }) => (
                       <div
                         key={blogVerse.paragraphId}
-                        className="flex items-center justify-between p-1 bg-white/70 hover:bg-white rounded border border-amber-200 transition text-[10.5px]"
+                        className="flex items-center justify-between p-1 bg-white/70 hover:bg-white rounded border border-amber-200 transition fs-10.5"
                       >
                         <span className="text-gray-900 font-semibold truncate flex-1" title={article.title}>
                           📄 المقال {toArabicDigits(article.partNumber)} ¶{toArabicDigits(paragraphNumber(blogVerse.paragraphId))}
@@ -444,7 +444,7 @@ export const VersesTab: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => goToParagraph(article.id, blogVerse.paragraphId)}
-                          className="px-1.5 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[9.5px] flex items-center gap-0.5 flex-shrink-0 transition mr-1 font-sans"
+                          className="px-1.5 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded fs-9.5 flex items-center gap-0.5 flex-shrink-0 transition mr-1 font-sans"
                           title="فتح المقال عند هذه الفقرة"
                         >
                           <MapPin className="w-2.5 h-2.5" />
@@ -460,10 +460,10 @@ export const VersesTab: React.FC = () => {
       </div>
 
       {/* 4. Bottom Stats Summary */}
-      <div className="p-2 bg-[#121212] border-t border-[#2e2817] text-[10px] text-gray-300 flex items-center justify-between">
+      <div className="p-2 bg-[#121212] border-t border-[#2e2817] fs-10 text-gray-300 flex items-center justify-between">
         <div>
           <span>إجمالي الآيات: </span>
-          <strong className="text-amber-300 font-mono text-[11px]">{totalVerses}</strong>
+          <strong className="text-amber-300 font-mono fs-11">{totalVerses}</strong>
           <span className="text-gray-500 mx-1">•</span>
           <span>السور المغطاة: </span>
           <strong className="text-white font-mono">{surahsCovered}</strong>

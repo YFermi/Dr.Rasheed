@@ -192,25 +192,25 @@ export const ReferenceArticleModal: React.FC = () => {
           {!aiAvailable && step === 'input' && (
             <button type="button" onClick={openKeyModal} className="w-full p-2.5 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 rounded text-amber-200 text-right flex items-center justify-between transition">
               <span>🔑 أدخل مفتاح API لتحليل المقال بالذكاء الاصطناعي</span>
-              <span className="text-[10.5px] underline">إدخال المفتاح</span>
+              <span className="fs-10.5 underline">إدخال المفتاح</span>
             </button>
           )}
 
           {/* Step 1: input */}
           {step === 'input' && (
             <>
-              <p className="text-[11px] text-gray-400 leading-relaxed">
+              <p className="fs-11 text-gray-400 leading-relaxed">
                 أدخل مقالاً مكتملاً ومعتمداً. تُستخرج أفكاره وتسلسلها وتُضاف إلى الشجرة <strong className="text-sky-300">أفكاراً مرجعية 📌</strong>:
                 للربط والاستدلال فقط، ولا تُكتب في نص المقال الجديد.
               </p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] text-gray-300 block">عنوان المقال:</label>
+                  <label className="fs-11 text-gray-300 block">عنوان المقال:</label>
                   <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="مثلاً: لماذا قدّم لوط بناته؟ (الجزء الثامن عشر)" className={`${field} font-quran text-sm`} />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] text-gray-300 block">القصة:</label>
+                  <label className="fs-11 text-gray-300 block">القصة:</label>
                   <div className="flex gap-1.5">
                     <select value={story} onChange={e => setStory(e.target.value)} className={`${field} text-xs`}>
                       {stories.map(s => <option key={s} value={s}>{s}</option>)}
@@ -260,7 +260,7 @@ export const ReferenceArticleModal: React.FC = () => {
                 )}
 
                 {text && (
-                  <div className="flex items-center justify-between text-[11px]">
+                  <div className="flex items-center justify-between fs-11">
                     <span className={isTooLong ? 'text-amber-300' : 'text-gray-500'}>
                       {isTooLong ? '⚠️ المقال يتجاوز الحد المسموح للتحليل.' : mode === 'file' ? 'نص الملف جاهز للتحليل.' : ''}
                     </span>
@@ -270,7 +270,7 @@ export const ReferenceArticleModal: React.FC = () => {
                   </div>
                 )}
                 {glyphChars > 0 && (
-                  <p className="p-2 bg-amber-950/30 border border-amber-800/50 rounded text-[11px] text-amber-200 leading-relaxed">
+                  <p className="p-2 bg-amber-950/30 border border-amber-800/50 rounded fs-11 text-amber-200 leading-relaxed">
                     ⚠️ في الملف {formatCount(glyphChars)} حرفاً مكتوبة بخط مصحف خاص، فتظهر نصوص بعض الآيات رموزاً في النص المستخرج.
                     يعتمد التحليل على مراجع الآيات المكتوبة بجوارها مثل [هود: 77].
                   </p>
@@ -282,7 +282,7 @@ export const ReferenceArticleModal: React.FC = () => {
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span className="flex-1">{errorMsg}</span>
                   {canRetry && (
-                    <button type="button" onClick={handleAnalyze} className="px-2.5 py-1 bg-rose-900/60 hover:bg-rose-800 text-rose-100 rounded text-[11px] flex items-center gap-1 flex-shrink-0 transition">
+                    <button type="button" onClick={handleAnalyze} className="px-2.5 py-1 bg-rose-900/60 hover:bg-rose-800 text-rose-100 rounded fs-11 flex items-center gap-1 flex-shrink-0 transition">
                       <RotateCw className="w-3.5 h-3.5" /> <span>إعادة المحاولة</span>
                     </button>
                   )}
@@ -296,7 +296,7 @@ export const ReferenceArticleModal: React.FC = () => {
             <div className="py-16 flex flex-col items-center gap-3 text-gray-300">
               <Loader2 className="w-8 h-8 text-sky-400 animate-spin" />
               <p className="text-sm">جاري تحليل المقال...</p>
-              <p className="text-[11px] text-gray-500">قد يستغرق ذلك حتى دقيقة للمقالات الطويلة.</p>
+              <p className="fs-11 text-gray-500">قد يستغرق ذلك حتى دقيقة للمقالات الطويلة.</p>
             </div>
           )}
 
@@ -305,24 +305,24 @@ export const ReferenceArticleModal: React.FC = () => {
             <div className="space-y-4">
               <div className="p-3 bg-[#0a0a0a] border border-[#2e2817] rounded-lg space-y-2">
                 <h3 className="font-bold text-sm text-white">بنية المقال</h3>
-                {analysis.structure.introduction && <p className="text-[11.5px] text-gray-300 leading-relaxed"><strong className="text-sky-300">المقدمة: </strong>{analysis.structure.introduction}</p>}
+                {analysis.structure.introduction && <p className="fs-11.5 text-gray-300 leading-relaxed"><strong className="text-sky-300">المقدمة: </strong>{analysis.structure.introduction}</p>}
                 <div className="space-y-1">
-                  <span className="text-[11px] text-sky-300 font-semibold block">
+                  <span className="fs-11 text-sky-300 font-semibold block">
                     المحاور (تُضاف تحت محور جذري جديد «{REFERENCE_ARTICLE_PREFIX} {title.trim() || analysis.title}»):
                   </span>
                   {analysis.structure.axes.map((label, i) => (
-                    <div key={i} className="truncate font-quran text-[12.5px]">📐 {i + 1}. {label}</div>
+                    <div key={i} className="truncate font-quran fs-12.5">📐 {i + 1}. {label}</div>
                   ))}
                 </div>
-                {analysis.structure.conclusion && <p className="text-[11.5px] text-gray-300 leading-relaxed"><strong className="text-sky-300">الخاتمة: </strong>{analysis.structure.conclusion}</p>}
-                {analysis.seriesNotes && <p className="text-[11px] text-gray-400 leading-relaxed"><strong>إحالات إلى أجزاء سابقة: </strong>{analysis.seriesNotes}</p>}
+                {analysis.structure.conclusion && <p className="fs-11.5 text-gray-300 leading-relaxed"><strong className="text-sky-300">الخاتمة: </strong>{analysis.structure.conclusion}</p>}
+                {analysis.seriesNotes && <p className="fs-11 text-gray-400 leading-relaxed"><strong>إحالات إلى أجزاء سابقة: </strong>{analysis.seriesNotes}</p>}
               </div>
 
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-sm text-white">الأفكار المستخرجة ({acceptedCount} من {ideas.length} مقبولة)</h3>
                 <div className="flex gap-1.5">
-                  <button type="button" onClick={() => setIdeas(prev => prev.map(i => ({ ...i, accepted: true })))} className="px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] rounded text-[11px]">تحديد الكل</button>
-                  <button type="button" onClick={() => setIdeas(prev => prev.map(i => ({ ...i, accepted: false })))} className="px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] rounded text-[11px]">إلغاء الكل</button>
+                  <button type="button" onClick={() => setIdeas(prev => prev.map(i => ({ ...i, accepted: true })))} className="px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] rounded fs-11">تحديد الكل</button>
+                  <button type="button" onClick={() => setIdeas(prev => prev.map(i => ({ ...i, accepted: false })))} className="px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] rounded fs-11">إلغاء الكل</button>
                 </div>
               </div>
 
@@ -338,20 +338,20 @@ export const ReferenceArticleModal: React.FC = () => {
                         className="w-4 h-4 accent-sky-500 flex-shrink-0"
                       />
                       <input type="text" value={idea.title} onChange={e => updateIdea(idea.key, { title: e.target.value })} className="flex-1 bg-[#121212] border border-[#2e2817] rounded px-2 py-1 text-white font-quran text-sm font-bold focus:border-sky-500 focus:outline-none" />
-                      <span className="text-[10.5px] text-gray-400 flex-shrink-0 max-w-40 truncate" title={analysis.structure.axes[idea.axisIndex]}>
+                      <span className="fs-10.5 text-gray-400 flex-shrink-0 max-w-40 truncate" title={analysis.structure.axes[idea.axisIndex]}>
                         المحور {idea.axisIndex + 1}
                       </span>
                     </div>
                     <textarea rows={2} value={idea.summary} onChange={e => updateIdea(idea.key, { summary: e.target.value })} className="w-full bg-[#121212] border border-[#2e2817] rounded p-2 text-xs text-gray-300 font-quran focus:outline-none mb-1.5" />
                     {idea.verses.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-1.5">
-                        {idea.verses.map(v => <span key={v} className="px-1.5 py-0.5 bg-amber-950/40 border border-amber-800/50 rounded text-[10.5px] text-amber-300 font-quran">[{v}]</span>)}
+                        {idea.verses.map(v => <span key={v} className="px-1.5 py-0.5 bg-amber-950/40 border border-amber-800/50 rounded fs-10.5 text-amber-300 font-quran">[{v}]</span>)}
                       </div>
                     )}
                     {idea.excerpt && (
-                      <blockquote className="border-r-2 border-sky-700 pr-2 text-[11.5px] text-gray-400 font-quran leading-relaxed max-h-24 overflow-auto custom-scrollbar">
+                      <blockquote className="border-r-2 border-sky-700 pr-2 fs-11.5 text-gray-400 font-quran leading-relaxed max-h-24 overflow-auto custom-scrollbar">
                         «{idea.excerpt}»
-                        {!idea.excerptFound && <span className="block text-[10.5px] text-amber-400 font-sans mt-0.5">⚠️ لم يُعثر على هذا الاقتباس حرفياً في نص المقال — راجعه.</span>}
+                        {!idea.excerptFound && <span className="block fs-10.5 text-amber-400 font-sans mt-0.5">⚠️ لم يُعثر على هذا الاقتباس حرفياً في نص المقال — راجعه.</span>}
                       </blockquote>
                     )}
                   </div>
@@ -360,8 +360,8 @@ export const ReferenceArticleModal: React.FC = () => {
 
               {analysis.styleNotes && (
                 <div className="p-3 bg-[#0a0a0a] border border-[#2e2817] rounded-lg">
-                  <h3 className="font-bold text-[12px] text-white mb-1">الملاحظات الأسلوبية (للاطلاع؛ تُحفظ مرجعاً للأسلوب)</h3>
-                  <p className="text-[11.5px] text-gray-300 leading-relaxed whitespace-pre-wrap font-quran">{analysis.styleNotes}</p>
+                  <h3 className="font-bold fs-12 text-white mb-1">الملاحظات الأسلوبية (للاطلاع؛ تُحفظ مرجعاً للأسلوب)</h3>
+                  <p className="fs-11.5 text-gray-300 leading-relaxed whitespace-pre-wrap font-quran">{analysis.styleNotes}</p>
                 </div>
               )}
             </div>
@@ -373,7 +373,7 @@ export const ReferenceArticleModal: React.FC = () => {
               <CheckCircle2 className="w-10 h-10 text-emerald-400" />
               <p className="text-sm text-white font-quran">تمت إضافة {result.count} فكرة مرجعية من مقال «{result.title}».</p>
               {!result.saved && (
-                <p className="max-w-md p-2 bg-amber-950/30 border border-amber-800/50 rounded text-[11px] text-amber-200">
+                <p className="max-w-md p-2 bg-amber-950/30 border border-amber-800/50 rounded fs-11 text-amber-200">
                   ⚠️ لم يُحفظ نص المقال مرجعاً للأسلوب: مساحة التخزين في المتصفح ممتلئة. احذف مقالات مرجعية قديمة ثم أعد إدخاله.
                 </p>
               )}

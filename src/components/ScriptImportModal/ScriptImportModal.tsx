@@ -173,7 +173,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
               className="w-full p-2.5 bg-amber-950/40 hover:bg-amber-950/60 border border-amber-800/60 rounded text-amber-200 text-right flex items-center justify-between transition"
             >
               <span>🔑 أدخل مفتاح API لاستخراج الأفكار بالذكاء الاصطناعي</span>
-              <span className="text-[10.5px] underline">إدخال المفتاح</span>
+              <span className="fs-10.5 underline">إدخال المفتاح</span>
             </button>
           )}
           {step === 'input' ? (
@@ -236,7 +236,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                   placeholder="د. رشيد: دعونا ننظر في آية العنكبوت...&#10;مصطفى: نعم دكتور، هل يمكن أن يكون قطع السبيل هو قطع النسل..."
                   className={`w-full bg-[#0a0a0a] border rounded p-3 text-white font-quran text-sm leading-relaxed focus:outline-none placeholder-gray-600 ${isTooLong ? 'border-amber-500' : 'border-[#2e2817] focus:border-indigo-500'}`}
                 />
-                <div className="flex items-center justify-between text-[11px]">
+                <div className="flex items-center justify-between fs-11">
                   <span className={isTooLong ? 'text-amber-300' : 'text-transparent'}>
                     ⚠️ النص يتجاوز الحد المسموح. اقترح تقسيم الجلسة إلى جزأين واستيراد كل جزء على حدة.
                   </span>
@@ -255,7 +255,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                       type="button"
                       onClick={handleExtractIdeas}
                       disabled={isExtracting}
-                      className="px-2.5 py-1 bg-rose-900/60 hover:bg-rose-800 disabled:opacity-50 text-rose-100 rounded text-[11px] flex items-center gap-1 flex-shrink-0 transition"
+                      className="px-2.5 py-1 bg-rose-900/60 hover:bg-rose-800 disabled:opacity-50 text-rose-100 rounded fs-11 flex items-center gap-1 flex-shrink-0 transition"
                     >
                       <RotateCw className="w-3.5 h-3.5" />
                       <span>إعادة المحاولة</span>
@@ -270,7 +270,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
               <div className="flex items-center justify-between pb-2 border-b border-[#2e2817]">
                 <div>
                   <h3 className="font-bold text-sm text-white">مراجعة الأفكار والشواهد المستخرجة</h3>
-                  <p className="text-[11px] text-gray-400">
+                  <p className="fs-11 text-gray-400">
                     تُضاف الأفكار المقبولة تحت محور جذري جديد «{NEW_ARTICLE_LABEL}»، مجمّعة في محاوره (أقسام المقال الجديد).
                     يمكنك تعديل أي فكرة أو قبولها أو رفضها أو تغيير محورها قبل الإضافة.
                   </p>
@@ -321,7 +321,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-[#2e2817] text-indigo-300 font-mono">
+                        <span className="fs-11 px-2 py-0.5 rounded bg-[#2e2817] text-indigo-300 font-mono">
                           {item.speaker || 'غير محدد'}
                         </span>
                         <select
@@ -359,7 +359,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                     )}
 
                     {/* Axis inside the new article (ideas with the same axis are grouped) */}
-                    <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                    <div className="flex items-center gap-2 fs-11 text-gray-400">
                       <span>المحور داخل المقال الجديد:</span>
                       <input
                         type="text"

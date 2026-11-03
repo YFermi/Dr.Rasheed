@@ -183,7 +183,7 @@ export const LinkNavigator: React.FC = () => {
         <div className="flex items-center gap-1.5">
           <Link2 className="w-4 h-4 text-indigo-400" />
           <span className="font-bold text-xs text-white">التشابكات</span>
-          <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 py-0.2 rounded-full border border-blue-900/40">
+          <span className="fs-10 font-mono bg-[#2e2817] text-[#d4af37] px-1.5 py-0.2 rounded-full border border-blue-900/40">
             {linksList.length}
           </span>
         </div>
@@ -191,7 +191,7 @@ export const LinkNavigator: React.FC = () => {
         {linkingMode.active && (
           <button
             onClick={cancelLinkingMode}
-            className="text-[10px] bg-rose-950/80 text-rose-300 border border-rose-800 px-2 py-0.5 rounded animate-pulse"
+            className="fs-10 bg-rose-950/80 text-rose-300 border border-rose-800 px-2 py-0.5 rounded animate-pulse"
           >
             إلغاء وضع الربط ✕
           </button>
@@ -200,12 +200,12 @@ export const LinkNavigator: React.FC = () => {
 
       {/* Linking Mode Active Banner */}
       {linkingMode.active && (
-        <div className="p-2 bg-indigo-950/80 border-b border-indigo-700/60 text-indigo-200 text-[11px] leading-tight space-y-1">
+        <div className="p-2 bg-indigo-950/80 border-b border-indigo-700/60 text-indigo-200 fs-11 leading-tight space-y-1">
           <div className="flex items-center gap-1 font-bold text-white">
             <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
             <span>وضع الربط التفاعلي نشط:</span>
           </div>
-          <p className="text-[10px] text-indigo-200/90 font-quran">
+          <p className="fs-10 text-indigo-200/90 font-quran">
             {linkingMode.sourceId ? (
               <>انقر الآن على الفكرة الهدف (Target) في الشجرة لإتمام الربط.</>
             ) : (
@@ -218,11 +218,11 @@ export const LinkNavigator: React.FC = () => {
       {/* 2. Filter Bar */}
       <div className="p-2 bg-[#121212]/60 border-b border-[#2e2817] space-y-1.5">
         {/* Type & Axis Dropdowns */}
-        <div className="flex items-center gap-1 text-[11px]">
+        <div className="flex items-center gap-1 fs-11">
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[10.5px] flex-1 focus:outline-none"
+            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white fs-10.5 flex-1 focus:outline-none"
           >
             <option value="all">كل العلاقات ({linksList.length})</option>
             <option value="supports">يدعم (supports)</option>
@@ -235,7 +235,7 @@ export const LinkNavigator: React.FC = () => {
           <select
             value={filterAxis}
             onChange={(e) => setFilterAxis(e.target.value)}
-            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[10.5px] w-24 truncate focus:outline-none"
+            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white fs-10.5 w-24 truncate focus:outline-none"
           >
             <option value="all">كل المحاور</option>
             {allAxes.map(ax => (
@@ -253,7 +253,7 @@ export const LinkNavigator: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="بحث في التشابكات..."
-            className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 text-[10.5px] text-white placeholder-gray-500 focus:outline-none font-sans"
+            className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 fs-10.5 text-white placeholder-gray-500 focus:outline-none font-sans"
           />
         </div>
       </div>
@@ -264,7 +264,7 @@ export const LinkNavigator: React.FC = () => {
         {/* VIEW A: ORPHAN IDEAS (Ideas with no links) */}
         {filterType === 'orphans' ? (
           <div className="space-y-2">
-            <div className="p-2 bg-amber-950/20 border border-amber-900/40 rounded text-[10.5px] text-amber-200 leading-tight">
+            <div className="p-2 bg-amber-950/20 border border-amber-900/40 rounded fs-10.5 text-amber-200 leading-tight">
               الأفكار التالية لا ترتبط بأي علاقة مع سائر الأفكار. انقر زر الربط لدمجها في الشبكة المعرفية:
             </div>
             {orphanNodes.length === 0 ? (
@@ -283,12 +283,12 @@ export const LinkNavigator: React.FC = () => {
                     </span>
                     <span className={`w-2 h-2 rounded-full ${getStatusColorDot(node.status)}`} />
                   </div>
-                  <div className="flex items-center justify-between pt-1 border-t border-[#2e2817]/40 text-[10px]">
+                  <div className="flex items-center justify-between pt-1 border-t border-[#2e2817]/40 fs-10">
                     <span className="text-gray-400 font-mono">{node.type}</span>
                     <button
                       type="button"
                       onClick={() => startLinkingMode(node.id)}
-                      className="px-2 py-0.5 bg-indigo-600/60 hover:bg-indigo-500 text-white rounded text-[10px] flex items-center gap-1 transition"
+                      className="px-2 py-0.5 bg-indigo-600/60 hover:bg-indigo-500 text-white rounded fs-10 flex items-center gap-1 transition"
                     >
                       <Link2 className="w-2.5 h-2.5" />
                       <span>ربط الآن</span>
@@ -368,7 +368,7 @@ export const LinkNavigator: React.FC = () => {
                     <span className={`font-mono text-xs font-bold ${rel.arrowColor}`}>
                       {rel.symbol}
                     </span>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${rel.bgColor} ${rel.borderColor} ${rel.arrowColor}`}>
+                    <span className={`px-2 py-0.5 rounded fs-10 font-bold border ${rel.bgColor} ${rel.borderColor} ${rel.arrowColor}`}>
                       {rel.label}
                     </span>
                   </div>
@@ -387,7 +387,7 @@ export const LinkNavigator: React.FC = () => {
 
                   {/* Optional Notes snippet */}
                   {item.notes && (
-                    <p className="mt-1.5 pt-1 border-t border-[#2e2817]/50 text-[10px] text-gray-400 font-quran line-clamp-1 italic">
+                    <p className="mt-1.5 pt-1 border-t border-[#2e2817]/50 fs-10 text-gray-400 font-quran line-clamp-1 italic">
                       "{item.notes}"
                     </p>
                   )}

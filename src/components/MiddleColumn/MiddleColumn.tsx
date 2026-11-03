@@ -69,13 +69,13 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
   const getLinkTypeBadge = (type: LinkType) => {
     switch (type) {
       case 'supports':
-        return <span className="bg-emerald-950/70 text-emerald-300 border border-emerald-800/80 px-1 py-0.5 rounded text-[9.5px]">يدعم</span>;
+        return <span className="bg-emerald-950/70 text-emerald-300 border border-emerald-800/80 px-1 py-0.5 rounded fs-9.5">يدعم</span>;
       case 'contradicts':
-        return <span className="bg-rose-950/70 text-rose-300 border border-rose-800/80 px-1 py-0.5 rounded text-[9.5px]">يناقش</span>;
+        return <span className="bg-rose-950/70 text-rose-300 border border-rose-800/80 px-1 py-0.5 rounded fs-9.5">يناقش</span>;
       case 'extends':
-        return <span className="bg-indigo-950/70 text-indigo-300 border border-indigo-800/80 px-1 py-0.5 rounded text-[9.5px]">يوسع</span>;
+        return <span className="bg-indigo-950/70 text-indigo-300 border border-indigo-800/80 px-1 py-0.5 rounded fs-9.5">يوسع</span>;
       case 'prerequisite':
-        return <span className="bg-amber-950/70 text-amber-300 border border-amber-800/80 px-1 py-0.5 rounded text-[9.5px]">مقدمة</span>;
+        return <span className="bg-amber-950/70 text-amber-300 border border-amber-800/80 px-1 py-0.5 rounded fs-9.5">مقدمة</span>;
     }
   };
 
@@ -86,7 +86,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
         <button
           onClick={() => setActiveTab('links')}
           title="شجرة الروابط والتشابكات"
-          className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition text-[11px] ${
+          className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition fs-11 ${
             activeTab === 'links'
               ? 'bg-[#2e2817] text-[#d4af37] font-bold shadow-xs'
               : 'text-gray-400 hover:text-white'
@@ -95,7 +95,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
           <Link2 className="w-3.5 h-3.5" />
           <span className="truncate">الروابط</span>
           {allLinks.length > 0 && (
-            <span className="text-[9px] bg-blue-950 text-blue-300 px-1 rounded-full font-mono">
+            <span className="fs-9 bg-blue-950 text-blue-300 px-1 rounded-full font-mono">
               {allLinks.length}
             </span>
           )}
@@ -104,7 +104,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
         <button
           onClick={() => setActiveTab('verses')}
           title="فهرس الشواهد والآيات"
-          className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition text-[11px] ${
+          className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition fs-11 ${
             activeTab === 'verses'
               ? 'bg-[#2e2817] text-amber-300 font-bold shadow-xs'
               : 'text-gray-400 hover:text-white'
@@ -112,7 +112,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
         >
           <BookMarked className="w-3.5 h-3.5" />
           <span className="truncate">الآيات</span>
-          <span className="text-[9px] bg-amber-950 text-amber-300 px-1 rounded-full font-mono">
+          <span className="fs-9 bg-amber-950 text-amber-300 px-1 rounded-full font-mono">
             {allVerses.length}
           </span>
         </button>
@@ -120,7 +120,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
         <button
           onClick={() => setActiveTab('speakers')}
           title="المتحدثون ومشاركاتهم"
-          className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition text-[11px] ${
+          className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition fs-11 ${
             activeTab === 'speakers'
               ? 'bg-[#2e2817] text-indigo-300 font-bold shadow-xs'
               : 'text-gray-400 hover:text-white'
@@ -133,7 +133,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
         <button
           onClick={() => setActiveTab('outline')}
           title="المخطط الهيكلي والمحاور"
-          className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition text-[11px] ${
+          className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition fs-11 ${
             activeTab === 'outline'
               ? 'bg-[#2e2817] text-emerald-300 font-bold shadow-xs'
               : 'text-gray-400 hover:text-white'
@@ -153,14 +153,14 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
             {/* Selected Node Connections */}
             {selectedNode.type !== 'project' && (
               <div className="p-2 bg-[#121212] border border-blue-900/50 rounded-md">
-                <div className="text-[10.5px] font-bold text-[#d4af37] mb-1.5 flex items-center justify-between">
+                <div className="fs-10.5 font-bold text-[#d4af37] mb-1.5 flex items-center justify-between">
                   <span>روابط العنصر المحدد حالياً:</span>
-                  <span className="text-[9px] font-mono text-gray-400">
+                  <span className="fs-9 font-mono text-gray-400">
                     {selectedNode.linkedIdeas.length} رابط
                   </span>
                 </div>
                 {selectedNode.linkedIdeas.length === 0 ? (
-                  <p className="text-[10px] text-gray-500 font-quran">
+                  <p className="fs-10 text-gray-500 font-quran">
                     لا توجد تشابكات مسجلة لهذا العنصر بعد. يمكنك ربطه من لوحة الخصائص بالأسفل.
                   </p>
                 ) : (
@@ -173,7 +173,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                           onClick={() => onSelectNode(link.targetId)}
                           onMouseEnter={() => setHighlightedLinks([link.targetId])}
                           onMouseLeave={() => setHighlightedLinks([])}
-                          className="p-1.5 bg-[#0a0a0a] hover:bg-[#2e2817] border border-[#2e2817] rounded cursor-pointer transition text-[11px] flex items-center justify-between gap-1 group"
+                          className="p-1.5 bg-[#0a0a0a] hover:bg-[#2e2817] border border-[#2e2817] rounded cursor-pointer transition fs-11 flex items-center justify-between gap-1 group"
                         >
                           <div className="flex items-center gap-1 truncate">
                             {getLinkTypeBadge(link.type)}
@@ -192,11 +192,11 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
 
             {/* All Links Across Entire Project */}
             <div>
-              <div className="text-[11px] font-bold text-gray-300 mb-1.5 px-1 flex items-center justify-between">
+              <div className="fs-11 font-bold text-gray-300 mb-1.5 px-1 flex items-center justify-between">
                 <span>شبكة التشابكات العامة ({allLinks.length}):</span>
               </div>
               {allLinks.length === 0 ? (
-                <div className="p-3 text-center text-gray-500 text-[11px]">
+                <div className="p-3 text-center text-gray-500 fs-11">
                   لم يتم إنشاء روابط بين الأفكار بعد.
                 </div>
               ) : (
@@ -209,7 +209,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                         onClick={() => onSelectNode(link.source.id)}
                         onMouseEnter={() => setHighlightedLinks([link.source.id, link.targetId])}
                         onMouseLeave={() => setHighlightedLinks([])}
-                        className="p-2 bg-[#121212] hover:bg-[#171717] border border-[#2e2817] rounded text-[11px] cursor-pointer transition space-y-1"
+                        className="p-2 bg-[#121212] hover:bg-[#171717] border border-[#2e2817] rounded fs-11 cursor-pointer transition space-y-1"
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-quran font-bold text-gray-300 truncate">
@@ -217,14 +217,14 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                           </span>
                           {getLinkTypeBadge(link.type)}
                         </div>
-                        <div className="flex items-center gap-1 text-[10px] text-gray-400 font-quran">
+                        <div className="flex items-center gap-1 fs-10 text-gray-400 font-quran">
                           <span className="text-gray-500">← متصل بـ:</span>
                           <span className="text-blue-300 truncate font-semibold">
                             {target ? target.arabicLabel : link.targetId}
                           </span>
                         </div>
                         {link.notes && (
-                          <p className="text-[9.5px] text-gray-400 italic font-quran line-clamp-1 border-r border-blue-500/40 pr-1">
+                          <p className="fs-9.5 text-gray-400 italic font-quran line-clamp-1 border-r border-blue-500/40 pr-1">
                             {link.notes}
                           </p>
                         )}
@@ -240,7 +240,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
         {/* TAB 2: QURANIC VERSES INDEX */}
         {activeTab === 'verses' && (
           <div className="space-y-2">
-            <div className="text-[11px] font-bold text-amber-300 px-1 flex items-center justify-between">
+            <div className="fs-11 font-bold text-amber-300 px-1 flex items-center justify-between">
               <span>فهرس الشواهد القرآنية ({allVerses.length}):</span>
             </div>
             {allVerses.map((item, idx) => (
@@ -249,10 +249,10 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                 onClick={() => onSelectNode(item.node.id)}
                 className="p-2.5 bg-[#121212] hover:bg-[#1f1d18] border-r-3 border-r-amber-500 border border-[#2e2817] rounded cursor-pointer transition group"
               >
-                <p className="font-quran text-[12.5px] text-amber-200/95 leading-relaxed mb-1 line-clamp-3 group-hover:text-amber-100">
+                <p className="font-quran fs-12.5 text-amber-200/95 leading-relaxed mb-1 line-clamp-3 group-hover:text-amber-100">
                   {item.verse}
                 </p>
-                <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-[#2e2817]/50">
+                <div className="flex items-center justify-between fs-10 text-gray-400 pt-1 border-t border-[#2e2817]/50">
                   <span className="truncate text-gray-300 font-quran">
                     {item.node.arabicLabel}
                   </span>
@@ -269,14 +269,14 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
         {/* TAB 3: SPEAKERS & CONTRIBUTIONS */}
         {activeTab === 'speakers' && (
           <div className="space-y-2">
-            <div className="text-[11px] font-bold text-indigo-300 px-1">
+            <div className="fs-11 font-bold text-indigo-300 px-1">
               أفكار منسوبة للمتحدثين:
             </div>
             {Array.from(speakerMap.entries()).map(([speaker, nodes]) => (
               <div key={speaker} className="p-2 bg-[#121212] border border-[#2e2817] rounded">
                 <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-[#2e2817]">
-                  <span className="font-bold text-indigo-200 text-[11.5px]">{speaker}</span>
-                  <span className="text-[9.5px] bg-[#2e2817] text-gray-300 px-1.5 py-0.2 rounded font-mono">
+                  <span className="font-bold text-indigo-200 fs-11.5">{speaker}</span>
+                  <span className="fs-9.5 bg-[#2e2817] text-gray-300 px-1.5 py-0.2 rounded font-mono">
                     {nodes.length} فكرة
                   </span>
                 </div>
@@ -285,7 +285,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                     <div
                       key={node.id}
                       onClick={() => onSelectNode(node.id)}
-                      className="text-[10.5px] font-quran text-gray-300 hover:text-blue-300 hover:bg-[#2e2817]/40 p-1 rounded cursor-pointer truncate flex items-center gap-1"
+                      className="fs-10.5 font-quran text-gray-300 hover:text-blue-300 hover:bg-[#2e2817]/40 p-1 rounded cursor-pointer truncate flex items-center gap-1"
                     >
                       <span>•</span>
                       <span className="truncate">{node.arabicLabel}</span>
@@ -300,7 +300,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
         {/* TAB 4: RESEARCH OUTLINE */}
         {activeTab === 'outline' && (
           <div className="space-y-2">
-            <div className="text-[11px] font-bold text-emerald-300 px-1">
+            <div className="fs-11 font-bold text-emerald-300 px-1">
               المحاور الرئيسية وسير التحرير:
             </div>
             {allNodes.filter(n => n.type === 'axis').map(axis => {
@@ -315,7 +315,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                     <span className="font-quran font-bold text-gray-200 text-xs">
                       {axis.arabicLabel}
                     </span>
-                    <span className={`text-[9.5px] px-1.5 py-0.2 rounded font-mono ${
+                    <span className={`fs-9.5 px-1.5 py-0.2 rounded font-mono ${
                       axis.status === 'published' ? 'bg-emerald-950 text-emerald-300' :
                       axis.status === 'deferred' ? 'bg-rose-950 text-rose-300' :
                       'bg-amber-950 text-amber-300'
@@ -323,7 +323,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                       {axis.status}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-gray-400">
+                  <div className="flex items-center justify-between fs-10 text-gray-400">
                     <span>{childrenCount} عناصر متفرعة</span>
                     {axis.targetArticle && <span>{axis.targetArticle}</span>}
                   </div>

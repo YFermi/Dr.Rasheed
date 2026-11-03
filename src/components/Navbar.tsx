@@ -5,12 +5,15 @@ import { useArticleStore } from '../store/useArticleStore';
 import { useApiKeyStore } from '../store/useApiKeyStore';
 import { useReferenceStore } from '../store/useReferenceStore';
 import { SpiderWebLogo } from './SpiderWebLogo';
+import { UIPreferencesMenu } from './UIPreferencesMenu';
+import { useUIStore } from '../store/useUIStore';
 import {
   PenLine,
   FileDown,
   FilePlus2,
   Columns,
   Loader2,
+  HelpCircle,
 } from 'lucide-react';
 
 // Column widths in % of the window: idea tree | middle tabs | document
@@ -55,6 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isGeneratingArticle = useArticleStore(state => state.isGenerating);
   const { hasKey, serverHasKey, openModal: openKeyModal, checkServerKey } = useApiKeyStore();
   const openReferenceModal = useReferenceStore(state => state.openModal);
+  const startTour = useUIStore(state => state.startTour);
 
   useEffect(() => {
     checkServerKey();
@@ -80,12 +84,13 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
-  const outlineButton = 'flex items-center gap-1.5 px-3 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#4a4027] hover:border-[#d4af37] text-[#efe6cf] rounded text-xs font-medium transition';
+  const outlineButton = 'flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-3 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#4a4027] hover:border-[#d4af37] text-[#efe6cf] rounded text-xs font-medium transition';
 
   return (
-    <header className="h-12 bg-[#050505] border-b border-[#4a4027] px-4 flex items-center gap-2 select-none text-[#efe6cf] z-20">
+    <header className="h-12 bg-[#050505] border-b border-[#4a4027] px-4 flex items-center gap-2 overflow-x-auto overflow-y-hidden [scrollbar-width:none] select-none text-[#efe6cf] z-20">
       {/* 1. Brand */}
       <div
+        data-tour="logo"
         className="flex items-center gap-2 ml-2 flex-shrink-0"
         title={projectSettings.title ? `المشروع: ${projectSettings.title}` : 'بيت العنكبوت'}
       >
@@ -99,6 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* 2–4. The workflow: reference article → brainstorm session → article */}
       <button
+        data-tour="reference"
         onClick={openReferenceModal}
         title="إدخال مقال سابق مكتمل وتحليله: تُضاف أفكاره للشجرة أفكاراً مرجعية"
         className={outlineButton}
@@ -107,6 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </button>
 
       <button
+        data-tour="import"
         onClick={onOpenImportModal}
         title="استيراد وتفريغ جلسة عصف ذهني"
         className={outlineButton}
@@ -115,17 +122,18 @@ export const Navbar: React.FC<NavbarProps> = ({
       </button>
 
       <button
+        data-tour="write"
         onClick={openGenerateModal}
         disabled={isGeneratingArticle}
         title="كتابة مقال نثري بأسلوب د. رشيد من شجرة الأفكار"
-        className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-b from-[#e3c66b] to-[#b8901f] hover:from-[#ecd99c] hover:to-[#c9a227] disabled:opacity-60 text-[#0a0a0a] rounded text-xs font-bold transition shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+        className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-3 py-1 bg-gradient-to-b from-[#e3c66b] to-[#b8901f] hover:from-[#ecd99c] hover:to-[#c9a227] disabled:opacity-60 text-[#0a0a0a] rounded text-xs font-bold transition shadow-[0_0_10px_rgba(212,175,55,0.3)]"
       >
         <PenLine className="w-3.5 h-3.5" />
         <span>{isGeneratingArticle ? 'جاري الكتابة...' : '✍️ كتابة المقال'}</span>
       </button>
 
       {/* 5. Live research stats */}
-      <div className="hidden xl:flex items-center gap-3 bg-[#0a0a0a] px-3 py-1 rounded-full border border-[#2e2817] text-[11px] text-[#c2b691] mx-1">
+      <div className="nav-secondary hidden min-[1800px]:flex items-center gap-3 whitespace-nowrap bg-[#0a0a0a] px-3 py-1 rounded-full border border-[#2e2817] fs-11 text-[#c2b691] mx-1">
         <span>📐 {axesCount} محاور</span>
         <span className="text-[#4a4027]">•</span>
         <span>💡 {ideasCount} فكرة</span>
@@ -139,10 +147,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* 6. Word export of the written article */}
       <button
+        data-tour="export"
         onClick={handleExportDocx}
         disabled={!draft || isExporting}
         title={draft ? `تصدير المقال المكتوب «${draft.title}» كملف Word` : 'لا يوجد مقال مكتوب بعد — اكتب المقال أولاً (✍️ كتابة المقال)'}
-        className="flex items-center gap-1.5 px-3 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#d4af37] text-[#d4af37] disabled:opacity-40 disabled:cursor-not-allowed rounded text-xs font-semibold transition"
+        className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-3 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#d4af37] text-[#d4af37] disabled:opacity-40 disabled:cursor-not-allowed rounded text-xs font-semibold transition"
       >
         {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5" />}
         <span>تصدير Word</span>
@@ -150,9 +159,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* 7. New project (empty tree) */}
       <button
+        data-tour="new-project"
         onClick={handleReset}
         title="مشروع جديد (شجرة فارغة)"
-        className="flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0a] hover:bg-rose-950/60 border border-[#4a4027] hover:border-rose-500 text-[#c2b691] hover:text-rose-300 rounded text-xs transition"
+        className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-2.5 py-1 bg-[#0a0a0a] hover:bg-rose-950/60 border border-[#4a4027] hover:border-rose-500 text-[#c2b691] hover:text-rose-300 rounded text-xs transition"
       >
         <FilePlus2 className="w-3.5 h-3.5" />
         <span className="hidden lg:inline">مشروع جديد</span>
@@ -162,16 +172,28 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="flex-1" />
 
       <button
+        onClick={startTour}
+        title="جولة تعريفية: كيف يعمل بيت العنكبوت؟"
+        className={outlineButton}
+      >
+        <HelpCircle className="w-3.5 h-3.5 text-[#d4af37]" />
+        <span className="nav-secondary hidden lg:inline">مساعدة</span>
+      </button>
+
+      <UIPreferencesMenu />
+
+      <button
         onClick={openKeyModal}
         title={
           hasKey ? 'مفتاح Gemini محفوظ في هذا المتصفح' :
           serverHasKey ? 'يُستعمل مفتاح الخادم — يمكنك إدخال مفتاحك' :
           'أدخل مفتاح Gemini API لتفعيل ميزات الذكاء الاصطناعي'
         }
-        className="flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#2e2817] text-[#efe6cf] rounded text-xs transition"
+        className="flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-2.5 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#2e2817] text-[#efe6cf] rounded text-xs transition"
       >
         <span className={`w-2 h-2 rounded-full ${hasKey ? 'bg-emerald-400' : serverHasKey ? 'bg-amber-400' : 'bg-rose-500'}`} />
-        <span>{hasKey ? '🔑 المفتاح ✓' : serverHasKey ? '🔑 مفتاح الخادم' : '🔑 أدخل المفتاح'}</span>
+        <span>🔑{' '}</span>
+        <span className="nav-secondary hidden 2xl:inline">{hasKey ? 'المفتاح ✓' : serverHasKey ? 'مفتاح الخادم' : 'أدخل المفتاح'}</span>
       </button>
 
       <button
@@ -186,7 +208,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <Columns className="w-3.5 h-3.5" />
       </button>
 
-      <div className="hidden 2xl:flex items-center gap-0.5 bg-[#0a0a0a] p-0.5 rounded border border-[#2e2817] text-[10px]">
+      <div className="nav-secondary hidden min-[1800px]:flex items-center gap-0.5 bg-[#0a0a0a] p-0.5 rounded border border-[#2e2817] fs-10">
         {LAYOUT_PRESETS.map(preset => (
           <button
             key={preset.label}

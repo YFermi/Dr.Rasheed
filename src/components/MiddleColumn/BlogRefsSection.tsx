@@ -67,7 +67,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
 
   return (
     <div className="space-y-1.5 border-t border-[#2e2817] pt-2">
-      <label className="text-[10.5px] font-medium text-[#d4af37] flex items-center gap-1">
+      <label className="fs-10.5 font-medium text-[#d4af37] flex items-center gap-1">
         <Library className="w-3 h-3" />
         <span>📚 مراجع المدونة ({toArabicDigits(blogRefs.length)}):</span>
       </label>
@@ -83,7 +83,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
             return (
               <div key={`${ref.paragraphId ?? ref.partNumber}-${index}`} className="space-y-1">
                 <div
-                  className={`flex items-center gap-1 p-1 bg-[#0a0a0a] rounded border text-[10.5px] transition ${
+                  className={`flex items-center gap-1 p-1 bg-[#0a0a0a] rounded border fs-10.5 transition ${
                     isMissing ? 'border-rose-900/60' : 'border-[#2e2817] hover:border-[#d4af37]/60'
                   }`}
                 >
@@ -121,7 +121,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                 {/* Inline editor */}
                 {isEditing && (
                   <div className="p-2 bg-[#0a0a0a]/70 border border-[#d4af37]/40 rounded space-y-1.5">
-                    <label className="text-[10px] text-gray-400 block">الفقرة:</label>
+                    <label className="fs-10 text-gray-400 block">الفقرة:</label>
                     {article ? (
                       <select
                         value={draftParagraphId}
@@ -130,7 +130,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                           const paragraph = article.paragraphs.find(p => p.id === e.target.value);
                           if (paragraph) setDraftQuote(makeQuote(paragraph.text));
                         }}
-                        className="w-full bg-[#171717] border border-[#2e2817] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none"
+                        className="w-full bg-[#171717] border border-[#2e2817] rounded px-1.5 py-0.5 text-white fs-10.5 focus:outline-none"
                       >
                         <option value="">-- المقال كاملاً --</option>
                         {article.paragraphs.map(p => (
@@ -150,7 +150,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                       />
                     )}
 
-                    <label className="text-[10px] text-gray-400 block">الاقتباس:</label>
+                    <label className="fs-10 text-gray-400 block">الاقتباس:</label>
                     <textarea
                       rows={2}
                       value={draftQuote}
@@ -187,7 +187,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="w-full px-2 py-1 bg-[#0a0a0a] hover:bg-[#2e2817] border border-dashed border-[#4a4027] text-gray-300 hover:text-white rounded text-[10.5px] flex items-center justify-center gap-1 transition"
+          className="w-full px-2 py-1 bg-[#0a0a0a] hover:bg-[#2e2817] border border-dashed border-[#4a4027] text-gray-300 hover:text-white rounded fs-10.5 flex items-center justify-center gap-1 transition"
         >
           <Plus className="w-3 h-3" />
           <span>إضافة مرجع من المدونة</span>
@@ -215,11 +215,11 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
           </div>
 
           {articles.length === 0 ? (
-            <div className="text-[10px] text-gray-500 text-center py-1">
+            <div className="fs-10 text-gray-500 text-center py-1">
               لا توجد مقالات محمّلة. شغّل npm run blog بعد وضع الملفات.
             </div>
           ) : query.trim() && results.length === 0 ? (
-            <div className="text-[10px] text-gray-500 text-center py-1">لا توجد نتائج</div>
+            <div className="fs-10 text-gray-500 text-center py-1">لا توجد نتائج</div>
           ) : (
             <div className="space-y-1">
               {results.map(({ article, paragraph, snippet }) => {
@@ -232,13 +232,13 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                     disabled={alreadyAdded}
                     className="w-full text-right p-1.5 bg-[#171717] hover:bg-[#2e2817] border border-[#2e2817] rounded space-y-0.5 transition disabled:opacity-50 disabled:cursor-default"
                   >
-                    <div className="flex items-center justify-between text-[10px]">
+                    <div className="flex items-center justify-between fs-10">
                       <span className="text-[#d4af37] font-semibold">
                         {formatBlogRefLabel({ partNumber: article.partNumber, paragraphId: paragraph.id })}
                       </span>
                       {alreadyAdded && <span className="text-emerald-400">✓ مضاف</span>}
                     </div>
-                    <div className="text-[10.5px] text-gray-300 font-quran line-clamp-2">{snippet}</div>
+                    <div className="fs-10.5 text-gray-300 font-quran line-clamp-2">{snippet}</div>
                   </button>
                 );
               })}
