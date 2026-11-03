@@ -1,10 +1,12 @@
 // POST /api/extract-ideas — Gemini extraction of ideas from a brainstorm transcript.
 // Runs as a Vercel serverless function; server.ts mounts the same handler for local dev.
-// On any non-200 response the client (ScriptImportModal) falls back to local suggestions.
+// On any non-200 response the client (ScriptImportModal) shows the error with a retry button.
 
 import { type ApiRequest, type ApiResponse, handleJson, generateJson, loadStylePack, HttpError } from './_lib/gemini.js';
 
-const MAX_TRANSCRIPT_CHARS = 8000;
+// Same limit as ScriptImportModal (~15,000 words); the client blocks longer texts,
+// so this cut only applies to direct API calls.
+const MAX_TRANSCRIPT_CHARS = 50_000;
 const REQUEST_TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const DEFAULT_SPEAKERS = 'د. رشيد، مصطفى، يوسف، زكريا، أبو هارون، علي نور';
 

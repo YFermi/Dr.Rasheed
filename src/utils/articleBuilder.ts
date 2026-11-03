@@ -168,6 +168,38 @@ export function computeSectionHash(section: ArticleSectionInput): string {
   return (h >>> 0).toString(16);
 }
 
+// ---- Tree order ------------------------------------------------------------------
+
+// Same list as api/_lib/gemini.ts, which heads each section «المحور الأول: …»
+const SECTION_ORDINALS = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع', 'العاشر'];
+const SECTION_HEADING_PREFIX = /^المحور\s+\S+\s*:/;
+
+// Sorts by position in the tree's axis order; items whose axis left the tree go
+// last (the sort is stable, so they keep their relative order).
+export function sortByAxisOrder<T extends { id: string }>(items: T[], axisIds: string[]): T[] {
+  const rank = new Map(axisIds.map((id, i) => [id, i]));
+  const at = (id: string) => rank.get(id) ?? axisIds.length;
+  return [...items].sort((a, b) => at(a.id) - at(b.id));
+}
+
+function renumberHeading(section: DraftSection, i: number): DraftSection {
+  const [first, ...rest] = section.blocks;
+  if (first?.type !== 'heading' || !SECTION_HEADING_PREFIX.test(first.text)) return section;
+  const text = first.text.replace(SECTION_HEADING_PREFIX, `المحور ${SECTION_ORDINALS[i] ?? i + 1}:`);
+  return text === first.text ? section : { ...section, blocks: [{ ...first, text }, ...rest] };
+}
+
+// Puts the draft's sections (and their outline plans) in the tree's axis order and
+// renumbers the «المحور …» headings; no text is regenerated. Returns the same
+// article when nothing changed.
+export function orderArticleByTree(article: GeneratedArticle, axisIds: string[]): GeneratedArticle {
+  const sections = sortByAxisOrder(article.sections, axisIds).map(renumberHeading);
+  const outlineSections = sortByAxisOrder(article.outline.sections, axisIds);
+  const unchanged = sections.every((s, i) => s === article.sections[i])
+    && outlineSections.every((s, i) => s === article.outline.sections[i]);
+  return unchanged ? article : { ...article, sections, outline: { ...article.outline, sections: outlineSections } };
+}
+
 // ---- API calls -------------------------------------------------------------------
 
 // Sends the browser's API key with the request (see utils/apiKey.ts)

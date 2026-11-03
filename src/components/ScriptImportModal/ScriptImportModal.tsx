@@ -13,8 +13,26 @@ import {
   UserCheck, 
   AlertCircle,
   FileText,
-  ArrowRight
+  ArrowRight,
+  RotateCw
 } from 'lucide-react';
+
+// Same limit as api/extract-ideas.ts (~15,000 words, well within Gemini's context)
+const MAX_TRANSCRIPT_CHARS = 50_000;
+
+const formatCount = (n: number) => n.toLocaleString('en-US');
+
+// A clear Arabic reason for a failed extraction (never replaced by made-up ideas)
+function extractionErrorMessage(e: unknown): string {
+  const message = e instanceof Error ? e.message : String(e);
+  if (/Missing GEMINI_API_KEY|المفتاح غير صالح|صلاحية/.test(message)) {
+    return 'تعذر الاتصال بالذكاء الاصطناعي. تأكد من إدخال مفتاح API صالح في الإعدادات (زر 🔑).';
+  }
+  if (e instanceof TypeError || /Failed to fetch|NetworkError/i.test(message)) {
+    return 'تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت ثم أعد المحاولة.';
+  }
+  return `تعذر استخراج الأفكار: ${message}`;
+}
 
 interface ScriptImportModalProps {
   isOpen: boolean;
@@ -55,6 +73,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
   const [isExtracting, setIsExtracting] = useState(false);
   const [suggestions, setSuggestions] = useState<ExtractedIdeaSuggestion[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
+  const [canRetry, setCanRetry] = useState(false); // the last extraction call failed
   const [step, setStep] = useState<'input' | 'review'>('input');
   const aiAvailable = useApiKeyStore(selectAiAvailable);
   const openKeyModal = useApiKeyStore(state => state.openModal);
@@ -62,6 +81,8 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
   if (!isOpen) return null;
 
   const allAxes = getAllNodeList(treeData).filter(n => n.type === 'axis' || n.type === 'project');
+  const transcriptLength = transcript.length;
+  const isTooLong = transcriptLength > MAX_TRANSCRIPT_CHARS;
 
   const toggleSpeaker = (spk: string) => {
     setSelectedSpeakers(prev => 
@@ -76,66 +97,37 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
   const handleExtractIdeas = async () => {
     if (!transcript.trim()) {
       setErrorMsg('يرجى لصق نص التفريغ أو اختيار نص تجريبي أولاً.');
+      setCanRetry(false);
+      return;
+    }
+    if (isTooLong) {
+      setErrorMsg(`النص أطول من ${formatCount(MAX_TRANSCRIPT_CHARS)} حرف. قسّم الجلسة إلى جزأين واستورد كل جزء على حدة.`);
+      setCanRetry(false);
       return;
     }
     setErrorMsg('');
+    setCanRetry(false);
+    setSuggestions([]);
     setIsExtracting(true);
 
     try {
-      const data = await callApiWithKey('/api/extract-ideas', {
+      const data = await callApiWithKey<{ ideas?: ExtractedIdeaSuggestion[] }>('/api/extract-ideas', {
         transcript,
         speakers: selectedSpeakers,
         axes: allAxes.map(a => ({ id: a.id, label: a.arabicLabel })),
       });
-      if (data.ideas && Array.isArray(data.ideas) && data.ideas.length > 0) {
-        setSuggestions(data.ideas);
+      // Only ideas the model actually extracted from the text reach the review step
+      const ideas = Array.isArray(data.ideas) ? data.ideas : [];
+      if (ideas.length > 0) {
+        setSuggestions(ideas);
         setStep('review');
       } else {
-        throw new Error('لم يتم استخراج أفكار من النص، يرجى التحقق من المحتوى.');
+        setErrorMsg('لم يُعثر على أفكار واضحة في النص. جرّب نصاً أطول أو أكثر تفصيلاً.');
       }
-    } catch (e: any) {
-      console.warn('Extraction API request failed or timed out, generating local analysis:', e);
-      // Fallback extraction
-      const fallbackList: ExtractedIdeaSuggestion[] = [
-        {
-          id: `ext-${Date.now()}-1`,
-          title: 'دلالة "قطع السبيل" بين النسل والتجارة',
-          summary: 'مقاربة ثلاثية الأبعاد لمعنى قطع السبيل: قطع طريق القوافل، وقطع استمرار التناسل الفطري، وقطع سبل الهداية.',
-          speaker: selectedSpeakers[0] || 'د. رشيد',
-          suggestedParentId: allAxes.find(a => a.arabicLabel.includes('النادي'))?.id || 'axis-5',
-          suggestedParentLabel: 'المحور الخامس: النادي والسبيل',
-          quranicVerses: '﴿وَتَقْطَعُونَ السَّبِيلَ﴾ [العنكبوت: 29]',
-          type: 'idea',
-          status: 'brainstorm',
-          accepted: true,
-        },
-        {
-          id: `ext-${Date.now()}-2`,
-          title: 'تحليل ظاهرة "الاستبشار" وتواطؤ الجماعة',
-          summary: 'كيف يتحول المنكر إلى احتفال مجتمعي جمعي يقود إلى استحقاق الاستئصال الكوني.',
-          speaker: selectedSpeakers[1] || 'مصطفى',
-          suggestedParentId: allAxes.find(a => a.arabicLabel.includes('الاستبشار'))?.id || 'axis-2',
-          suggestedParentLabel: 'المحور الثاني: الاستبشار والتطهير',
-          quranicVerses: '﴿وَجَاءَ أَهْلُ الْمَدِينَةِ يَسْتَبْشِرُونَ﴾ [الحجر: 67]',
-          type: 'idea',
-          status: 'brainstorm',
-          accepted: true,
-        },
-        {
-          id: `ext-${Date.now()}-3`,
-          title: 'سؤال مفتوح: موقع سدوم الجغرافي وبحيرة لوط',
-          summary: 'تحقيق جيولوجي وتاريخي في موقع قرية لوط ودلالة كونها على سبيل مقيم يمر به المارون صباحاً ومساءً.',
-          speaker: selectedSpeakers[2] || 'زكريا',
-          suggestedParentId: 'axis-5',
-          suggestedParentLabel: 'المحور الخامس: النادي والسبيل',
-          quranicVerses: '﴿وَإِنَّهَا لَبِسَبِيلٍ مُّقِيمٍ﴾ [الحجر: 76]',
-          type: 'question',
-          status: 'brainstorm',
-          accepted: true,
-        }
-      ];
-      setSuggestions(fallbackList);
-      setStep('review');
+    } catch (e) {
+      console.warn('Idea extraction failed:', e);
+      setErrorMsg(extractionErrorMessage(e));
+      setCanRetry(true);
     } finally {
       setIsExtracting(false);
     }
@@ -182,7 +174,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
 
         {/* Modal Body */}
         <div className="flex-1 overflow-auto custom-scrollbar p-5 space-y-4 text-xs font-sans">
-          {/* Without a key the extraction falls back to local suggestions */}
+          {/* Without a key the extraction cannot run */}
           {!aiAvailable && (
             <button
               type="button"
@@ -251,14 +243,33 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
                   placeholder="د. رشيد: دعونا ننظر في آية العنكبوت...&#10;مصطفى: نعم دكتور، هل يمكن أن يكون قطع السبيل هو قطع النسل..."
-                  className="w-full bg-[#181825] border border-[#313244] rounded p-3 text-white font-quran text-sm leading-relaxed focus:border-indigo-500 focus:outline-none placeholder-gray-600"
+                  className={`w-full bg-[#181825] border rounded p-3 text-white font-quran text-sm leading-relaxed focus:outline-none placeholder-gray-600 ${isTooLong ? 'border-amber-500' : 'border-[#313244] focus:border-indigo-500'}`}
                 />
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className={isTooLong ? 'text-amber-300' : 'text-transparent'}>
+                    ⚠️ النص يتجاوز الحد المسموح. اقترح تقسيم الجلسة إلى جزأين واستيراد كل جزء على حدة.
+                  </span>
+                  <span dir="ltr" className={`font-mono ${isTooLong ? 'text-amber-300 font-semibold' : 'text-gray-500'}`}>
+                    {formatCount(transcriptLength)} / {formatCount(MAX_TRANSCRIPT_CHARS)} حرف
+                  </span>
+                </div>
               </div>
 
               {errorMsg && (
-                <div className="p-2.5 bg-rose-950/40 border border-rose-800 text-rose-300 rounded text-xs flex items-center gap-2">
+                <div role="alert" className="p-2.5 bg-rose-950/40 border border-rose-800 text-rose-300 rounded text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  <span>{errorMsg}</span>
+                  <span className="flex-1">{errorMsg}</span>
+                  {canRetry && (
+                    <button
+                      type="button"
+                      onClick={handleExtractIdeas}
+                      disabled={isExtracting}
+                      className="px-2.5 py-1 bg-rose-900/60 hover:bg-rose-800 disabled:opacity-50 text-rose-100 rounded text-[11px] flex items-center gap-1 flex-shrink-0 transition"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                      <span>إعادة المحاولة</span>
+                    </button>
+                  )}
                 </div>
               )}
             </>
@@ -386,7 +397,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
           {step === 'input' ? (
             <button
               onClick={handleExtractIdeas}
-              disabled={isExtracting}
+              disabled={isExtracting || isTooLong}
               className="flex items-center gap-2 px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded font-medium text-xs shadow-md transition"
             >
               <Sparkles className="w-4 h-4 text-indigo-200" />

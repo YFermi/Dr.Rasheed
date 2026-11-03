@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useIdeaStore } from '../../store/useIdeaStore';
 import { exportToWord } from '../../utils/docxExport';
 import { IdeaNode } from '../../types';
@@ -15,6 +15,10 @@ import {
   Info
 } from 'lucide-react';
 
+// A4 at 96 dpi
+const PAGE_WIDTH = 794;
+const PAGE_HEIGHT = 1123;
+
 export const WordPreview: React.FC = () => {
   const { 
     treeData, 
@@ -27,6 +31,19 @@ export const WordPreview: React.FC = () => {
 
   const [isExporting, setIsExporting] = React.useState(false);
   const pageContainerRef = useRef<HTMLDivElement>(null);
+  // Unscaled height of the page: sizes the zoom wrapper and estimates the page count
+  const [pageHeight, setPageHeight] = useState(PAGE_HEIGHT);
+
+  useEffect(() => {
+    const page = pageContainerRef.current;
+    if (!page) return;
+    const observer = new ResizeObserver(() => setPageHeight(page.offsetHeight));
+    observer.observe(page);
+    return () => observer.disconnect();
+  }, []);
+
+  const scale = wordPreviewZoom / 100;
+  const pageCount = Math.max(1, Math.ceil(pageHeight / PAGE_HEIGHT));
 
   const handleExportDocx = async () => {
     try {
@@ -243,14 +260,19 @@ export const WordPreview: React.FC = () => {
 
       {/* Scrollable A4 Document View Area */}
       <div className="flex-1 overflow-auto word-scrollbar p-6 lg:p-10 flex flex-col items-center">
-        <div 
+        {/* The wrapper takes the zoomed size, so the scroll area follows the zoom
+            (transform: scale alone does not change the layout size) */}
+        <div
+          className="a4-zoom-wrapper relative flex-shrink-0 mb-12"
+          style={{ width: PAGE_WIDTH * scale, height: pageHeight * scale }}
+        >
+        <div
           ref={pageContainerRef}
           style={{
-            transform: `scale(${wordPreviewZoom / 100})`,
-            transformOrigin: 'top center',
-            transition: 'transform 150ms ease-out',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
           }}
-          className="relative bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print w-[794px] min-h-[1123px] p-[96px] text-right text-gray-900 mb-12"
+          className="absolute top-0 left-0 bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print w-[794px] min-h-[1123px] h-auto p-[96px] text-right text-gray-900"
         >
           {/* Running Header */}
           <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between text-[11px] text-gray-400 font-quran">
@@ -292,11 +314,12 @@ export const WordPreview: React.FC = () => {
           <div className="mt-16 pt-4 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-400 font-sans">
             <span>تم استخراج المستند عبر نظام Idea Builder</span>
             <div className="flex items-center gap-1 font-mono">
-              <span>صفحة 1 من 1</span>
+              <span title="تقدير من ارتفاع المحتوى ÷ ارتفاع صفحة A4">عدد الصفحات ≈ {pageCount}</span>
               <span>•</span>
               <span>{projectSettings.date}</span>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

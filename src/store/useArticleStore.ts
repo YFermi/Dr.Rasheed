@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { ArticleInput, ArticleOptions, ArticleSectionInput, GeneratedArticle } from '../types/article';
+import type { ArticleInput, ArticleOptions, ArticleSectionInput, DraftSection, GeneratedArticle, OutlineSection } from '../types/article';
 import { useIdeaStore } from './useIdeaStore';
 import { useBlogStore } from './useBlogStore';
 import {
@@ -9,8 +9,10 @@ import {
   computeSectionHash,
   generateArticle,
   hasEnoughContent,
+  orderArticleByTree,
   previousArticleOf,
   regenerateOneSection,
+  sortByAxisOrder,
   type GenerationProgress,
 } from '../utils/articleBuilder';
 
@@ -34,6 +36,7 @@ interface ArticleStoreState {
 
   generate: (options: ArticleOptions) => Promise<void>;
   regenerateSection: (sectionId: string, opts?: { lengthFactor?: number; instruction?: string }) => Promise<void>;
+  generateMissingSection: (sectionId: string) => Promise<void>;
   cancelGeneration: () => void;
   lockSection: (sectionId: string) => void;
   unlockSection: (sectionId: string) => void;
@@ -55,6 +58,11 @@ export function currentArticleInput(options: ArticleOptions): ArticleInput {
     projectTitle: projectSettings.title,
     previous: previousArticleOf(useBlogStore.getState().corpus),
   });
+}
+
+// The tree's axis order, which the draft's sections follow
+export function treeAxisIds(): string[] {
+  return (useIdeaStore.getState().treeData.children ?? []).map(axis => axis.id);
 }
 
 let controller: AbortController | null = null;
@@ -171,6 +179,55 @@ export const useArticleStore = create<ArticleStoreState>()(persist((set, get) =>
     }
   },
 
+  // Writes an axis that has no section in the draft yet, in its place in the tree
+  // order (the outline gets a minimal plan for it); an empty slot is removed again
+  // when the writing fails.
+  generateMissingSection: async (sectionId) => {
+    const { draft, isGenerating } = get();
+    if (!draft || isGenerating || draft.sections.some(s => s.id === sectionId)) return;
+    const section = currentArticleInput(draft.options).sections.find(s => s.id === sectionId);
+    if (!section) {
+      set({ error: 'هذا المحور لم يعد في الشجرة أو لم تعد فيه أفكار مدرجة.' });
+      return;
+    }
+
+    const budgets = draft.outline.sections.map(s => s.wordBudget);
+    const plan: OutlineSection = {
+      id: section.id,
+      axisName: section.axisName,
+      thesis: section.axisName,
+      keyMoves: [],
+      verseRefs: section.verseRefs,
+      transitionIn: '',
+      transitionOut: '',
+      wordBudget: budgets.length ? Math.round(budgets.reduce((a, b) => a + b, 0) / budgets.length / 10) * 10 : 600,
+      coveredNodeIds: section.nodes.filter(n => n.depth > 0).map(n => n.id),
+    };
+    const slot: DraftSection = { id: section.id, axisName: section.axisName, blocks: [], coveredNodeIds: [], wordCount: 0 };
+    const axisIds = treeAxisIds();
+    set(state => ({
+      draft: {
+        ...draft,
+        sections: sortByAxisOrder([...draft.sections, slot], axisIds),
+        outline: { ...draft.outline, sections: sortByAxisOrder([...draft.outline.sections.filter(s => s.id !== sectionId), plan], axisIds) },
+      },
+      sectionMeta: { ...state.sectionMeta, [sectionId]: { hash: '', locked: false, stale: false, generating: false } },
+    }));
+
+    await get().regenerateSection(sectionId);
+
+    const written = get().draft?.sections.find(s => s.id === sectionId);
+    if (written && written.blocks.length === 0) {
+      set(state => {
+        const { [sectionId]: _removed, ...sectionMeta } = state.sectionMeta;
+        return {
+          sectionMeta,
+          draft: state.draft && { ...state.draft, sections: state.draft.sections.filter(s => s.id !== sectionId) },
+        };
+      });
+    }
+  },
+
   cancelGeneration: () => controller?.abort(),
 
   lockSection: (sectionId) => set(state => ({
@@ -185,10 +242,21 @@ export const useArticleStore = create<ArticleStoreState>()(persist((set, get) =>
     sectionMeta: { ...state.sectionMeta, [sectionId]: { ...state.sectionMeta[sectionId], stale: true } },
   })),
 
-  // Compares each section's stored hash with its current tree inputs
+  // Puts the draft in the tree's axis order (moving an axis only reorders, it
+  // never regenerates), then compares each section's stored hash with its
+  // current tree inputs (moving an idea marks its old and new axes stale).
   refreshStaleness: () => {
-    const { draft, sectionMeta } = get();
+    const { sectionMeta, isGenerating } = get();
+    let { draft } = get();
     if (!draft) return;
+    if (!isGenerating) {
+      // During generation the result is reordered once it is in (finally → refreshStaleness)
+      const ordered = orderArticleByTree(draft, treeAxisIds());
+      if (ordered !== draft) {
+        draft = ordered;
+        set({ draft });
+      }
+    }
     const input = currentArticleInput(draft.options);
     const current = new Map(input.sections.map(s => [s.id, computeSectionHash(s)]));
     let changed = false;

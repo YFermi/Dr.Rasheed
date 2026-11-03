@@ -326,7 +326,7 @@ export const BlogReader: React.FC = () => {
             onScroll={() => selectionAction && setSelectionAction(null)}
             className="flex-1 overflow-auto word-scrollbar scroll-smooth p-6 lg:p-10 flex flex-col items-center"
           >
-            <article ref={articleRef} className="relative bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print w-full max-w-[794px] min-h-[1123px] px-12 py-14 lg:p-[96px] text-right text-gray-900 mb-12">
+            <article ref={articleRef} className="relative bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print flex-shrink-0 w-full max-w-[794px] min-h-[1123px] px-12 py-14 lg:p-[96px] text-right text-gray-900 mb-12">
               {/* Running Header */}
               <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between text-[11px] text-gray-400 font-quran">
                 <span>مقالات د. رشيد الجراح — قصة لوط</span>

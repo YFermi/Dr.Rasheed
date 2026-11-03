@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { useArticleStore, currentArticleInput } from '../../store/useArticleStore';
+import { useArticleStore, currentArticleInput, treeAxisIds } from '../../store/useArticleStore';
 import { useIdeaStore } from '../../store/useIdeaStore';
-import { articleWordCount } from '../../utils/articleBuilder';
+import { articleWordCount, sortByAxisOrder } from '../../utils/articleBuilder';
 import { exportArticleToWord, AI_DRAFT_LABEL } from '../../utils/articleDocxExport';
 import { toArabicDigits } from '../../utils/arabic';
-import { DraftBlock, DraftSection } from '../../types/article';
+import { ArticleSectionInput, DraftBlock, DraftSection } from '../../types/article';
 import {
   PenLine,
   RotateCw,
@@ -93,7 +93,7 @@ function SectionToolbar({ section, index }: { section: DraftSection; index: numb
           )}
           {meta?.stale && !meta.generating && (
             <span className="text-[10.5px] bg-amber-100 text-amber-800 border border-amber-300 px-1.5 rounded-full flex-shrink-0">
-              ⚠️ قديم – انقر ⟳ للتحديث
+              ⚠️ يحتاج تحديث – انقر ⟳
             </span>
           )}
         </div>
@@ -155,6 +155,35 @@ function SectionToolbar({ section, index }: { section: DraftSection; index: numb
   );
 }
 
+// An axis of the tree with no section in the draft yet, shown in its tree position
+function MissingSection({ section }: { section: ArticleSectionInput }) {
+  const { isGenerating, generateMissingSection } = useArticleStore();
+  const ideas = section.nodes.filter(n => n.depth > 0).length;
+  return (
+    <div className="no-print select-none -mx-2 p-3 border-2 border-dashed border-gray-300 bg-gray-50/70 rounded-lg flex items-center justify-between gap-2 font-sans">
+      <div className="min-w-0 text-[11.5px]">
+        <span className="font-bold text-gray-700 font-quran">{section.axisName}</span>
+        <span className="block text-[10.5px] text-gray-500">
+          محور في الشجرة لم يُكتب بعد ({toArabicDigits(ideas)} أفكار)
+        </span>
+      </div>
+      <button
+        type="button"
+        disabled={isGenerating}
+        onClick={() => generateMissingSection(section.id)}
+        title="كتابة هذا المحور في موضعه من المقال"
+        className="px-2.5 py-1 bg-blue-700 hover:bg-blue-800 disabled:opacity-40 text-white rounded text-[11px] font-semibold flex items-center gap-1 flex-shrink-0"
+      >
+        <Sparkles className="w-3.5 h-3.5" /> توليد
+      </button>
+    </div>
+  );
+}
+
+type SectionRow =
+  | { id: string; kind: 'draft'; section: DraftSection; index: number }
+  | { id: string; kind: 'missing'; section: ArticleSectionInput };
+
 export const ArticleDraftView: React.FC = () => {
   const {
     draft,
@@ -188,6 +217,18 @@ export const ArticleDraftView: React.FC = () => {
       uncovered: ideas.filter(n => !covered.has(n.id)),
       newAxes: input.sections.filter(s => !inDraft.has(s.id)).map(s => s.axisName),
     };
+  }, [draft, treeData]);
+
+  // The draft's sections plus the tree's not-yet-written axes, in the tree's axis
+  // order (the store keeps draft.sections in that order)
+  const rows = useMemo<SectionRow[]>(() => {
+    if (!draft) return [];
+    const inDraft = new Set(draft.sections.map(s => s.id));
+    const missing = currentArticleInput(draft.options).sections.filter(s => !inDraft.has(s.id));
+    return sortByAxisOrder<SectionRow>([
+      ...draft.sections.map((section, index) => ({ id: section.id, kind: 'draft' as const, section, index })),
+      ...missing.map(section => ({ id: section.id, kind: 'missing' as const, section })),
+    ], treeAxisIds());
   }, [draft, treeData]);
 
   const handleExport = async () => {
@@ -318,7 +359,7 @@ export const ArticleDraftView: React.FC = () => {
           </div>
         ) : (
           <>
-            <article className="relative bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print w-full max-w-[794px] min-h-[1123px] px-12 py-14 lg:p-[96px] text-right text-gray-900 mb-6">
+            <article className="relative bg-white shadow-2xl ring-1 ring-black/10 rounded-xs a4-page-print flex-shrink-0 w-full max-w-[794px] min-h-[1123px] px-12 py-14 lg:p-[96px] text-right text-gray-900 mb-6">
               <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between text-[11px] text-gray-400 font-quran">
                 <span>{draft.title}</span>
                 {isDraftLabelled && <span className="text-amber-600 font-sans">{AI_DRAFT_LABEL}</span>}
@@ -330,10 +371,14 @@ export const ArticleDraftView: React.FC = () => {
                 <p key={`o${i}`} className="text-[16px] text-[#1f2937] leading-[1.9] text-justify font-quran my-2">{p}</p>
               ))}
 
-              {draft.sections.map((section, i) => (
-                <section key={section.id} data-section-id={section.id} className={`mt-8 transition-opacity ${sectionMeta[section.id]?.generating ? 'opacity-50' : ''}`}>
-                  <SectionToolbar section={section} index={i} />
-                  <SectionBlocks section={section} />
+              {rows.map(row => row.kind === 'draft' ? (
+                <section key={row.id} data-section-id={row.id} className={`mt-8 transition-opacity ${sectionMeta[row.id]?.generating ? 'opacity-50' : ''}`}>
+                  <SectionToolbar section={row.section} index={row.index} />
+                  <SectionBlocks section={row.section} />
+                </section>
+              ) : (
+                <section key={row.id} data-section-id={row.id} className="mt-8">
+                  <MissingSection section={row.section} />
                 </section>
               ))}
 
@@ -354,7 +399,7 @@ export const ArticleDraftView: React.FC = () => {
 
             {/* Coverage report */}
             {coverage && (
-              <div className="w-full max-w-[794px] mb-12 bg-white rounded-lg shadow ring-1 ring-black/5 p-4 text-xs text-gray-700 no-print select-none space-y-2">
+              <div className="flex-shrink-0 w-full max-w-[794px] mb-12 bg-white rounded-lg shadow ring-1 ring-black/5 p-4 text-xs text-gray-700 no-print select-none space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm text-gray-800">
                     الأفكار المغطاة: {toArabicDigits(coverage.covered)} من {toArabicDigits(coverage.total)}
@@ -387,7 +432,7 @@ export const ArticleDraftView: React.FC = () => {
                 )}
                 {coverage.newAxes.length > 0 && (
                   <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded p-2">
-                    محاور جديدة في الشجرة ليست في المسودة: {coverage.newAxes.join('، ')} — أعد كتابة المقال لإدراجها.
+                    محاور جديدة في الشجرة ليست في المسودة: {coverage.newAxes.join('، ')} — اضغط «توليد» في موضعها من المقال لكتابتها.
                   </div>
                 )}
               </div>

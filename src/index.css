@@ -83,6 +83,16 @@
     min-height: auto !important;
     padding: 0 !important;
   }
+  /* The on-screen zoom (WordPreview) does not apply to print */
+  .a4-zoom-wrapper {
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+  }
+  .a4-zoom-wrapper > .a4-page-print {
+    position: static !important;
+    transform: none !important;
+  }
   @page {
     size: A4;
     margin: 20mm;
