@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useIdeaStore, getAllNodeList } from '../../store/useIdeaStore';
+import { useIdeaStore, NEW_ARTICLE_LABEL } from '../../store/useIdeaStore';
 import { useApiKeyStore, selectAiAvailable } from '../../store/useApiKeyStore';
 import { callApiWithKey } from '../../utils/apiKey';
 import { aiErrorMessage } from '../../utils/aiErrors';
@@ -55,7 +55,7 @@ const SAMPLE_TRANSCRIPTS = [
 ];
 
 export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, onClose }) => {
-  const { treeData, importBatchIdeas } = useIdeaStore();
+  const importBatchIdeas = useIdeaStore(state => state.importBatchIdeas);
 
   const [transcript, setTranscript] = useState('');
   const [selectedSpeakers, setSelectedSpeakers] = useState<string[]>(['د. رشيد', 'مصطفى', 'يوسف']);
@@ -69,7 +69,8 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
 
   if (!isOpen) return null;
 
-  const allAxes = getAllNodeList(treeData).filter(n => n.type === 'axis' || n.type === 'project');
+  // The axes proposed for the new article (suggestions in the review step)
+  const sessionAxes = [...new Set(suggestions.map(s => s.suggestedParentLabel?.trim()).filter(Boolean))] as string[];
   const transcriptLength = transcript.length;
   const isTooLong = transcriptLength > MAX_TRANSCRIPT_CHARS;
 
@@ -103,7 +104,8 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
       const data = await callApiWithKey<{ ideas?: ExtractedIdeaSuggestion[] }>('/api/extract-ideas', {
         transcript,
         speakers: selectedSpeakers,
-        axes: allAxes.map(a => ({ id: a.id, label: a.arabicLabel })),
+        // A session is a new article: the model proposes its axes (none from the tree)
+        axes: [],
       });
       // Only ideas the model actually extracted from the text reach the review step
       const ideas = Array.isArray(data.ideas) ? data.ideas : [];
@@ -269,7 +271,8 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                 <div>
                   <h3 className="font-bold text-sm text-white">مراجعة الأفكار والشواهد المستخرجة</h3>
                   <p className="text-[11px] text-gray-400">
-                    يمكنك تعديل أي فكرة أو قبولها أو رفضها أو اختيار المحور المناسب لها قبل إضافتها للشجرة.
+                    تُضاف الأفكار المقبولة تحت محور جذري جديد «{NEW_ARTICLE_LABEL}»، مجمّعة في محاوره (أقسام المقال الجديد).
+                    يمكنك تعديل أي فكرة أو قبولها أو رفضها أو تغيير محورها قبل الإضافة.
                   </p>
                 </div>
                 <button
@@ -279,6 +282,10 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                   ← العودة للنص
                 </button>
               </div>
+
+              <datalist id="session-axes">
+                {sessionAxes.map(label => <option key={label} value={label} />)}
+              </datalist>
 
               {/* Suggestion Cards */}
               <div className="space-y-3">
@@ -351,21 +358,17 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                       </div>
                     )}
 
-                    {/* Suggested Parent Axis Selection */}
+                    {/* Axis inside the new article (ideas with the same axis are grouped) */}
                     <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                      <span>إدراج تحت المحور:</span>
-                      <select
-                        value={item.suggestedParentId || 'root-project'}
-                        onChange={(e) => handleUpdateSuggestion(item.id, { suggestedParentId: e.target.value })}
-                        className="bg-[#1e1e2e] border border-[#313244] rounded px-2 py-1 text-xs text-white flex-1"
-                      >
-                        <option value="root-project">📚 جذر المشروع الرئيسي (Root)</option>
-                        {allAxes.map(axis => (
-                          <option key={axis.id} value={axis.id}>
-                            📐 {axis.arabicLabel}
-                          </option>
-                        ))}
-                      </select>
+                      <span>المحور داخل المقال الجديد:</span>
+                      <input
+                        type="text"
+                        list="session-axes"
+                        value={item.suggestedParentLabel ?? ''}
+                        placeholder="أفكار الجلسة"
+                        onChange={(e) => handleUpdateSuggestion(item.id, { suggestedParentLabel: e.target.value })}
+                        className="bg-[#1e1e2e] border border-[#313244] rounded px-2 py-1 text-xs text-white flex-1 font-quran focus:outline-none focus:border-indigo-500"
+                      />
                     </div>
                   </div>
                 ))}

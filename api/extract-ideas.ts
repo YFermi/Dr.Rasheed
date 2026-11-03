@@ -49,12 +49,21 @@ const SYSTEM_PROMPT = `أنت باحث أكاديمي متخصص في الدرا
 - صُغ العناوين والملخصات بعربية فصيحة رصينة، بنبرة التدبّر التي يكتب بها د. رشيد: سؤال يُطرح، وشاهد يُستدعى، وفهم يُقترح بتحوّط («نظن»، «في رأينا»).
 - لا تنسب إلى المتحدثين ما لم يقولوه، ولا تخترع آيات: انقل الآية كما وردت في التفريغ مع الأقواس ﴿ ﴾ ومرجعها [سورة: آية]، واترك الحقل فارغاً إن لم ترد آية.`;
 
+// With no axes, the session is a new article: the model proposes its axes and
+// groups the ideas under them (the client builds them inside «مقال جديد»).
 function buildPrompt(transcript: string, speakers: string[], axes: { id: string; label: string }[]): string {
+  const axesPart = axes.length > 0
+    ? `قائمة المحاور الحالية في الشجرة:\n${axes.map(a => `- [${a.id}]: ${a.label}`).join('\n')}`
+    : 'هذه الجلسة لمقال جديد لا محاور له بعد: اقترح محاوره أنت.';
+  const parentPart = axes.length > 0
+    ? `- suggestedParentId: معرف المحور الأنسب من القائمة أعلاه (أو 'root-project' إذا كانت محوراً جديداً)
+- suggestedParentLabel: اسم ذلك المحور`
+    : `- suggestedParentId: 'new'
+- suggestedParentLabel: عنوان قصير للمحور المقترح الذي تنتمي إليه الفكرة في المقال الجديد؛ اجمع الأفكار في 2 إلى 6 محاور، وأعطِ أفكار المحور الواحد العنوان نفسه حرفاً بحرف`;
   return `قائمة المتحدثين الحاضرين في الجلسة:
 ${speakers.length > 0 ? speakers.join('، ') : DEFAULT_SPEAKERS}
 
-قائمة المحاور الحالية في الشجرة:
-${axes.map(a => `- [${a.id}]: ${a.label}`).join('\n')}
+${axesPart}
 
 نص التفريغ:
 """
@@ -66,8 +75,7 @@ ${transcript.slice(0, MAX_TRANSCRIPT_CHARS)}
 - title: عنوان موجز للفكرة (مثل: «دلالة السبيل في سياق التجارة والنسل»)
 - summary: شرح الفكرة في جملة أو جملتين
 - speaker: اسم المتحدث الأقرب للفكرة من قائمة المتحدثين
-- suggestedParentId: معرف المحور الأنسب من القائمة أعلاه (أو 'root-project' إذا كانت محوراً جديداً)
-- suggestedParentLabel: اسم ذلك المحور
+${parentPart}
 - quranicVerses: الآيات المستشهد بها إن وجدت، وإلا نص فارغ
 - type: 'idea' أو 'evidence' أو 'question'
 - status: 'brainstorm'

@@ -128,6 +128,18 @@ export function previousArticleOf(corpus: BlogCorpus | null): PreviousArticle {
   return { title: last.title, ending: picked.join('\n\n').slice(-PREVIOUS_ENDING_MAX_CHARS) };
 }
 
+// The axes the article is written from, in tree order: the root axes, and the
+// axes inside a «مقال جديد» root (a brainstorm session). A «مقال مرجعي» root is
+// reference and stays out. With `options`, excluded roots and axes are skipped.
+export function articleAxes(tree: IdeaNode, options?: ArticleOptions): IdeaNode[] {
+  const included = (n: IdeaNode) => !options || isIncluded(n, options);
+  return (tree.children ?? []).flatMap(n => {
+    if (n.type !== 'axis' || ideaRole(n) === 'reference' || !included(n)) return [];
+    if (!n.isArticleRoot) return [n];
+    return (n.children ?? []).filter(c => c.type === 'axis' && included(c));
+  });
+}
+
 // One section per included axis that has at least one included idea under it.
 export function buildArticleInput(
   tree: IdeaNode,
@@ -142,8 +154,7 @@ export function buildArticleInput(
   index(tree);
 
   const sections: ArticleSectionInput[] = [];
-  for (const axis of tree.children ?? []) {
-    if (axis.type !== 'axis' || !isIncluded(axis, options)) continue;
+  for (const axis of articleAxes(tree, options)) {
 
     const nodes: ArticleNodeInput[] = [];
     // The axis's own notes / verses frame the section
@@ -520,6 +531,9 @@ function toPreviousIdea(node: IdeaNode): PreviousIdea {
 
 const allNodes = (n: IdeaNode): IdeaNode[] => [n, ...(n.children ?? []).flatMap(allNodes)];
 
+// A reference idea / evidence / question (not the «مقال مرجعي» root or its axes)
+const isReferenceIdea = (n: IdeaNode) => ideaRole(n) === 'reference' && n.type !== 'project' && n.type !== 'axis';
+
 // Reference ideas for one axis: those under it, and those linked to (or from) its ideas
 function previousIdeasFor(tree: IdeaNode, axisId: string): PreviousIdea[] {
   const everything = allNodes(tree);
@@ -528,7 +542,7 @@ function previousIdeasFor(tree: IdeaNode, axisId: string): PreviousIdea[] {
   const inAxis = allNodes(axis);
   const inAxisIds = new Set(inAxis.map(n => n.id));
   const linkedIds = new Set(inAxis.flatMap(n => n.linkedIdeas.map(l => l.targetId)));
-  const picked = everything.filter(n => ideaRole(n) === 'reference' && n.type !== 'project' && (
+  const picked = everything.filter(n => isReferenceIdea(n) && (
     inAxisIds.has(n.id) || linkedIds.has(n.id) || n.linkedIdeas.some(l => inAxisIds.has(l.targetId))
   ));
   return picked.slice(0, MAX_PREVIOUS_IDEAS).map(toPreviousIdea);
@@ -542,7 +556,7 @@ export function buildGenerationContext(options: ArticleOptions, sources: Generat
   const referenceContext = referenceContextOf(reference);
   const story = storySources(options.storyName, sources.corpus, sources.referenceArticles);
   const allPrevious = allNodes(sources.tree)
-    .filter(n => ideaRole(n) === 'reference' && n.type !== 'project')
+    .filter(n => isReferenceIdea(n))
     .slice(0, MAX_PREVIOUS_IDEAS)
     .map(toPreviousIdea);
   const cache = new Map<string, SectionContext>();

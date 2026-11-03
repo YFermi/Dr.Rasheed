@@ -7,9 +7,15 @@ import {
   IdeaLink, 
   ProjectSettings, 
   ExtractedIdeaSuggestion,
-  ReferenceIdeaInput
+  ReferenceIdeaInput,
+  ideaRole
 } from '../types';
 import { initialProjectSettings, initialTreeData } from '../data/initialProject';
+
+// Root axes the imports create (IdeaNode.isArticleRoot)
+export const NEW_ARTICLE_LABEL = 'مقال جديد: جلسة عصف';
+export const REFERENCE_ARTICLE_PREFIX = 'مقال مرجعي:';
+const DEFAULT_SESSION_AXIS = 'أفكار الجلسة';
 
 // Helpers
 export function findNodeById(root: IdeaNode, id: string): IdeaNode | null {
@@ -158,9 +164,9 @@ interface IdeaStoreState {
 
 export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
   treeData: initialTreeData,
-  selectedNodeId: 'axis-1',
+  selectedNodeId: initialTreeData.id,
   projectSettings: initialProjectSettings,
-  expandedNodeIds: ['root-project', 'axis-1', 'axis-2', 'axis-3', 'axis-4', 'axis-5', 'idea-1-1'],
+  expandedNodeIds: [initialTreeData.id],
   clipboardNode: null,
   isCut: false,
   highlightedLinkedNodeIds: [],
@@ -663,138 +669,119 @@ export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
     }));
   },
 
+  // A brainstorm session becomes its own root axis, «مقال جديد: جلسة عصف»: the
+  // new article. Its ideas go under axes inside it (one per axis the extraction
+  // proposed), so the article keeps several sections; all of them are draft
+  // (material to write).
   importBatchIdeas: (suggestions: ExtractedIdeaSuggestion[]) => {
     const accepted = suggestions.filter(s => s.accepted);
     if (accepted.length === 0) return;
 
     const state = get();
-    let currentTree = state.treeData;
+    const uid = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const node = (fields: Partial<IdeaNode> & Pick<IdeaNode, 'id' | 'arabicLabel' | 'type'>): IdeaNode => ({
+      name: fields.arabicLabel,
+      status: 'brainstorm',
+      priority: 'high',
+      source: 'brainstorm_session',
+      sessionRef: 'مستورد من جلسة العصف',
+      speakers: ['فريق العصف'],
+      targetArticle: '',
+      quranicVerses: '',
+      crossReferences: [],
+      linkedIdeas: [],
+      notes: '',
+      includeInDoc: true,
+      role: 'draft',
+      children: [],
+      ...fields,
+    });
 
+    // Axes in the order the session first mentions them
+    const axes = new Map<string, IdeaNode>();
     for (const item of accepted) {
-      const parentId = item.suggestedParentId || 'root-project';
-      const targetParent = findNodeById(currentTree, parentId) || currentTree;
-
-      const newNode: IdeaNode = {
-        id: `imported-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        name: item.title,
+      const label = item.suggestedParentLabel?.trim() || DEFAULT_SESSION_AXIS;
+      if (!axes.has(label)) axes.set(label, node({ id: uid('session-axis'), arabicLabel: label, type: 'axis' }));
+      axes.get(label)!.children!.push(node({
+        id: uid('imported'),
         arabicLabel: item.title,
-        type: item.type || (targetParent.type === 'project' ? 'axis' : 'idea'),
+        type: item.type && item.type !== 'axis' && item.type !== 'project' ? item.type : 'idea',
         status: item.status || 'brainstorm',
-        priority: 'high',
-        source: 'brainstorm_session',
-        sessionRef: 'مستورد من جلسة العصف',
         speakers: item.speaker ? [item.speaker] : ['فريق العصف'],
-        targetArticle: '',
         quranicVerses: item.quranicVerses || '',
-        crossReferences: [],
-        linkedIdeas: [],
         notes: item.summary || '',
-        includeInDoc: true,
-        role: 'draft',
-        children: [],
-      };
-
-      function appendToParent(root: IdeaNode): IdeaNode {
-        if (root.id === targetParent.id) {
-          return {
-            ...root,
-            children: [...(root.children || []), newNode]
-          };
-        }
-        if (!root.children) return root;
-        return {
-          ...root,
-          children: root.children.map(appendToParent)
-        };
-      }
-
-      currentTree = appendToParent(currentTree);
+      }));
     }
 
+    const sessionCount = (state.treeData.children ?? []).filter(c => c.isArticleRoot && ideaRole(c) === 'draft').length;
+    const root = node({
+      id: uid('new-article'),
+      arabicLabel: sessionCount ? `${NEW_ARTICLE_LABEL} (${sessionCount + 1})` : NEW_ARTICLE_LABEL,
+      type: 'axis',
+      isArticleRoot: true,
+      children: [...axes.values()],
+    });
+    const treeData = { ...state.treeData, children: [...(state.treeData.children ?? []), root] };
     set({
-      treeData: currentTree,
-      expandedNodeIds: collectAllIds(currentTree)
+      treeData,
+      selectedNodeId: root.id,
+      expandedNodeIds: Array.from(new Set([...state.expandedNodeIds, treeData.id, ...collectAllIds(root)])),
     });
   },
 
-  // Ideas of a finished article, in the article's order: under an existing axis,
-  // or under a new axis (one per distinct newAxisLabel). Returns how many were added.
+  // A finished article becomes its own root axis, «مقال مرجعي: «العنوان»», with
+  // the article's axes inside it and its ideas, in order, under them; the whole
+  // subtree is reference (context for linking, never written into the article).
+  // Returns how many ideas were added.
   importReferenceIdeas: (ideas: ReferenceIdeaInput[], articleId: string, articleTitle: string) => {
     if (ideas.length === 0) return 0;
     const state = get();
-    let currentTree = state.treeData;
     const stamp = Date.now();
     const uid = (prefix: string) => `${prefix}-${stamp}-${Math.random().toString(36).slice(2, 6)}`;
     const sessionRef = `مقال مرجعي: ${articleTitle}`;
-    const newAxisIds = new Map<string, string>();
-    const touched: string[] = [];
+    const node = (fields: Partial<IdeaNode> & Pick<IdeaNode, 'id' | 'arabicLabel' | 'type'>): IdeaNode => ({
+      name: fields.arabicLabel,
+      status: 'published',
+      priority: 'medium',
+      source: 'rasheed_article',
+      sessionRef,
+      speakers: ['د. رشيد'],
+      targetArticle: '',
+      quranicVerses: '',
+      crossReferences: [],
+      linkedIdeas: [],
+      notes: '',
+      includeInDoc: true,
+      role: 'reference',
+      referenceArticleId: articleId,
+      children: [],
+      ...fields,
+    });
 
-    const appendTo = (parentId: string, node: IdeaNode) => {
-      const rec = (root: IdeaNode): IdeaNode => {
-        if (root.id === parentId) return { ...root, children: [...(root.children || []), node] };
-        if (!root.children) return root;
-        return { ...root, children: root.children.map(rec) };
-      };
-      currentTree = rec(currentTree);
-    };
-
+    const axes = new Map<string, IdeaNode>();
     for (const idea of ideas) {
-      let parentId = idea.parentId && findNodeById(currentTree, idea.parentId) ? idea.parentId : '';
-      if (!parentId) {
-        const label = idea.newAxisLabel?.trim() || articleTitle;
-        parentId = newAxisIds.get(label) ?? '';
-        if (!parentId) {
-          parentId = uid('ref-axis');
-          newAxisIds.set(label, parentId);
-          appendTo(currentTree.id, {
-            id: parentId,
-            name: label,
-            arabicLabel: label,
-            type: 'axis',
-            status: 'published',
-            priority: 'medium',
-            source: 'rasheed_article',
-            sessionRef,
-            speakers: ['د. رشيد'],
-            targetArticle: '',
-            quranicVerses: '',
-            crossReferences: [],
-            linkedIdeas: [],
-            notes: '',
-            includeInDoc: true,
-            role: 'draft', // an axis only groups; its reference ideas stay out of the article
-            children: [],
-          });
-        }
-      }
-
-      const verses = idea.verses.map(v => `[${v}]`).join(' ');
-      appendTo(parentId, {
+      const label = idea.newAxisLabel?.trim() || articleTitle;
+      if (!axes.has(label)) axes.set(label, node({ id: uid('ref-axis'), arabicLabel: label, type: 'axis' }));
+      axes.get(label)!.children!.push(node({
         id: uid('ref'),
-        name: idea.title,
         arabicLabel: idea.title,
         type: 'idea',
-        status: 'published',
-        priority: 'medium',
-        source: 'rasheed_article',
-        sessionRef,
-        speakers: ['د. رشيد'],
-        targetArticle: '',
-        quranicVerses: verses,
-        crossReferences: [],
-        linkedIdeas: [],
+        quranicVerses: idea.verses.map(v => `[${v}]`).join(' '),
         notes: idea.excerpt.trim() ? `${idea.summary}\n\nمن المقال: «${idea.excerpt.trim()}»` : idea.summary,
-        includeInDoc: true,
-        role: 'reference',
-        referenceArticleId: articleId,
-        children: [],
-      });
-      touched.push(parentId);
+      }));
     }
 
+    const root = node({
+      id: uid('ref-article'),
+      arabicLabel: `${REFERENCE_ARTICLE_PREFIX} ${articleTitle}`,
+      type: 'axis',
+      isArticleRoot: true,
+      children: [...axes.values()],
+    });
+    const treeData = { ...state.treeData, children: [...(state.treeData.children ?? []), root] };
     set({
-      treeData: currentTree,
-      expandedNodeIds: Array.from(new Set([...state.expandedNodeIds, currentTree.id, ...touched])),
+      treeData,
+      expandedNodeIds: Array.from(new Set([...state.expandedNodeIds, treeData.id, root.id, ...[...axes.values()].map(a => a.id)])),
     });
     return ideas.length;
   },
@@ -833,8 +820,8 @@ export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
     set({
       treeData: initialTreeData,
       projectSettings: initialProjectSettings,
-      selectedNodeId: 'axis-1',
-      expandedNodeIds: ['root-project', 'axis-1', 'axis-2', 'axis-3', 'axis-4', 'axis-5'],
+      selectedNodeId: initialTreeData.id,
+      expandedNodeIds: [initialTreeData.id],
       clipboardNode: null,
       isCut: false,
       highlightedLinkedNodeIds: [],

@@ -454,7 +454,11 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
 
             {/* Level Icon */}
             <span className="flex-shrink-0 select-none">
-              {isReference ? <span className="text-sm">📌</span> : getNodeIcon(node.type)}
+              {isReference
+                ? <span className="text-sm">📌</span>
+                : node.isArticleRoot
+                ? <span title="المقال الجديد (جلسة عصف): محاوره أقسام المقال" className="text-sm">📝</span>
+                : getNodeIcon(node.type)}
             </span>
 
             {/* Label or Inline Input */}

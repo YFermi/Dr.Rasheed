@@ -44,6 +44,9 @@ export interface IdeaNode {
   // Optional so that ideas saved before this field read as 'draft' (see ideaRole)
   role?: IdeaRole;
   referenceArticleId?: string; // the reference article (useReferenceStore) it came from
+  // A root axis created by an import: «مقال مرجعي: …» (role reference) or
+  // «مقال جديد: جلسة عصف» (draft, its axes are the new article's sections)
+  isArticleRoot?: boolean;
   children?: IdeaNode[];
   collapsed?: boolean;
 }
@@ -81,7 +84,5 @@ export interface ReferenceIdeaInput {
   summary: string;
   verses: string[]; // "هود: 77-83"
   excerpt: string;
-  // An existing axis, or else a new axis with this label
-  parentId?: string;
-  newAxisLabel?: string;
+  newAxisLabel?: string; // the article's axis it belongs to
 }

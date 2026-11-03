@@ -59,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleReset = () => {
-    if (window.confirm('هل تود استعادة البيانات النموذجية الأولية لقصة لوط؟ ستحل محل التعديلات غير المحفوظة.')) {
+    if (window.confirm('هل تود البدء بمشروع جديد بشجرة فارغة؟ ستُحذف المحاور والأفكار الحالية من هذا المتصفح (احفظ المشروع كملف JSON أولاً إن أردت الاحتفاظ به).')) {
       resetToInitial();
     }
   };
@@ -212,7 +212,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <button
           onClick={handleReset}
-          title="استعادة البيانات النموذجية لقصة لوط"
+          title="مشروع جديد (شجرة فارغة)"
           className="p-1.5 hover:bg-[#313244] text-gray-400 hover:text-amber-300 rounded transition"
         >
           <RotateCcw className="w-3.5 h-3.5" />

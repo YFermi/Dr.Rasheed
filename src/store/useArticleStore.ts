@@ -7,6 +7,7 @@ import { useReferenceStore, DEFAULT_STORY } from './useReferenceStore';
 import { latestReferenceArticle, referenceEnding } from '../utils/referenceContext';
 import {
   DEFAULT_ARTICLE_OPTIONS,
+  articleAxes,
   buildArticleInput,
   buildGenerationContext,
   withOptionDefaults,
@@ -94,7 +95,7 @@ export function currentGenerationContext(options: ArticleOptions): GenerationCon
 
 // The tree's axis order, which the draft's sections follow
 export function treeAxisIds(): string[] {
-  return (useIdeaStore.getState().treeData.children ?? []).map(axis => axis.id);
+  return articleAxes(useIdeaStore.getState().treeData).map(axis => axis.id);
 }
 
 let controller: AbortController | null = null;

@@ -1,18 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useIdeaStore } from '../../store/useIdeaStore';
+import { useIdeaStore, REFERENCE_ARTICLE_PREFIX } from '../../store/useIdeaStore';
 import { useReferenceStore, DEFAULT_STORY } from '../../store/useReferenceStore';
 import { useApiKeyStore, selectAiAvailable } from '../../store/useApiKeyStore';
 import { callApiWithKey } from '../../utils/apiKey';
 import { aiErrorMessage } from '../../utils/aiErrors';
 import { readWordFile, WordReadError } from '../../utils/wordReader';
-import { normalizeArabic } from '../../utils/arabic';
 import type { ReferenceIdeaInput } from '../../types';
 import { X, FileText, Upload, ClipboardPaste, Loader2, AlertCircle, RotateCw, Check, CheckCircle2, Pin } from 'lucide-react';
 
 // Same limit as api/analyze-reference.ts
 const MAX_ARTICLE_CHARS = 80_000;
 const NEW_STORY = '__new__';
-const NEW_AXIS = '__new__';
 
 // The response of /api/analyze-reference
 interface ReferenceIdea {
@@ -35,11 +33,9 @@ type Step = 'input' | 'analyzing' | 'review' | 'done';
 type ReviewIdea = ReferenceIdea & { key: string; accepted: boolean };
 
 const formatCount = (n: number) => n.toLocaleString('en-US');
-const axisKey = (label: string) => normalizeArabic(label.replace(/^المحور\s+\S+\s*:\s*/, '')).trim();
 
 export const ReferenceArticleModal: React.FC = () => {
   const { isModalOpen, closeModal, stories, addArticle } = useReferenceStore();
-  const treeData = useIdeaStore(state => state.treeData);
   const importReferenceIdeas = useIdeaStore(state => state.importReferenceIdeas);
   const aiAvailable = useApiKeyStore(selectAiAvailable);
   const openKeyModal = useApiKeyStore(state => state.openModal);
@@ -57,7 +53,6 @@ export const ReferenceArticleModal: React.FC = () => {
   const [canRetry, setCanRetry] = useState(false);
   const [analysis, setAnalysis] = useState<ReferenceAnalysis | null>(null);
   const [ideas, setIdeas] = useState<ReviewIdea[]>([]);
-  const [axisTargets, setAxisTargets] = useState<string[]>([]); // per article axis: a tree axis id or NEW_AXIS
   const [result, setResult] = useState<{ count: number; title: string; saved: boolean } | null>(null);
   const controller = useRef<AbortController | null>(null);
 
@@ -76,13 +71,11 @@ export const ReferenceArticleModal: React.FC = () => {
     setCanRetry(false);
     setAnalysis(null);
     setIdeas([]);
-    setAxisTargets([]);
     setResult(null);
   }, [isModalOpen]);
 
   if (!isModalOpen) return null;
 
-  const treeAxes = (treeData.children ?? []).filter(n => n.type === 'axis');
   const storyName = story === NEW_STORY ? newStory.trim() : story;
   const isTooLong = text.length > MAX_ARTICLE_CHARS;
   const acceptedCount = ideas.filter(i => i.accepted).length;
@@ -135,8 +128,6 @@ export const ReferenceArticleModal: React.FC = () => {
       }
       setAnalysis(data);
       setIdeas(data.ideas.map((idea, i) => ({ ...idea, key: `i${i}`, accepted: true })));
-      // Each article axis goes to the tree axis of the same name, else to a new axis
-      setAxisTargets(data.structure.axes.map(label => treeAxes.find(a => axisKey(a.arabicLabel) === axisKey(label))?.id ?? NEW_AXIS));
       if (!title.trim()) setTitle(data.title);
       setStep('review');
     } catch (e) {
@@ -157,16 +148,14 @@ export const ReferenceArticleModal: React.FC = () => {
     if (!analysis || acceptedCount === 0) return;
     const articleTitle = title.trim() || analysis.title || 'مقال مرجعي';
     const articleId = `ref-${Date.now()}`;
-    const inputs: ReferenceIdeaInput[] = ideas.filter(i => i.accepted).map(i => {
-      const target = axisTargets[i.axisIndex] ?? NEW_AXIS;
-      return {
-        title: i.title.trim() || 'فكرة مرجعية',
-        summary: i.summary.trim(),
-        verses: i.verses,
-        excerpt: i.excerpt,
-        ...(target === NEW_AXIS ? { newAxisLabel: analysis.structure.axes[i.axisIndex] ?? articleTitle } : { parentId: target }),
-      };
-    });
+    // All of it goes under its own root axis «مقال مرجعي: …», by the article's axes
+    const inputs: ReferenceIdeaInput[] = ideas.filter(i => i.accepted).map(i => ({
+      title: i.title.trim() || 'فكرة مرجعية',
+      summary: i.summary.trim(),
+      verses: i.verses,
+      excerpt: i.excerpt,
+      newAxisLabel: analysis.structure.axes[i.axisIndex] ?? articleTitle,
+    }));
     const count = importReferenceIdeas(inputs, articleId, articleTitle);
     // The full text and its style notes, for the style reference of later generation
     const saved = addArticle({
@@ -318,19 +307,11 @@ export const ReferenceArticleModal: React.FC = () => {
                 <h3 className="font-bold text-sm text-white">بنية المقال</h3>
                 {analysis.structure.introduction && <p className="text-[11.5px] text-gray-300 leading-relaxed"><strong className="text-sky-300">المقدمة: </strong>{analysis.structure.introduction}</p>}
                 <div className="space-y-1">
-                  <span className="text-[11px] text-sky-300 font-semibold block">المحاور، وأين تُضاف أفكار كل محور في الشجرة:</span>
+                  <span className="text-[11px] text-sky-300 font-semibold block">
+                    المحاور (تُضاف تحت محور جذري جديد «{REFERENCE_ARTICLE_PREFIX} {title.trim() || analysis.title}»):
+                  </span>
                   {analysis.structure.axes.map((label, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="flex-1 truncate font-quran text-[12.5px]">{i + 1}. {label}</span>
-                      <select
-                        value={axisTargets[i] ?? NEW_AXIS}
-                        onChange={e => setAxisTargets(prev => prev.map((t, j) => (j === i ? e.target.value : t)))}
-                        className="w-64 bg-[#1e1e2e] border border-[#313244] rounded px-2 py-0.5 text-[11px] text-white"
-                      >
-                        <option value={NEW_AXIS}>➕ محور جديد: {label}</option>
-                        {treeAxes.map(a => <option key={a.id} value={a.id}>📐 {a.arabicLabel}</option>)}
-                      </select>
-                    </div>
+                    <div key={i} className="truncate font-quran text-[12.5px]">📐 {i + 1}. {label}</div>
                   ))}
                 </div>
                 {analysis.structure.conclusion && <p className="text-[11.5px] text-gray-300 leading-relaxed"><strong className="text-sky-300">الخاتمة: </strong>{analysis.structure.conclusion}</p>}
