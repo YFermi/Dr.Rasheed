@@ -51,10 +51,10 @@ export const ArticleGenerateModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 select-none" onClick={closeGenerateModal}>
       <div
-        className="w-full max-w-md bg-[#1e1e2e] border border-[#313244] rounded-xl shadow-2xl text-[#cdd6f4] text-right"
+        className="w-full max-w-md bg-[#121212] border border-[#2e2817] rounded-xl shadow-2xl text-[#efe6cf] text-right"
         onClick={e => e.stopPropagation()}
       >
-        <div className="h-11 px-4 bg-[#181825] border-b border-[#313244] rounded-t-xl flex items-center justify-between">
+        <div className="h-11 px-4 bg-[#0a0a0a] border-b border-[#2e2817] rounded-t-xl flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-sm text-white">
             <PenLine className="w-4 h-4 text-amber-300" />
             <span>✍️ كتابة المقال</span>
@@ -66,7 +66,7 @@ export const ArticleGenerateModal: React.FC = () => {
 
         <div className="p-4 space-y-4 text-xs">
           {/* What will be written */}
-          <div className="p-3 bg-[#181825] border border-[#313244] rounded-lg space-y-1.5">
+          <div className="p-3 bg-[#0a0a0a] border border-[#2e2817] rounded-lg space-y-1.5">
             <div className="flex justify-between">
               <span className="text-gray-400">المحاور التي ستُكتب</span>
               <span className="font-mono text-white">{toArabicDigits(input.sections.length)}</span>
@@ -80,7 +80,7 @@ export const ArticleGenerateModal: React.FC = () => {
               <span className="font-mono text-amber-300">{toArabicDigits(input.allowedVerseRefs.length)}</span>
             </div>
             {input.sections.length > 0 && (
-              <div className="pt-1.5 border-t border-[#313244] text-[10.5px] text-gray-400 leading-relaxed">
+              <div className="pt-1.5 border-t border-[#2e2817] text-[10.5px] text-gray-400 leading-relaxed">
                 {input.sections.map(s => s.axisName).join(' • ')}
               </div>
             )}
@@ -114,7 +114,7 @@ export const ArticleGenerateModal: React.FC = () => {
                   className={`py-1.5 rounded border text-[11px] transition ${
                     options.sectionLength === words
                       ? 'bg-amber-600/80 border-amber-500 text-white font-bold'
-                      : 'bg-[#181825] border-[#313244] text-gray-400 hover:text-white'
+                      : 'bg-[#0a0a0a] border-[#2e2817] text-gray-400 hover:text-white'
                   }`}
                 >
                   {label} ({formatWords(words)} كلمة)
@@ -133,7 +133,7 @@ export const ArticleGenerateModal: React.FC = () => {
             <select
               value={options.storyName}
               onChange={e => setOptions({ ...options, storyName: e.target.value })}
-              className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-white text-xs focus:outline-none"
+              className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-white text-xs focus:outline-none"
             >
               {storyChoices.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -158,7 +158,7 @@ export const ArticleGenerateModal: React.FC = () => {
             <select
               value={options.styleMode}
               onChange={e => setOptions({ ...options, styleMode: e.target.value as ArticleOptions['styleMode'] })}
-              className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-white text-xs focus:outline-none"
+              className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-white text-xs focus:outline-none"
             >
               <option value="rasheed-original">أسلوب د. رشيد الأصلي</option>
             </select>
@@ -177,7 +177,7 @@ export const ArticleGenerateModal: React.FC = () => {
           </label>
 
           {lockedCount > 0 && (
-            <div className="p-2 bg-[#181825] border border-[#313244] rounded text-gray-300 flex items-center gap-1.5">
+            <div className="p-2 bg-[#0a0a0a] border border-[#2e2817] rounded text-gray-300 flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 text-amber-300" />
               <span>{toArabicDigits(lockedCount)} محور مقفل سيبقى كما هو.</span>
             </div>
@@ -189,7 +189,7 @@ export const ArticleGenerateModal: React.FC = () => {
           </p>
         </div>
 
-        <div className="px-4 py-3 bg-[#181825] border-t border-[#313244] rounded-b-xl flex justify-end gap-2">
+        <div className="px-4 py-3 bg-[#0a0a0a] border-t border-[#2e2817] rounded-b-xl flex justify-end gap-2">
           <button type="button" onClick={closeGenerateModal} className="px-3 py-1.5 text-gray-400 hover:text-white text-xs">
             إلغاء
           </button>

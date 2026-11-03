@@ -82,11 +82,11 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
     <div
       ref={menuRef}
       style={{ top: `${adjustedY}px`, left: `${adjustedX}px` }}
-      className="fixed z-50 w-56 bg-[#1e1e2e] border border-[#45475a] rounded-md shadow-2xl py-1 text-xs text-[#cdd6f4] select-none backdrop-blur-md animate-in fade-in-50 duration-100"
+      className="fixed z-50 w-56 bg-[#121212] border border-[#4a4027] rounded-md shadow-2xl py-1 text-xs text-[#efe6cf] select-none backdrop-blur-md animate-in fade-in-50 duration-100"
     >
-      <div className="px-3 py-1.5 border-b border-[#313244] text-[11px] font-semibold text-[#89b4fa] truncate flex items-center justify-between">
+      <div className="px-3 py-1.5 border-b border-[#2e2817] text-[11px] font-semibold text-[#d4af37] truncate flex items-center justify-between">
         <span className="truncate">{node.arabicLabel}</span>
-        <span className="text-[10px] text-[#a6adc8] font-mono uppercase bg-[#313244] px-1 rounded">
+        <span className="text-[10px] text-[#c2b691] font-mono uppercase bg-[#2e2817] px-1 rounded">
           {node.type}
         </span>
       </div>
@@ -94,7 +94,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       <div className="py-1">
         <button
           onClick={() => { onAddChild(); onClose(); }}
-          className="w-full text-right px-3 py-1.5 hover:bg-[#313244] hover:text-[#89b4fa] flex items-center justify-between transition-colors"
+          className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] hover:text-[#d4af37] flex items-center justify-between transition-colors"
         >
           <div className="flex items-center gap-2">
             <FolderPlus className="w-3.5 h-3.5 text-blue-400" />
@@ -106,7 +106,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         {node.type !== 'project' && (
           <button
             onClick={() => { onAddSibling(); onClose(); }}
-            className="w-full text-right px-3 py-1.5 hover:bg-[#313244] hover:text-[#89b4fa] flex items-center justify-between transition-colors"
+            className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] hover:text-[#d4af37] flex items-center justify-between transition-colors"
           >
             <div className="flex items-center gap-2">
               <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
@@ -117,13 +117,13 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         )}
       </div>
 
-      <div className="h-px bg-[#313244] my-1" />
+      <div className="h-px bg-[#2e2817] my-1" />
 
       <div className="py-1">
         <button
           onClick={() => { onCut(); onClose(); }}
           disabled={node.type === 'project'}
-          className="w-full text-right px-3 py-1.5 hover:bg-[#313244] hover:text-[#89b4fa] flex items-center justify-between transition-colors disabled:opacity-40"
+          className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] hover:text-[#d4af37] flex items-center justify-between transition-colors disabled:opacity-40"
         >
           <div className="flex items-center gap-2">
             <Scissors className="w-3.5 h-3.5 text-amber-400" />
@@ -134,7 +134,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
 
         <button
           onClick={() => { onCopy(); onClose(); }}
-          className="w-full text-right px-3 py-1.5 hover:bg-[#313244] hover:text-[#89b4fa] flex items-center justify-between transition-colors"
+          className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] hover:text-[#d4af37] flex items-center justify-between transition-colors"
         >
           <div className="flex items-center gap-2">
             <Copy className="w-3.5 h-3.5 text-indigo-400" />
@@ -146,7 +146,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         <button
           onClick={() => { onPaste(); onClose(); }}
           disabled={!hasClipboard}
-          className="w-full text-right px-3 py-1.5 hover:bg-[#313244] hover:text-[#89b4fa] flex items-center justify-between transition-colors disabled:opacity-40"
+          className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] hover:text-[#d4af37] flex items-center justify-between transition-colors disabled:opacity-40"
         >
           <div className="flex items-center gap-2">
             <Clipboard className="w-3.5 h-3.5 text-teal-400" />
@@ -158,7 +158,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         <button
           onClick={() => { onDuplicate(); onClose(); }}
           disabled={node.type === 'project'}
-          className="w-full text-right px-3 py-1.5 hover:bg-[#313244] hover:text-[#89b4fa] flex items-center justify-between transition-colors disabled:opacity-40"
+          className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] hover:text-[#d4af37] flex items-center justify-between transition-colors disabled:opacity-40"
         >
           <div className="flex items-center gap-2">
             <Layers className="w-3.5 h-3.5 text-purple-400" />
@@ -168,13 +168,13 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         </button>
       </div>
 
-      <div className="h-px bg-[#313244] my-1" />
+      <div className="h-px bg-[#2e2817] my-1" />
 
       <div className="py-1">
         <button
           onClick={() => { onMoveUp(); onClose(); }}
           disabled={node.type === 'project'}
-          className="w-full text-right px-3 py-1.5 hover:bg-[#313244] flex items-center justify-between transition-colors disabled:opacity-40"
+          className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] flex items-center justify-between transition-colors disabled:opacity-40"
         >
           <div className="flex items-center gap-2">
             <ArrowUp className="w-3.5 h-3.5 text-gray-400" />
@@ -186,7 +186,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         <button
           onClick={() => { onMoveDown(); onClose(); }}
           disabled={node.type === 'project'}
-          className="w-full text-right px-3 py-1.5 hover:bg-[#313244] flex items-center justify-between transition-colors disabled:opacity-40"
+          className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] flex items-center justify-between transition-colors disabled:opacity-40"
         >
           <div className="flex items-center gap-2">
             <ArrowDown className="w-3.5 h-3.5 text-gray-400" />
@@ -196,12 +196,12 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         </button>
       </div>
 
-      <div className="h-px bg-[#313244] my-1" />
+      <div className="h-px bg-[#2e2817] my-1" />
 
       <div className="py-1">
         <button
           onClick={() => { onToggleInclude(); onClose(); }}
-          className="w-full text-right px-3 py-1.5 hover:bg-[#313244] flex items-center justify-between transition-colors"
+          className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] flex items-center justify-between transition-colors"
         >
           <div className="flex items-center gap-2">
             {node.includeInDoc ? (
@@ -223,7 +223,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           <button
             onClick={() => { onToggleRole(); onClose(); }}
             title={isReference ? 'تصبح مادة تُكتب في المقال الجديد' : 'تصبح للربط والاستدلال فقط، ولا تُكتب في المقال'}
-            className="w-full text-right px-3 py-1.5 hover:bg-[#313244] flex items-center gap-2 transition-colors"
+            className="w-full text-right px-3 py-1.5 hover:bg-[#2e2817] flex items-center gap-2 transition-colors"
           >
             {isReference ? (
               <>

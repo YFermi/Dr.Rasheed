@@ -109,10 +109,10 @@ export const LinkModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 select-none text-right">
-      <div className="bg-[#1e1e2e] border border-[#45475a] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden text-[#cdd6f4] animate-in fade-in-50 zoom-in-95 duration-150">
+      <div className="bg-[#121212] border border-[#4a4027] rounded-xl shadow-2xl w-full max-w-lg overflow-hidden text-[#efe6cf] animate-in fade-in-50 zoom-in-95 duration-150">
         
         {/* Modal Header */}
-        <div className="h-12 px-4 bg-[#181825] border-b border-[#313244] flex items-center justify-between">
+        <div className="h-12 px-4 bg-[#0a0a0a] border-b border-[#2e2817] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Link2 className="w-4 h-4 text-indigo-400" />
             <h2 className="text-xs font-bold text-white">
@@ -121,7 +121,7 @@ export const LinkModal: React.FC = () => {
           </div>
           <button
             onClick={closeLinkModal}
-            className="p-1 hover:bg-[#313244] text-gray-400 hover:text-white rounded transition"
+            className="p-1 hover:bg-[#2e2817] text-gray-400 hover:text-white rounded transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -131,7 +131,7 @@ export const LinkModal: React.FC = () => {
         <form onSubmit={handleSubmit} className="p-4 space-y-4 text-xs font-sans">
           
           {/* Nodes Preview Banner */}
-          <div className="p-3 bg-[#181825] border border-[#313244] rounded-lg space-y-2">
+          <div className="p-3 bg-[#0a0a0a] border border-[#2e2817] rounded-lg space-y-2">
             {/* Source Node */}
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-gray-400 font-mono w-16 text-left">الأصل (Source):</span>
@@ -172,7 +172,7 @@ export const LinkModal: React.FC = () => {
                     className={`p-2.5 rounded-lg border text-right transition-all flex flex-col gap-1 ${
                       isSelected
                         ? `${option.bg} ${option.border} ring-2 ring-indigo-500/60 shadow-xs`
-                        : 'bg-[#181825] border-[#313244] hover:bg-[#252538] text-gray-400 hover:text-white'
+                        : 'bg-[#0a0a0a] border-[#2e2817] hover:bg-[#171717] text-gray-400 hover:text-white'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -203,12 +203,12 @@ export const LinkModal: React.FC = () => {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="اكتب تعليقاً منهجياً يوضح وجه الارتباط..."
-              className="w-full bg-[#181825] border border-[#313244] rounded p-2 text-white font-quran text-xs leading-relaxed focus:border-indigo-500 focus:outline-none"
+              className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded p-2 text-white font-quran text-xs leading-relaxed focus:border-indigo-500 focus:outline-none"
             />
           </div>
 
           {/* Actions */}
-          <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#313244]">
+          <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#2e2817]">
             <button
               type="button"
               onClick={closeLinkModal}

@@ -306,6 +306,33 @@ export const ORDINALS = ['الأول', 'الثاني', 'الثالث', 'الرا
 
 // ---- Prompt pieces shared by the article calls ------------------------------
 
+// Strict rules on voice and method for every call that writes article prose
+// (outline, section, stitch, extract-ideas). They override the style guide and
+// the quoted passages wherever these address the reader or cite exegetes.
+export const METHOD_RULES = `## قواعد صارمة (مقدّمة على كل ما سواها)
+
+ممنوع منعاً باتاً:
+- أي عبارة تخاطب القارئ أو جهة ما، مثل: «عزيزي القارئ»، «القارئ الكريم»، «سيدي»، «سادتي»، «يا سادة»، «سيادتكم»، «حضراتكم»، أو أي صيغة مشابهة. اطرح السؤال مباشرة دون منادى.
+- نقل ما قاله أهل التراث أو المفسرون أو «أهل العلم»، أو حكاية قصصهم وأقوالهم، أو الإسرائيليات.
+- المقارنة مع أي شخص كتب في الموضوع، أو الرد عليه، أو وصف «التفسير الموروث» و«الفهم السائد».
+
+منهجية البحث: التحليل يقتصر على النص القرآني وحده — تحليل منهجي علمي أدبي: تفكيك اللفظ، وسياقه، ومقابلته بمواضعه الأخرى في كتاب الله، وبنية الجملة ودلالتها. نحن نفكك النص القرآني فقط.
+
+المقاطع المقتبسة من المقالات السابقة قد تحوي مخاطبة للقارئ أو نقلاً عن المفسرين: لا تحاكِ ذلك فيها، وخذ منها الأسلوب والأفكار فقط.`;
+
+// Phrases the rules above forbid (used to drop style examples that contain them)
+export const FORBIDDEN_PHRASES = /(عزيز[يت]\s+القار[ئي]|القار[ئي]ء?\s+الكريم|يا\s+ساد[ةه]|سادتي|سادتنا|سيادتكم|حضراتكم|أهل\s+العلم|المفسر(ين|ون)|التفسير\s+الموروث|إسرائيليات)/;
+
+// Removes vocative address the model may still produce («عزيزي القارئ»، «– يا سادة –»)
+export function stripReaderAddress(text: string): string {
+  return text
+    .replace(/\s*[–—-]\s*(يا\s+ساد[ةه]|سادتي|عزيز[يت]\s+القار[ئي]ء?(\s+الكريم)?)\s*[–—-]\s*/g, ' ')
+    .replace(/[،,]?\s*(عزيز[يت]\s+القار[ئي]ء?[ةه]?(\s+الكريم)?|يا\s+ساد[ةه]|سادتي)\s*[،,]?/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([،,.؟?!:])/g, '$1')
+    .trim();
+}
+
 // Same text as NO_REFERENCE in src/utils/referenceContext.ts
 export const NO_REFERENCE = 'لا يوجد مقال مرجعي. التزم بدليل الأسلوب العام فقط.';
 
@@ -316,8 +343,8 @@ export function referenceSection(referenceContext: string | undefined): string {
   return `## مرجع أسلوب مباشر (المقال السابق من نفس السلسلة)
 
 اقرأ هذا المقتطف من المقال السابق بعناية. التزم بنفس:
-- نبرة الصوت وطريقة مخاطبة القارئ
-- طريقة تطوير الفكرة (سؤال ← شاهد ← نقد ← نتيجة)
+- نبرة الصوت (دون مخاطبة القارئ أو أي جهة)
+- طريقة تطوير الفكرة (سؤال ← شاهد ← تفكيك ← نتيجة)
 - عبارات الانتقال والتحفّظ
 - طريقة الاستشهاد القرآني
 

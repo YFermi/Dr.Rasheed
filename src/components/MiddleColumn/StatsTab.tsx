@@ -124,10 +124,10 @@ export const StatsTab: React.FC = () => {
   const versesNeedingReview = blogVerses.filter(v => !v.replacedFromGlyphs && containsQuranGlyphs(v.text)).length;
 
   return (
-    <div className="h-full flex flex-col bg-[#252536] text-[#cdd6f4] select-none text-right font-sans">
+    <div className="h-full flex flex-col bg-[#171717] text-[#efe6cf] select-none text-right font-sans">
       
       {/* Header */}
-      <div className="h-10 px-3 bg-[#1e1e2d] border-b border-[#313244] flex items-center justify-between">
+      <div className="h-10 px-3 bg-[#121212] border-b border-[#2e2817] flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <BarChart3 className="w-4 h-4 text-emerald-400" />
           <span className="font-bold text-xs text-white">لوحة الإحصائيات (Statistics Dashboard)</span>
@@ -142,7 +142,7 @@ export const StatsTab: React.FC = () => {
         
         {/* 1. Overview 2x2 Grid */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="p-2.5 bg-[#181825] border border-blue-900/40 rounded-lg flex items-center justify-between">
+          <div className="p-2.5 bg-[#0a0a0a] border border-blue-900/40 rounded-lg flex items-center justify-between">
             <div>
               <span className="text-[10px] text-gray-400 block">المحاور (Axes)</span>
               <span className="text-xl font-bold font-mono text-blue-400">{axes.length}</span>
@@ -150,7 +150,7 @@ export const StatsTab: React.FC = () => {
             <span className="text-xl">📐</span>
           </div>
 
-          <div className="p-2.5 bg-[#181825] border border-amber-900/40 rounded-lg flex items-center justify-between">
+          <div className="p-2.5 bg-[#0a0a0a] border border-amber-900/40 rounded-lg flex items-center justify-between">
             <div>
               <span className="text-[10px] text-gray-400 block">الأفكار (Ideas)</span>
               <span className="text-xl font-bold font-mono text-amber-400">{ideas.length}</span>
@@ -158,7 +158,7 @@ export const StatsTab: React.FC = () => {
             <span className="text-xl">💡</span>
           </div>
 
-          <div className="p-2.5 bg-[#181825] border border-emerald-900/40 rounded-lg flex items-center justify-between">
+          <div className="p-2.5 bg-[#0a0a0a] border border-emerald-900/40 rounded-lg flex items-center justify-between">
             <div>
               <span className="text-[10px] text-gray-400 block">الآيات والشواهد</span>
               <span className="text-xl font-bold font-mono text-emerald-400">{versesCount}</span>
@@ -166,7 +166,7 @@ export const StatsTab: React.FC = () => {
             <span className="text-xl">📖</span>
           </div>
 
-          <div className="p-2.5 bg-[#181825] border border-indigo-900/40 rounded-lg flex items-center justify-between">
+          <div className="p-2.5 bg-[#0a0a0a] border border-indigo-900/40 rounded-lg flex items-center justify-between">
             <div>
               <span className="text-[10px] text-gray-400 block">التشابكات (Links)</span>
               <span className="text-xl font-bold font-mono text-indigo-400">{totalLinks}</span>
@@ -176,7 +176,7 @@ export const StatsTab: React.FC = () => {
         </div>
 
         {/* 2. Status Breakdown */}
-        <div className="p-3 bg-[#1e1e2d] border border-[#313244] rounded-lg space-y-2">
+        <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
           <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
             <span>توزيع الحالات (Status Breakdown):</span>
             <span className="text-[10px] text-gray-400 font-mono">100%</span>
@@ -193,7 +193,7 @@ export const StatsTab: React.FC = () => {
                   {statusCounts.published} ({Math.round((statusCounts.published / totalNonRoot) * 100 || 0)}%)
                 </span>
               </div>
-              <div className="h-1.5 bg-[#181825] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[#0a0a0a] rounded-full overflow-hidden">
                 <div 
                   style={{ width: `${(statusCounts.published / totalNonRoot) * 100}%` }}
                   className="h-full bg-emerald-500 rounded-full transition-all"
@@ -211,7 +211,7 @@ export const StatsTab: React.FC = () => {
                   {statusCounts.draft} ({Math.round((statusCounts.draft / totalNonRoot) * 100 || 0)}%)
                 </span>
               </div>
-              <div className="h-1.5 bg-[#181825] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[#0a0a0a] rounded-full overflow-hidden">
                 <div 
                   style={{ width: `${(statusCounts.draft / totalNonRoot) * 100}%` }}
                   className="h-full bg-amber-400 rounded-full transition-all"
@@ -229,7 +229,7 @@ export const StatsTab: React.FC = () => {
                   {statusCounts.brainstorm} ({Math.round((statusCounts.brainstorm / totalNonRoot) * 100 || 0)}%)
                 </span>
               </div>
-              <div className="h-1.5 bg-[#181825] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[#0a0a0a] rounded-full overflow-hidden">
                 <div 
                   style={{ width: `${(statusCounts.brainstorm / totalNonRoot) * 100}%` }}
                   className="h-full bg-blue-400 rounded-full transition-all"
@@ -247,7 +247,7 @@ export const StatsTab: React.FC = () => {
                   {statusCounts.deferred} ({Math.round((statusCounts.deferred / totalNonRoot) * 100 || 0)}%)
                 </span>
               </div>
-              <div className="h-1.5 bg-[#181825] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-[#0a0a0a] rounded-full overflow-hidden">
                 <div 
                   style={{ width: `${(statusCounts.deferred / totalNonRoot) * 100}%` }}
                   className="h-full bg-rose-500 rounded-full transition-all"
@@ -258,7 +258,7 @@ export const StatsTab: React.FC = () => {
         </div>
 
         {/* 3. Source Breakdown */}
-        <div className="p-3 bg-[#1e1e2d] border border-[#313244] rounded-lg space-y-2">
+        <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
           <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
             <span>مصادر الأفكار (Source Breakdown):</span>
           </div>
@@ -268,7 +268,7 @@ export const StatsTab: React.FC = () => {
               <span className="text-gray-300">مقال د. رشيد</span>
               <span className="font-mono text-blue-300 font-semibold">{sourceCounts.rasheed_article} ({Math.round((sourceCounts.rasheed_article / totalNonRoot) * 100)}%)</span>
             </div>
-            <div className="h-1 bg-[#181825] rounded-full overflow-hidden">
+            <div className="h-1 bg-[#0a0a0a] rounded-full overflow-hidden">
               <div style={{ width: `${(sourceCounts.rasheed_article / totalNonRoot) * 100}%` }} className="h-full bg-blue-500" />
             </div>
 
@@ -276,7 +276,7 @@ export const StatsTab: React.FC = () => {
               <span className="text-gray-300">جلسات العصف الذهني</span>
               <span className="font-mono text-indigo-300 font-semibold">{sourceCounts.brainstorm_session} ({Math.round((sourceCounts.brainstorm_session / totalNonRoot) * 100)}%)</span>
             </div>
-            <div className="h-1 bg-[#181825] rounded-full overflow-hidden">
+            <div className="h-1 bg-[#0a0a0a] rounded-full overflow-hidden">
               <div style={{ width: `${(sourceCounts.brainstorm_session / totalNonRoot) * 100}%` }} className="h-full bg-indigo-500" />
             </div>
 
@@ -284,7 +284,7 @@ export const StatsTab: React.FC = () => {
               <span className="text-gray-300">محاور مصطفى</span>
               <span className="font-mono text-amber-300 font-semibold">{sourceCounts.mostafa_outline} ({Math.round((sourceCounts.mostafa_outline / totalNonRoot) * 100)}%)</span>
             </div>
-            <div className="h-1 bg-[#181825] rounded-full overflow-hidden">
+            <div className="h-1 bg-[#0a0a0a] rounded-full overflow-hidden">
               <div style={{ width: `${(sourceCounts.mostafa_outline / totalNonRoot) * 100}%` }} className="h-full bg-amber-500" />
             </div>
 
@@ -292,14 +292,14 @@ export const StatsTab: React.FC = () => {
               <span className="text-gray-300">مراجع خارجية</span>
               <span className="font-mono text-teal-300 font-semibold">{sourceCounts.external_reference} ({Math.round((sourceCounts.external_reference / totalNonRoot) * 100)}%)</span>
             </div>
-            <div className="h-1 bg-[#181825] rounded-full overflow-hidden">
+            <div className="h-1 bg-[#0a0a0a] rounded-full overflow-hidden">
               <div style={{ width: `${(sourceCounts.external_reference / totalNonRoot) * 100}%` }} className="h-full bg-teal-500" />
             </div>
           </div>
         </div>
 
         {/* 4. Speaker Contribution */}
-        <div className="p-3 bg-[#1e1e2d] border border-[#313244] rounded-lg space-y-2">
+        <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
           <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
             <span>مساهمات المتحدثين (Speaker Contribution):</span>
           </div>
@@ -314,7 +314,7 @@ export const StatsTab: React.FC = () => {
                     <span className="font-bold text-gray-300">{spk}</span>
                     <span className="font-mono text-indigo-300">{count} فكرة</span>
                   </div>
-                  <div className="h-1.5 bg-[#181825] rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[#0a0a0a] rounded-full overflow-hidden">
                     <div style={{ width: `${barPercent}%` }} className="h-full bg-indigo-500 rounded-full" />
                   </div>
                 </div>
@@ -324,7 +324,7 @@ export const StatsTab: React.FC = () => {
         </div>
 
         {/* 5. Axis Completion Progress */}
-        <div className="p-3 bg-[#1e1e2d] border border-[#313244] rounded-lg space-y-2">
+        <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
           <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
             <span>إنجاز المحاور (Axis Completion):</span>
           </div>
@@ -338,7 +338,7 @@ export const StatsTab: React.FC = () => {
                   </span>
                   <span className="font-mono text-emerald-400 font-semibold">{percent}%</span>
                 </div>
-                <div className="h-1.5 bg-[#181825] rounded-full overflow-hidden">
+                <div className="h-1.5 bg-[#0a0a0a] rounded-full overflow-hidden">
                   <div 
                     style={{ width: `${percent}%` }} 
                     className={`h-full rounded-full transition-all ${
@@ -369,7 +369,7 @@ export const StatsTab: React.FC = () => {
         </div>
 
         {/* 7. Blog Corpus Statistics */}
-        <div className="p-3 bg-[#1e1e2d] border border-[#313244] rounded-lg space-y-2">
+        <div className="p-3 bg-[#121212] border border-[#2e2817] rounded-lg space-y-2">
           <div className="flex items-center justify-between text-[11px] font-bold text-gray-200">
             <span>📚 إحصائيات المدونة:</span>
           </div>
@@ -409,7 +409,7 @@ export const StatsTab: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-1.5 border-t border-[#313244] text-[10.5px] space-y-0.5">
+              <div className="pt-1.5 border-t border-[#2e2817] text-[10.5px] space-y-0.5">
                 <span className="text-gray-400 block">أكثر مقال استشهاداً:</span>
                 {mostCitedArticle ? (
                   <span className="text-white font-semibold">
@@ -422,7 +422,7 @@ export const StatsTab: React.FC = () => {
                 )}
               </div>
 
-              <div className="pt-1.5 border-t border-[#313244] flex items-center justify-between text-[10.5px]">
+              <div className="pt-1.5 border-t border-[#2e2817] flex items-center justify-between text-[10.5px]">
                 <span className="text-gray-300">آيات مشتركة (شجرة + مدونة)</span>
                 <span className="font-mono text-emerald-400 font-semibold">{sharedVerses}</span>
               </div>

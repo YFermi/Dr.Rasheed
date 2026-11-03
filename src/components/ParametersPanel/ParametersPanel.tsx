@@ -129,16 +129,16 @@ export const ParametersPanel: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#1e1e2e] text-[#cdd6f4] border-l border-[#313244] select-none text-right">
+    <div className="h-full flex flex-col bg-[#121212] text-[#efe6cf] border-l border-[#2e2817] select-none text-right">
       {/* Panel Header */}
-      <div className="h-10 px-3 border-b border-[#313244] bg-[#181825] flex items-center justify-between">
+      <div className="h-10 px-3 border-b border-[#2e2817] bg-[#0a0a0a] flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-[#89b4fa]" />
-          <span className="font-semibold text-xs text-[#cdd6f4]">
+          <Sliders className="w-4 h-4 text-[#d4af37]" />
+          <span className="font-semibold text-xs text-[#efe6cf]">
             {isProjectRoot ? 'خصائص المشروع والبحث العام' : 'لوحة الخصائص (PARAMETERS PANEL)'}
           </span>
         </div>
-        <span className="text-[11px] font-mono text-[#a6adc8] bg-[#313244] px-2 py-0.5 rounded">
+        <span className="text-[11px] font-mono text-[#c2b691] bg-[#2e2817] px-2 py-0.5 rounded">
           {selectedNode.type.toUpperCase()}
         </span>
       </div>
@@ -154,53 +154,53 @@ export const ParametersPanel: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-[#a6adc8] block">عنوان المشروع (Title):</label>
+              <label className="text-[11px] font-medium text-[#c2b691] block">عنوان المشروع (Title):</label>
               <input
                 type="text"
                 value={projectSettings.title}
                 onChange={(e) => updateProjectSettings({ title: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-white font-quran text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-white font-quran text-sm focus:border-blue-500 focus:outline-none"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-[#a6adc8] block">العنوان الفرعي (Subtitle):</label>
+              <label className="text-[11px] font-medium text-[#c2b691] block">العنوان الفرعي (Subtitle):</label>
               <input
                 type="text"
                 value={projectSettings.subtitle || ''}
                 onChange={(e) => updateProjectSettings({ subtitle: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-[#cdd6f4] font-quran text-xs focus:border-blue-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-[#efe6cf] font-quran text-xs focus:border-blue-500 focus:outline-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-medium text-[#a6adc8] block">الباحث / الفريق:</label>
+                <label className="text-[11px] font-medium text-[#c2b691] block">الباحث / الفريق:</label>
                 <input
                   type="text"
                   value={projectSettings.author}
                   onChange={(e) => updateProjectSettings({ author: e.target.value })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[11px] font-medium text-[#a6adc8] block">التاريخ / العام:</label>
+                <label className="text-[11px] font-medium text-[#c2b691] block">التاريخ / العام:</label>
                 <input
                   type="text"
                   value={projectSettings.date}
                   onChange={(e) => updateProjectSettings({ date: e.target.value })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white focus:border-blue-500 focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-[#a6adc8] block">توطئة ومنهجية البحث (Description):</label>
+              <label className="text-[11px] font-medium text-[#c2b691] block">توطئة ومنهجية البحث (Description):</label>
               <textarea
                 rows={4}
                 value={projectSettings.description}
                 onChange={(e) => updateProjectSettings({ description: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded p-2 text-white font-quran text-xs leading-relaxed focus:border-blue-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded p-2 text-white font-quran text-xs leading-relaxed focus:border-blue-500 focus:outline-none"
               />
             </div>
           </div>
@@ -210,21 +210,21 @@ export const ParametersPanel: React.FC = () => {
             {/* 1. Identity & Label */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-medium text-[#a6adc8]">التسمية العربية (Arabic Label):</label>
+                <label className="text-[11px] font-medium text-[#c2b691]">التسمية العربية (Arabic Label):</label>
                 <input
                   type="text"
                   value={selectedNode.arabicLabel}
                   onChange={(e) => updateNode(selectedNode.id, { arabicLabel: e.target.value })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-white font-quran text-[13.5px] font-bold focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-white font-quran text-[13.5px] font-bold focus:border-blue-500 focus:outline-none"
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[11px] font-medium text-[#a6adc8]">الاسم المعرف (Idea Name EN):</label>
+                <label className="text-[11px] font-medium text-[#c2b691]">الاسم المعرف (Idea Name EN):</label>
                 <input
                   type="text"
                   value={selectedNode.name}
                   onChange={(e) => updateNode(selectedNode.id, { name: e.target.value })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-[#cdd6f4] font-mono text-xs focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-[#efe6cf] font-mono text-xs focus:border-blue-500 focus:outline-none"
                 />
               </div>
             </div>
@@ -232,11 +232,11 @@ export const ParametersPanel: React.FC = () => {
             {/* 2. Source, Ref, Status & Priority */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
               <div className="space-y-1">
-                <label className="text-[10.5px] text-[#a6adc8]">المصدر (Source):</label>
+                <label className="text-[10.5px] text-[#c2b691]">المصدر (Source):</label>
                 <select
                   value={selectedNode.source}
                   onChange={(e) => updateNode(selectedNode.id, { source: e.target.value as IdeaSource })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
                 >
                   <option value="rasheed_article">مقال د. رشيد</option>
                   <option value="brainstorm_session">جلسة عصف ذهني</option>
@@ -246,11 +246,11 @@ export const ParametersPanel: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] text-[#a6adc8]">الحالة (Status):</label>
+                <label className="text-[10.5px] text-[#c2b691]">الحالة (Status):</label>
                 <select
                   value={selectedNode.status}
                   onChange={(e) => updateNode(selectedNode.id, { status: e.target.value as NodeStatus })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
                 >
                   <option value="published">🟢 منشور (Published)</option>
                   <option value="draft">🟡 مسودة (Draft)</option>
@@ -261,11 +261,11 @@ export const ParametersPanel: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] text-[#a6adc8]">الأولوية (Priority):</label>
+                <label className="text-[10.5px] text-[#c2b691]">الأولوية (Priority):</label>
                 <select
                   value={selectedNode.priority}
                   onChange={(e) => updateNode(selectedNode.id, { priority: e.target.value as NodePriority })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
                 >
                   <option value="high">عالية (High)</option>
                   <option value="medium">متوسطة (Medium)</option>
@@ -274,32 +274,32 @@ export const ParametersPanel: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10.5px] text-[#a6adc8]">المقال / الجزء المستهدف:</label>
+                <label className="text-[10.5px] text-[#c2b691]">المقال / الجزء المستهدف:</label>
                 <input
                   type="text"
                   value={selectedNode.targetArticle || ''}
                   placeholder="Part 17"
                   onChange={(e) => updateNode(selectedNode.id, { targetArticle: e.target.value })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Session Reference */}
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-[#a6adc8]">مرجع الجلسة (Session Ref):</label>
+              <label className="text-[11px] font-medium text-[#c2b691]">مرجع الجلسة (Session Ref):</label>
               <input
                 type="text"
                 value={selectedNode.sessionRef || ''}
                 placeholder="e.g. EP187 Oct 25"
                 onChange={(e) => updateNode(selectedNode.id, { sessionRef: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
               />
             </div>
 
             {/* 3. Speakers Selection */}
-            <div className="space-y-1.5 border-t border-[#313244] pt-2">
-              <label className="text-[11px] font-medium text-[#a6adc8] flex items-center justify-between">
+            <div className="space-y-1.5 border-t border-[#2e2817] pt-2">
+              <label className="text-[11px] font-medium text-[#c2b691] flex items-center justify-between">
                 <span>المتحدثون (Speakers):</span>
                 <span className="text-[10px] text-gray-500 font-sans">انقر للاختيار</span>
               </label>
@@ -316,7 +316,7 @@ export const ParametersPanel: React.FC = () => {
                       className={`px-2 py-0.5 rounded text-[11px] transition-colors border ${
                         isChecked
                           ? 'bg-blue-600/30 border-blue-500 text-blue-200'
-                          : 'bg-[#181825] border-[#313244] text-gray-400 hover:text-white'
+                          : 'bg-[#0a0a0a] border-[#2e2817] text-gray-400 hover:text-white'
                       }`}
                     >
                       {isChecked ? '✓ ' : ''}{speaker}
@@ -333,12 +333,12 @@ export const ParametersPanel: React.FC = () => {
                   placeholder="إضافة متحدث آخر..."
                   onChange={(e) => setNewSpeaker(e.target.value)}
                   onKeyDown={handleAddCustomSpeaker}
-                  className="bg-[#181825] border border-[#313244] rounded px-2 py-0.5 text-xs text-white focus:outline-none flex-1"
+                  className="bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 text-xs text-white focus:outline-none flex-1"
                 />
                 <button
                   type="button"
                   onClick={handleAddCustomSpeaker}
-                  className="px-2 py-0.5 bg-[#313244] hover:bg-[#45475a] text-xs text-white rounded"
+                  className="px-2 py-0.5 bg-[#2e2817] hover:bg-[#4a4027] text-xs text-white rounded"
                 >
                   إضافة
                 </button>
@@ -346,9 +346,9 @@ export const ParametersPanel: React.FC = () => {
             </div>
 
             {/* 4. Quranic Verses */}
-            <div className="space-y-1 border-t border-[#313244] pt-2">
+            <div className="space-y-1 border-t border-[#2e2817] pt-2">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-medium text-[#a6adc8] flex items-center gap-1">
+                <label className="text-[11px] font-medium text-[#c2b691] flex items-center gap-1">
                   <span>الآيات القرآنية والشواهد (Quranic Verses):</span>
                 </label>
                 <button
@@ -367,19 +367,19 @@ export const ParametersPanel: React.FC = () => {
                 value={selectedNode.quranicVerses || ''}
                 placeholder="﴿وَإِنَّكُمْ لَتَمُرُّونَ عَلَيْهِم مُّصْبِحِينَ * وَبِاللَّيْلِ أَفَلَا تَعْقِلُونَ﴾ [الصافات: 137-138]"
                 onChange={(e) => updateNode(selectedNode.id, { quranicVerses: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded p-2 text-amber-200 font-quran text-sm leading-relaxed focus:border-amber-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded p-2 text-amber-200 font-quran text-sm leading-relaxed focus:border-amber-500 focus:outline-none"
               />
             </div>
 
             {/* 5. Cross References (التقاطعات) */}
-            <div className="space-y-1.5 border-t border-[#313244] pt-2">
-              <label className="text-[11px] font-medium text-[#a6adc8]">التقاطعات والشواهد المقارنة (Cross-References):</label>
+            <div className="space-y-1.5 border-t border-[#2e2817] pt-2">
+              <label className="text-[11px] font-medium text-[#c2b691]">التقاطعات والشواهد المقارنة (Cross-References):</label>
               
               <div className="flex flex-wrap gap-1.5 mb-1.5 min-h-[24px]">
                 {selectedNode.crossReferences.map((ref) => (
                   <span
                     key={ref}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#313244] text-amber-300 text-[11px] border border-amber-900/40 font-mono"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#2e2817] text-amber-300 text-[11px] border border-amber-900/40 font-mono"
                   >
                     <span>{ref}</span>
                     <button
@@ -400,12 +400,12 @@ export const ParametersPanel: React.FC = () => {
                   placeholder="مثل: آل عمران:42 أو التحريم:10"
                   onChange={(e) => setNewCrossRef(e.target.value)}
                   onKeyDown={handleAddCrossRef}
-                  className="bg-[#181825] border border-[#313244] rounded px-2 py-1 text-xs text-white focus:outline-none flex-1 font-mono"
+                  className="bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-xs text-white focus:outline-none flex-1 font-mono"
                 />
                 <button
                   type="button"
                   onClick={handleAddCrossRef}
-                  className="px-2.5 py-1 bg-[#313244] hover:bg-[#45475a] text-xs text-white rounded"
+                  className="px-2.5 py-1 bg-[#2e2817] hover:bg-[#4a4027] text-xs text-white rounded"
                 >
                   + إضافة تقاطع
                 </button>
@@ -413,9 +413,9 @@ export const ParametersPanel: React.FC = () => {
             </div>
 
             {/* 6. Linked Ideas (التشابكات عبر الفروع) */}
-            <div className="space-y-2 border-t border-[#313244] pt-2">
+            <div className="space-y-2 border-t border-[#2e2817] pt-2">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-medium text-[#89b4fa] flex items-center gap-1.5">
+                <label className="text-[11px] font-medium text-[#d4af37] flex items-center gap-1.5">
                   <Link2 className="w-3.5 h-3.5" />
                   <span>الأفكار المرتبطة والتشابكات (Linked Ideas):</span>
                 </label>
@@ -426,13 +426,13 @@ export const ParametersPanel: React.FC = () => {
 
               {/* Active links list */}
               {selectedNode.linkedIdeas.length > 0 && (
-                <div className="space-y-1.5 bg-[#181825] p-2 rounded border border-[#313244]">
+                <div className="space-y-1.5 bg-[#0a0a0a] p-2 rounded border border-[#2e2817]">
                   {selectedNode.linkedIdeas.map((link) => {
                     const targetNode = findNodeById(treeData, link.targetId);
                     return (
                       <div
                         key={link.targetId}
-                        className="flex items-center justify-between gap-2 p-1.5 bg-[#1e1e2e] rounded border border-[#313244]/80 text-[11px]"
+                        className="flex items-center justify-between gap-2 p-1.5 bg-[#121212] rounded border border-[#2e2817]/80 text-[11px]"
                       >
                         <div className="flex items-center gap-1.5 truncate">
                           {getLinkTypeBadge(link.type)}
@@ -455,14 +455,14 @@ export const ParametersPanel: React.FC = () => {
               )}
 
               {/* Add Link Widget */}
-              <div className="p-2 bg-[#181825]/60 border border-[#313244] rounded space-y-2">
+              <div className="p-2 bg-[#0a0a0a]/60 border border-[#2e2817] rounded space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="text-[10px] text-gray-400 block mb-1">اختر الفكرة المستهدفة:</label>
                     <select
                       value={linkTargetId}
                       onChange={(e) => setLinkTargetId(e.target.value)}
-                      className="w-full bg-[#1e1e2e] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
+                      className="w-full bg-[#121212] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
                     >
                       <option value="">-- اختر من الشجرة --</option>
                       {allNodes.map(node => (
@@ -478,7 +478,7 @@ export const ParametersPanel: React.FC = () => {
                     <select
                       value={linkType}
                       onChange={(e) => setLinkType(e.target.value as LinkType)}
-                      className="w-full bg-[#1e1e2e] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
+                      className="w-full bg-[#121212] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
                     >
                       <option value="supports">يدعم (supports)</option>
                       <option value="contradicts">يعارض / يناقش (contradicts)</option>
@@ -494,7 +494,7 @@ export const ParametersPanel: React.FC = () => {
                     value={linkNotes}
                     placeholder="ملاحظة حول العلاقة والربط (اختياري)..."
                     onChange={(e) => setLinkNotes(e.target.value)}
-                    className="bg-[#1e1e2e] border border-[#313244] rounded px-2 py-1 text-xs text-[#cdd6f4] flex-1 focus:outline-none"
+                    className="bg-[#121212] border border-[#2e2817] rounded px-2 py-1 text-xs text-[#efe6cf] flex-1 focus:outline-none"
                   />
                   <button
                     type="button"
@@ -509,14 +509,14 @@ export const ParametersPanel: React.FC = () => {
             </div>
 
             {/* 7. Notes & Detailed Text */}
-            <div className="space-y-1 border-t border-[#313244] pt-2">
-              <label className="text-[11px] font-medium text-[#a6adc8] block">الملاحظات والشرح التحريري (Notes):</label>
+            <div className="space-y-1 border-t border-[#2e2817] pt-2">
+              <label className="text-[11px] font-medium text-[#c2b691] block">الملاحظات والشرح التحريري (Notes):</label>
               <textarea
                 rows={4}
                 value={selectedNode.notes || ''}
                 placeholder="اكتب التحليل التفصيلي، المفارقات، وتوجيه المعاني للبحث..."
                 onChange={(e) => updateNode(selectedNode.id, { notes: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded p-2 text-white font-quran text-[13px] leading-relaxed focus:border-blue-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded p-2 text-white font-quran text-[13px] leading-relaxed focus:border-blue-500 focus:outline-none"
               />
             </div>
           </>

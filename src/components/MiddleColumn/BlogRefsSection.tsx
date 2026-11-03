@@ -66,8 +66,8 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
   };
 
   return (
-    <div className="space-y-1.5 border-t border-[#313244] pt-2">
-      <label className="text-[10.5px] font-medium text-[#89b4fa] flex items-center gap-1">
+    <div className="space-y-1.5 border-t border-[#2e2817] pt-2">
+      <label className="text-[10.5px] font-medium text-[#d4af37] flex items-center gap-1">
         <Library className="w-3 h-3" />
         <span>📚 مراجع المدونة ({toArabicDigits(blogRefs.length)}):</span>
       </label>
@@ -83,8 +83,8 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
             return (
               <div key={`${ref.paragraphId ?? ref.partNumber}-${index}`} className="space-y-1">
                 <div
-                  className={`flex items-center gap-1 p-1 bg-[#181825] rounded border text-[10.5px] transition ${
-                    isMissing ? 'border-rose-900/60' : 'border-[#313244] hover:border-[#89b4fa]/60'
+                  className={`flex items-center gap-1 p-1 bg-[#0a0a0a] rounded border text-[10.5px] transition ${
+                    isMissing ? 'border-rose-900/60' : 'border-[#2e2817] hover:border-[#d4af37]/60'
                   }`}
                 >
                   <button
@@ -95,7 +95,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                     className="flex-1 min-w-0 flex items-center gap-1 text-right disabled:cursor-not-allowed"
                   >
                     {isMissing ? <AlertTriangle className="w-3 h-3 text-rose-400 flex-shrink-0" /> : <span>📖</span>}
-                    <span className="text-[#89b4fa] font-semibold flex-shrink-0">{formatBlogRefLabel(ref)}</span>
+                    <span className="text-[#d4af37] font-semibold flex-shrink-0">{formatBlogRefLabel(ref)}</span>
                     {ref.quote && (
                       <span className="text-gray-300 font-quran truncate">"{ref.quote}"</span>
                     )}
@@ -104,7 +104,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                     type="button"
                     onClick={() => (isEditing ? setEditingIndex(null) : startEdit(index))}
                     title="تعديل المرجع"
-                    className={`p-0.5 flex-shrink-0 ${isEditing ? 'text-[#89b4fa]' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-0.5 flex-shrink-0 ${isEditing ? 'text-[#d4af37]' : 'text-gray-400 hover:text-white'}`}
                   >
                     <Pencil className="w-3 h-3" />
                   </button>
@@ -120,7 +120,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
 
                 {/* Inline editor */}
                 {isEditing && (
-                  <div className="p-2 bg-[#181825]/70 border border-[#89b4fa]/40 rounded space-y-1.5">
+                  <div className="p-2 bg-[#0a0a0a]/70 border border-[#d4af37]/40 rounded space-y-1.5">
                     <label className="text-[10px] text-gray-400 block">الفقرة:</label>
                     {article ? (
                       <select
@@ -130,7 +130,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                           const paragraph = article.paragraphs.find(p => p.id === e.target.value);
                           if (paragraph) setDraftQuote(makeQuote(paragraph.text));
                         }}
-                        className="w-full bg-[#252536] border border-[#313244] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none"
+                        className="w-full bg-[#171717] border border-[#2e2817] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none"
                       >
                         <option value="">-- المقال كاملاً --</option>
                         {article.paragraphs.map(p => (
@@ -146,7 +146,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                         value={draftParagraphId}
                         placeholder="p7-11"
                         onChange={(e) => setDraftParagraphId(e.target.value)}
-                        className="w-full bg-[#252536] border border-[#313244] rounded px-2 py-0.5 text-xs text-white font-mono focus:outline-none"
+                        className="w-full bg-[#171717] border border-[#2e2817] rounded px-2 py-0.5 text-xs text-white font-mono focus:outline-none"
                       />
                     )}
 
@@ -155,7 +155,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                       rows={2}
                       value={draftQuote}
                       onChange={(e) => setDraftQuote(e.target.value)}
-                      className="w-full bg-[#252536] border border-[#313244] rounded p-1.5 text-white font-quran text-xs leading-relaxed focus:outline-none"
+                      className="w-full bg-[#171717] border border-[#2e2817] rounded p-1.5 text-white font-quran text-xs leading-relaxed focus:outline-none"
                     />
 
                     <div className="flex justify-end gap-1.5">
@@ -187,14 +187,14 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="w-full px-2 py-1 bg-[#181825] hover:bg-[#313244] border border-dashed border-[#45475a] text-gray-300 hover:text-white rounded text-[10.5px] flex items-center justify-center gap-1 transition"
+          className="w-full px-2 py-1 bg-[#0a0a0a] hover:bg-[#2e2817] border border-dashed border-[#4a4027] text-gray-300 hover:text-white rounded text-[10.5px] flex items-center justify-center gap-1 transition"
         >
           <Plus className="w-3 h-3" />
           <span>إضافة مرجع من المدونة</span>
         </button>
       ) : (
-        <div className="p-2 bg-[#181825]/70 border border-[#313244] rounded space-y-1.5">
-          <div className="flex items-center gap-1.5 bg-[#252536] px-2 py-1 rounded border border-[#313244] focus-within:border-[#89b4fa]/60">
+        <div className="p-2 bg-[#0a0a0a]/70 border border-[#2e2817] rounded space-y-1.5">
+          <div className="flex items-center gap-1.5 bg-[#171717] px-2 py-1 rounded border border-[#2e2817] focus-within:border-[#d4af37]/60">
             <Search className="w-3 h-3 text-gray-400 flex-shrink-0" />
             <input
               type="text"
@@ -202,7 +202,7 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="ابحث عن الفقرة في المقالات..."
-              className="bg-transparent text-xs text-[#cdd6f4] placeholder-gray-500 w-full focus:outline-none"
+              className="bg-transparent text-xs text-[#efe6cf] placeholder-gray-500 w-full focus:outline-none"
             />
             <button
               type="button"
@@ -230,10 +230,10 @@ export const BlogRefsSection: React.FC<BlogRefsSectionProps> = ({ blogRefs, onCh
                     type="button"
                     onClick={() => handleAddFromResult(article.partNumber, paragraph.id, paragraph.text)}
                     disabled={alreadyAdded}
-                    className="w-full text-right p-1.5 bg-[#252536] hover:bg-[#313244] border border-[#313244] rounded space-y-0.5 transition disabled:opacity-50 disabled:cursor-default"
+                    className="w-full text-right p-1.5 bg-[#171717] hover:bg-[#2e2817] border border-[#2e2817] rounded space-y-0.5 transition disabled:opacity-50 disabled:cursor-default"
                   >
                     <div className="flex items-center justify-between text-[10px]">
-                      <span className="text-[#89b4fa] font-semibold">
+                      <span className="text-[#d4af37] font-semibold">
                         {formatBlogRefLabel({ partNumber: article.partNumber, paragraphId: paragraph.id })}
                       </span>
                       {alreadyAdded && <span className="text-emerald-400">✓ مضاف</span>}

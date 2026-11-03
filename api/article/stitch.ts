@@ -11,6 +11,8 @@ import {
   loadStylePack,
   asString,
   asStringArray,
+  METHOD_RULES,
+  stripReaderAddress,
 } from '../_lib/gemini.js';
 
 const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
@@ -30,7 +32,9 @@ export function buildStitchPrompt(req: StitchRequest, styleGuide: string): { sys
   const system = `أنت محرر يصقل الانتقال بين محورين متتاليين في مقال بأسلوب د. رشيد الجراح.
 عدّل أقل قدر ممكن: لا تغيّر الأفكار ولا تضف جديداً، ولا تكتب أي نص قرآني ولا الأقواس ﴿ ﴾.
 
-${styleGuide}`;
+${styleGuide}
+
+${METHOD_RULES}`;
 
   const prompt = `# آخر فقرات المحور الأول (${req.sectionA_ending.length})
 ${req.sectionA_ending.map((p, i) => `[${i + 1}] ${p}`).join('\n\n')}
@@ -51,8 +55,8 @@ ${req.transitionPlan || '—'}
 // Falls back to the original paragraphs if the model changed their number or
 // slipped verse brackets in.
 export function normalizeStitch(raw: Partial<StitchResponse>, req: StitchRequest): StitchResponse & { changed: boolean } {
-  const a = asStringArray(raw.newA_ending).map(p => p.trim());
-  const b = asStringArray(raw.newB_start).map(p => p.trim());
+  const a = asStringArray(raw.newA_ending).map(stripReaderAddress);
+  const b = asStringArray(raw.newB_start).map(stripReaderAddress);
   const valid = (out: string[], orig: string[]) =>
     out.length === orig.length && out.every(p => p.length > 0 && !/[﴾﴿]/.test(p));
   const okA = valid(a, req.sectionA_ending);

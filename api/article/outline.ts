@@ -16,6 +16,8 @@ import {
   ORDINALS,
   NO_REFERENCE,
   referenceSection,
+  METHOD_RULES,
+  stripReaderAddress,
 } from '../_lib/gemini.js';
 
 // Besides the tree: the reference article and the ideas already treated
@@ -68,6 +70,8 @@ export function buildOutlinePrompt(input: ArticleInput, styleGuide: string, extr
 مهمتك الآن التخطيط فقط، لا كتابة المقال.
 
 ${styleGuide}
+
+${METHOD_RULES}
 
 ${referenceSection(extras.referenceContext)}${hasReference ? '\n\nصمّم المخطط ليكون استمراراً طبيعياً للمقال السابق.' : ''}`;
 
@@ -166,12 +170,12 @@ export function normalizeOutline(raw: Partial<ArticleOutline>, input: ArticleInp
 }
 
 function finishOutline(raw: Partial<ArticleOutline>, input: ArticleInput, sections: OutlineSection[]): ArticleOutline {
-  let closing = asString(raw.closing).trim();
+  let closing = stripReaderAddress(asString(raw.closing));
   if (!closing.endsWith(CLOSING_LINE)) closing = `${closing}\n\n${CLOSING_LINE}`.trim();
 
   return {
     title: asString(raw.title).trim() || input.projectTitle,
-    opening: asString(raw.opening).trim(),
+    opening: stripReaderAddress(asString(raw.opening)),
     sections,
     closing,
   };

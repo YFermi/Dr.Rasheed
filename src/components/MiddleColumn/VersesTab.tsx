@@ -214,14 +214,14 @@ export const VersesTab: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#252536] text-[#cdd6f4] select-none text-right font-sans">
+    <div className="h-full flex flex-col bg-[#171717] text-[#efe6cf] select-none text-right font-sans">
       
       {/* 1. Header with Add Button */}
-      <div className="h-10 px-3 bg-[#1e1e2d] border-b border-[#313244] flex items-center justify-between">
+      <div className="h-10 px-3 bg-[#121212] border-b border-[#2e2817] flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <BookMarked className="w-4 h-4 text-amber-400" />
           <span className="font-bold text-xs text-white">فهرس الشواهد والآيات</span>
-          <span className="text-[10px] font-mono bg-[#313244] text-amber-300 px-1.5 py-0.2 rounded-full border border-amber-900/40">
+          <span className="text-[10px] font-mono bg-[#2e2817] text-amber-300 px-1.5 py-0.2 rounded-full border border-amber-900/40">
             {totalVerses}
           </span>
         </div>
@@ -238,7 +238,7 @@ export const VersesTab: React.FC = () => {
 
       {/* Add Verse Form (Collapsible) */}
       {isAddFormOpen && (
-        <form onSubmit={handleAddVerseSubmit} className="p-3 bg-[#181825] border-b border-amber-600/40 space-y-2 text-xs">
+        <form onSubmit={handleAddVerseSubmit} className="p-3 bg-[#0a0a0a] border-b border-amber-600/40 space-y-2 text-xs">
           <div className="flex items-center justify-between text-amber-300 font-bold text-[11px]">
             <span>إضافة شاهد قرآني جديد لفكرة:</span>
             <button type="button" onClick={() => setIsAddFormOpen(false)} className="text-gray-400 hover:text-white">
@@ -253,7 +253,7 @@ export const VersesTab: React.FC = () => {
                 type="text"
                 value={newSurah}
                 onChange={(e) => setNewSurah(e.target.value)}
-                className="w-full bg-[#252536] border border-[#313244] rounded px-1.5 py-0.5 text-white text-xs focus:outline-none"
+                className="w-full bg-[#171717] border border-[#2e2817] rounded px-1.5 py-0.5 text-white text-xs focus:outline-none"
               />
             </div>
             <div>
@@ -263,7 +263,7 @@ export const VersesTab: React.FC = () => {
                 placeholder="81"
                 value={newAyah}
                 onChange={(e) => setNewAyah(e.target.value)}
-                className="w-full bg-[#252536] border border-[#313244] rounded px-1.5 py-0.5 text-white text-xs focus:outline-none font-mono"
+                className="w-full bg-[#171717] border border-[#2e2817] rounded px-1.5 py-0.5 text-white text-xs focus:outline-none font-mono"
               />
             </div>
           </div>
@@ -275,7 +275,7 @@ export const VersesTab: React.FC = () => {
               value={newText}
               onChange={(e) => setNewText(e.target.value)}
               placeholder="اكتب الآية بدون أقواس (سيتم وضع ﴿ ﴾ تلقائياً)..."
-              className="w-full bg-[#252536] border border-[#313244] rounded p-1.5 text-amber-200 font-quran text-xs focus:outline-none"
+              className="w-full bg-[#171717] border border-[#2e2817] rounded p-1.5 text-amber-200 font-quran text-xs focus:outline-none"
             />
           </div>
 
@@ -284,7 +284,7 @@ export const VersesTab: React.FC = () => {
             <select
               value={targetIdeaId}
               onChange={(e) => setTargetIdeaId(e.target.value)}
-              className="w-full bg-[#252536] border border-[#313244] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
+              className="w-full bg-[#171717] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
               required
             >
               <option value="">-- اختر الفكرة لإلحاق الشاهد بها --</option>
@@ -315,9 +315,9 @@ export const VersesTab: React.FC = () => {
       )}
 
       {/* 2. Search & Surah Filter Bar */}
-      <div className="p-2 bg-[#1e1e2d]/70 border-b border-[#313244] space-y-1.5">
+      <div className="p-2 bg-[#121212]/70 border-b border-[#2e2817] space-y-1.5">
         {/* Tree / blog view toggle */}
-        <div className="flex flex-wrap gap-0.5 p-0.5 bg-[#181825] rounded border border-[#313244]">
+        <div className="flex flex-wrap gap-0.5 p-0.5 bg-[#0a0a0a] rounded border border-[#2e2817]">
           {VIEW_MODES.map(mode => (
             <button
               key={mode.id}
@@ -326,7 +326,7 @@ export const VersesTab: React.FC = () => {
               className={`flex-1 px-1 py-0.5 rounded text-[9.5px] whitespace-nowrap transition ${
                 viewMode === mode.id
                   ? 'bg-amber-600/80 text-white font-bold'
-                  : 'text-gray-400 hover:text-white hover:bg-[#313244]/60'
+                  : 'text-gray-400 hover:text-white hover:bg-[#2e2817]/60'
               }`}
             >
               {mode.label}
@@ -334,14 +334,14 @@ export const VersesTab: React.FC = () => {
           ))}
         </div>
 
-        <div className="flex items-center gap-1.5 bg-[#181825] px-2 py-1 rounded border border-[#313244]">
+        <div className="flex items-center gap-1.5 bg-[#0a0a0a] px-2 py-1 rounded border border-[#2e2817]">
           <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
           <input
             type="text"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             placeholder="بحث في نصوص وشواهد الآيات..."
-            className="bg-transparent text-xs text-[#cdd6f4] placeholder-gray-500 w-full focus:outline-none"
+            className="bg-transparent text-xs text-[#efe6cf] placeholder-gray-500 w-full focus:outline-none"
           />
         </div>
 
@@ -350,7 +350,7 @@ export const VersesTab: React.FC = () => {
           <select
             value={selectedSurah}
             onChange={(e) => setSelectedSurah(e.target.value)}
-            className="bg-[#181825] border border-[#313244] rounded px-2 py-0.5 text-white text-[10.5px] focus:outline-none"
+            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 text-white text-[10.5px] focus:outline-none"
           >
             <option value="all">كافة السور ({uniqueSurahs.length})</option>
             {uniqueSurahs.map(surah => (
@@ -460,7 +460,7 @@ export const VersesTab: React.FC = () => {
       </div>
 
       {/* 4. Bottom Stats Summary */}
-      <div className="p-2 bg-[#1e1e2d] border-t border-[#313244] text-[10px] text-gray-300 flex items-center justify-between">
+      <div className="p-2 bg-[#121212] border-t border-[#2e2817] text-[10px] text-gray-300 flex items-center justify-between">
         <div>
           <span>إجمالي الآيات: </span>
           <strong className="text-amber-300 font-mono text-[11px]">{totalVerses}</strong>

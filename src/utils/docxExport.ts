@@ -408,5 +408,5 @@ export async function exportToWord(treeData: IdeaNode, settings: ProjectSettings
 
   const blob = await Packer.toBlob(doc);
   const cleanName = settings.title.replace(/[\\/:*?"<>|]/g, '_').slice(0, 40);
-  saveAs(blob, `${cleanName || 'Idea_Builder_Research'}.docx`);
+  saveAs(blob, `${cleanName || 'بيت_العنكبوت'}.docx`);
 }

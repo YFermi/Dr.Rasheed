@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useIdeaStore, findNodeById, getAllNodeList } from '../../store/useIdeaStore';
 import { BlogRefsSection } from './BlogRefsSection';
+import { PROJECT_RESEARCHER, PROJECT_TITLE_PLACEHOLDER } from '../../data/initialProject';
+import { formatProjectDate } from '../../utils/projectDate';
 import { useReferenceStore, referenceArticleTitle } from '../../store/useReferenceStore';
 import { 
   IdeaSource, 
@@ -138,15 +140,15 @@ export const ParametersTab: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#252536] text-[#cdd6f4] select-none text-right font-sans">
+    <div className="h-full flex flex-col bg-[#171717] text-[#efe6cf] select-none text-right font-sans">
       
       {/* Parameters Header with Auto-Save Badge */}
-      <div className="h-9 px-3 bg-[#1e1e2d] border-b border-[#313244] flex items-center justify-between">
+      <div className="h-9 px-3 bg-[#121212] border-b border-[#2e2817] flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <span className="font-bold text-xs text-white">
             {isProjectRoot ? 'خصائص البحث العام' : `خصائص: ${selectedNode.arabicLabel}`}
           </span>
-          <span className="text-[10px] font-mono bg-[#313244] text-[#89b4fa] px-1.5 py-0.2 rounded uppercase">
+          <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 py-0.2 rounded uppercase">
             {selectedNode.type}
           </span>
         </div>
@@ -178,11 +180,12 @@ export const ParametersTab: React.FC = () => {
               <input
                 type="text"
                 value={projectSettings.title}
+                placeholder={PROJECT_TITLE_PLACEHOLDER}
                 onChange={(e) => {
                   updateProjectSettings({ title: e.target.value });
                   triggerSaveFeedback();
                 }}
-                className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-white font-quran text-sm focus:border-indigo-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-white font-quran text-sm focus:border-indigo-500 focus:outline-none"
               />
             </div>
 
@@ -195,47 +198,58 @@ export const ParametersTab: React.FC = () => {
                   updateProjectSettings({ subtitle: e.target.value });
                   triggerSaveFeedback();
                 }}
-                className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-[#cdd6f4] font-quran text-xs focus:border-indigo-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-[#efe6cf] font-quran text-xs focus:border-indigo-500 focus:outline-none"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <label className="text-[10.5px] text-gray-400 block">الباحث / الفريق:</label>
-                <input
-                  type="text"
-                  value={projectSettings.author}
-                  onChange={(e) => {
-                    updateProjectSettings({ author: e.target.value });
-                    triggerSaveFeedback();
-                  }}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10.5px] text-gray-400 block">التاريخ / العام:</label>
-                <input
-                  type="text"
-                  value={projectSettings.date}
-                  onChange={(e) => {
-                    updateProjectSettings({ date: e.target.value });
-                    triggerSaveFeedback();
-                  }}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
-                />
-              </div>
+            <div className="space-y-1">
+              <label className="text-[10.5px] text-gray-400 block">الباحث / الفريق:</label>
+              <input
+                type="text"
+                value={PROJECT_RESEARCHER}
+                readOnly
+                title="الباحث ثابت في كل المشاريع"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-[#d4af37] text-xs font-semibold focus:outline-none cursor-default"
+              />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-medium text-gray-300 block">توطئة ومنهجية البحث (Description):</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10.5px] text-gray-400 block">التاريخ (هجري وميلادي):</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateProjectSettings({ date: formatProjectDate() });
+                    triggerSaveFeedback();
+                  }}
+                  title="وضع تاريخ اليوم"
+                  className="text-[10px] text-[#d4af37] hover:text-[#ecd99c] transition"
+                >
+                  📅 تاريخ اليوم
+                </button>
+              </div>
+              <input
+                type="text"
+                value={projectSettings.date}
+                onChange={(e) => {
+                  updateProjectSettings({ date: e.target.value });
+                  triggerSaveFeedback();
+                }}
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-gray-300 block">التوطئة:</label>
               <textarea
                 rows={4}
                 value={projectSettings.description}
+                placeholder="فارغة — تُجمع فيها ملخصات المقالات لاحقاً"
                 onChange={(e) => {
                   updateProjectSettings({ description: e.target.value });
                   triggerSaveFeedback();
                 }}
-                className="w-full bg-[#181825] border border-[#313244] rounded p-2 text-white font-quran text-xs leading-relaxed focus:border-indigo-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded p-2 text-white font-quran text-xs leading-relaxed focus:border-indigo-500 focus:outline-none"
               />
             </div>
           </div>
@@ -250,7 +264,7 @@ export const ParametersTab: React.FC = () => {
                   type="text"
                   value={selectedNode.arabicLabel}
                   onChange={(e) => handleFieldChange({ arabicLabel: e.target.value })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white font-quran text-sm font-bold focus:border-indigo-500 focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white font-quran text-sm font-bold focus:border-indigo-500 focus:outline-none"
                 />
               </div>
 
@@ -260,19 +274,19 @@ export const ParametersTab: React.FC = () => {
                   type="text"
                   value={selectedNode.name}
                   onChange={(e) => handleFieldChange({ name: e.target.value })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-gray-300 font-mono text-xs focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-gray-300 font-mono text-xs focus:outline-none"
                 />
               </div>
             </div>
 
             {/* 2. Source & Session Reference */}
-            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#313244]">
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[#2e2817]">
               <div className="space-y-1">
                 <label className="text-[10px] text-gray-400 block">المصدر (Source):</label>
                 <select
                   value={selectedNode.source}
                   onChange={(e) => handleFieldChange({ source: e.target.value as IdeaSource })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
                 >
                   <option value="rasheed_article">مقال د. رشيد</option>
                   <option value="brainstorm_session">جلسة عصف</option>
@@ -288,19 +302,19 @@ export const ParametersTab: React.FC = () => {
                   value={selectedNode.sessionRef || ''}
                   placeholder="EP187 Oct 25"
                   onChange={(e) => handleFieldChange({ sessionRef: e.target.value })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Role: reference (from a finished article, for linking only) or draft (to write) */}
             {selectedNode.type !== 'project' && (
-              <div className={`space-y-1 p-2 rounded border ${ideaRole(selectedNode) === 'reference' ? 'bg-[#1e3a5f]/40 border-sky-800/60' : 'border-[#313244]'}`}>
+              <div className={`space-y-1 p-2 rounded border ${ideaRole(selectedNode) === 'reference' ? 'bg-[#1e3a5f]/40 border-sky-800/60' : 'border-[#2e2817]'}`}>
                 <label className="text-[10px] text-gray-400 block">دور الفكرة (Role):</label>
                 <select
                   value={ideaRole(selectedNode)}
                   onChange={(e) => handleFieldChange({ role: e.target.value as IdeaRole })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
                 >
                   <option value="draft">✍️ فكرة كتابة (تُكتب في المقال الجديد)</option>
                   <option value="reference">📌 فكرة مرجعية (للربط والاستدلال فقط)</option>
@@ -324,7 +338,7 @@ export const ParametersTab: React.FC = () => {
                 <select
                   value={selectedNode.status}
                   onChange={(e) => handleFieldChange({ status: e.target.value as NodeStatus })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
                 >
                   <option value="published">منشور (Published)</option>
                   <option value="draft">مسودة (Draft)</option>
@@ -339,7 +353,7 @@ export const ParametersTab: React.FC = () => {
                 <select
                   value={selectedNode.priority}
                   onChange={(e) => handleFieldChange({ priority: e.target.value as NodePriority })}
-                  className="w-full bg-[#181825] border border-[#313244] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
+                  className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
                 >
                   <option value="high">عالية (High)</option>
                   <option value="medium">متوسطة (Medium)</option>
@@ -356,12 +370,12 @@ export const ParametersTab: React.FC = () => {
                 value={selectedNode.targetArticle || ''}
                 placeholder="Part 17"
                 onChange={(e) => handleFieldChange({ targetArticle: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none"
               />
             </div>
 
             {/* 5. Speakers (Multi-select tag chips) */}
-            <div className="space-y-1.5 border-t border-[#313244] pt-2">
+            <div className="space-y-1.5 border-t border-[#2e2817] pt-2">
               <label className="text-[10.5px] font-medium text-gray-300 block">المتحدثون (Speakers):</label>
               <div className="flex flex-wrap gap-1">
                 {ALL_SPEAKERS.map(spk => {
@@ -374,7 +388,7 @@ export const ParametersTab: React.FC = () => {
                       className={`px-2 py-0.5 rounded text-[10.5px] transition border ${
                         isChecked
                           ? 'bg-indigo-600/40 border-indigo-500 text-indigo-200 font-bold'
-                          : 'bg-[#181825] border-[#313244] text-gray-400 hover:text-white'
+                          : 'bg-[#0a0a0a] border-[#2e2817] text-gray-400 hover:text-white'
                       }`}
                     >
                       {isChecked ? '✓ ' : ''}{spk}
@@ -391,12 +405,12 @@ export const ParametersTab: React.FC = () => {
                   placeholder="إضافة متحدث..."
                   onChange={(e) => setNewSpeaker(e.target.value)}
                   onKeyDown={handleAddCustomSpeaker}
-                  className="bg-[#181825] border border-[#313244] rounded px-2 py-0.5 text-xs text-white focus:outline-none flex-1"
+                  className="bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 text-xs text-white focus:outline-none flex-1"
                 />
                 <button
                   type="button"
                   onClick={handleAddCustomSpeaker}
-                  className="px-2 py-0.5 bg-[#313244] text-gray-300 hover:text-white rounded text-xs"
+                  className="px-2 py-0.5 bg-[#2e2817] text-gray-300 hover:text-white rounded text-xs"
                 >
                   إضافة
                 </button>
@@ -404,7 +418,7 @@ export const ParametersTab: React.FC = () => {
             </div>
 
             {/* 6. Quranic Verses */}
-            <div className="space-y-1 border-t border-[#313244] pt-2">
+            <div className="space-y-1 border-t border-[#2e2817] pt-2">
               <div className="flex items-center justify-between">
                 <label className="text-[10.5px] font-medium text-amber-300 block">الآيات والشواهد القرآنية:</label>
                 <button
@@ -421,18 +435,18 @@ export const ParametersTab: React.FC = () => {
                 value={selectedNode.quranicVerses || ''}
                 placeholder="﴿وَإِنَّهَا لَبِسَبِيلٍ مُّقِيمٍ﴾ [الحجر: 76]"
                 onChange={(e) => handleFieldChange({ quranicVerses: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded p-2 text-amber-200 font-quran text-xs leading-relaxed focus:border-amber-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded p-2 text-amber-200 font-quran text-xs leading-relaxed focus:border-amber-500 focus:outline-none"
               />
             </div>
 
             {/* 7. Cross-References */}
-            <div className="space-y-1.5 border-t border-[#313244] pt-2">
+            <div className="space-y-1.5 border-t border-[#2e2817] pt-2">
               <label className="text-[10.5px] text-gray-300 block">التقاطعات (Cross-References):</label>
               <div className="flex flex-wrap gap-1 min-h-[22px]">
                 {selectedNode.crossReferences.map(ref => (
                   <span
                     key={ref}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#181825] text-amber-300 text-[10.5px] border border-amber-900/40 font-mono"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#0a0a0a] text-amber-300 text-[10.5px] border border-amber-900/40 font-mono"
                   >
                     <span>{ref}</span>
                     <button
@@ -453,12 +467,12 @@ export const ParametersTab: React.FC = () => {
                   placeholder="آل عمران:42"
                   onChange={(e) => setNewCrossRef(e.target.value)}
                   onKeyDown={handleAddCrossRef}
-                  className="bg-[#181825] border border-[#313244] rounded px-2 py-0.5 text-xs text-white flex-1 font-mono focus:outline-none"
+                  className="bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 text-xs text-white flex-1 font-mono focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleAddCrossRef}
-                  className="px-2 py-0.5 bg-[#313244] hover:bg-[#45475a] text-xs text-white rounded"
+                  className="px-2 py-0.5 bg-[#2e2817] hover:bg-[#4a4027] text-xs text-white rounded"
                 >
                   + إضافة
                 </button>
@@ -466,9 +480,9 @@ export const ParametersTab: React.FC = () => {
             </div>
 
             {/* 8. Linked Ideas */}
-            <div className="space-y-1.5 border-t border-[#313244] pt-2">
+            <div className="space-y-1.5 border-t border-[#2e2817] pt-2">
               <div className="flex items-center justify-between text-[10.5px]">
-                <span className="font-medium text-[#89b4fa] flex items-center gap-1">
+                <span className="font-medium text-[#d4af37] flex items-center gap-1">
                   <Link2 className="w-3 h-3" />
                   <span>الأفكار المرتبطة ({selectedNode.linkedIdeas.length}):</span>
                 </span>
@@ -481,7 +495,7 @@ export const ParametersTab: React.FC = () => {
                     return (
                       <div
                         key={link.targetId}
-                        className="flex items-center justify-between gap-1 p-1.5 bg-[#181825] rounded border border-[#313244] text-[10.5px]"
+                        className="flex items-center justify-between gap-1 p-1.5 bg-[#0a0a0a] rounded border border-[#2e2817] text-[10.5px]"
                       >
                         <span className="text-white font-quran truncate">
                           {targetNode ? targetNode.arabicLabel : link.targetId}
@@ -505,12 +519,12 @@ export const ParametersTab: React.FC = () => {
               )}
 
               {/* Add Link */}
-              <div className="p-2 bg-[#181825]/70 border border-[#313244] rounded space-y-1.5 mt-1">
+              <div className="p-2 bg-[#0a0a0a]/70 border border-[#2e2817] rounded space-y-1.5 mt-1">
                 <div className="grid grid-cols-2 gap-1">
                   <select
                     value={linkTargetId}
                     onChange={(e) => setLinkTargetId(e.target.value)}
-                    className="bg-[#252536] border border-[#313244] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none"
+                    className="bg-[#171717] border border-[#2e2817] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none"
                   >
                     <option value="">-- اختر فكرة للربط --</option>
                     {allNodes.map(n => (
@@ -523,7 +537,7 @@ export const ParametersTab: React.FC = () => {
                   <select
                     value={linkType}
                     onChange={(e) => setLinkType(e.target.value as LinkType)}
-                    className="bg-[#252536] border border-[#313244] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none"
+                    className="bg-[#171717] border border-[#2e2817] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none"
                   >
                     <option value="supports">يدعم (supports)</option>
                     <option value="contradicts">يناقض (contradicts)</option>
@@ -538,7 +552,7 @@ export const ParametersTab: React.FC = () => {
                     value={linkNotes}
                     placeholder="ملاحظة حول الرابط..."
                     onChange={(e) => setLinkNotes(e.target.value)}
-                    className="bg-[#252536] border border-[#313244] rounded px-2 py-0.5 text-xs text-[#cdd6f4] flex-1 focus:outline-none"
+                    className="bg-[#171717] border border-[#2e2817] rounded px-2 py-0.5 text-xs text-[#efe6cf] flex-1 focus:outline-none"
                   />
                   <button
                     type="button"
@@ -553,14 +567,14 @@ export const ParametersTab: React.FC = () => {
             </div>
 
             {/* 9. Notes */}
-            <div className="space-y-1 border-t border-[#313244] pt-2">
+            <div className="space-y-1 border-t border-[#2e2817] pt-2">
               <label className="text-[10.5px] font-medium text-gray-300 block">الملاحظات والشرح التحريري (Notes):</label>
               <textarea
                 rows={3}
                 value={selectedNode.notes || ''}
                 placeholder="اكتب التحليل التفصيلي..."
                 onChange={(e) => handleFieldChange({ notes: e.target.value })}
-                className="w-full bg-[#181825] border border-[#313244] rounded p-2 text-white font-quran text-xs leading-relaxed focus:border-indigo-500 focus:outline-none"
+                className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded p-2 text-white font-quran text-xs leading-relaxed focus:border-indigo-500 focus:outline-none"
               />
             </div>
 

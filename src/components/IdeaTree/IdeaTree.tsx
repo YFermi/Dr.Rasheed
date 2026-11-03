@@ -398,10 +398,10 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
               : isNewlyAdded
               ? 'bg-emerald-950/60 text-emerald-200 font-bold ring-2 ring-emerald-400 shadow-lg animate-pulse'
               : isSelected
-              ? 'bg-[#313244] text-[#89b4fa] font-medium shadow-xs ring-1 ring-[#89b4fa]/30'
+              ? 'bg-[#2e2817] text-[#d4af37] font-medium shadow-xs ring-1 ring-[#d4af37]/30'
               : isReference
               ? 'bg-[#1e3a5f]/70 hover:bg-[#1e3a5f] text-sky-100'
-              : 'hover:bg-[#313244]/60 text-[#cdd6f4]'
+              : 'hover:bg-[#2e2817]/60 text-[#efe6cf]'
           } ${
             isLinkedHighlighted && !isPulsing ? 'ring-2 ring-amber-400 bg-amber-950/20' : ''
           } ${
@@ -419,7 +419,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
                   e.stopPropagation();
                   toggleNodeExpand(node.id);
                 }}
-                className="w-4 h-4 flex items-center justify-center text-[#a6adc8] hover:text-white rounded hover:bg-[#45475a]/50 transition"
+                className="w-4 h-4 flex items-center justify-center text-[#c2b691] hover:text-white rounded hover:bg-[#4a4027]/50 transition"
                 title={isExpanded ? 'طي التفرع' : 'توسيع التفرع'}
               >
                 {isExpanded ? (
@@ -473,7 +473,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
                   if (e.key === 'Enter') handleFinishRename(node.id);
                   if (e.key === 'Escape') setEditingNodeId(null);
                 }}
-                className="bg-[#181825] border border-blue-500 text-white px-1.5 py-0.5 rounded text-xs w-full focus:outline-none"
+                className="bg-[#0a0a0a] border border-blue-500 text-white px-1.5 py-0.5 rounded text-xs w-full focus:outline-none"
               />
             ) : (
               <span 
@@ -503,7 +503,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
             {/* Child count badge */}
             {childCount > 0 && (
               <span 
-                className="px-1.5 py-0.2 bg-[#181825] text-[#a6adc8] rounded-full text-[10px] font-mono border border-[#313244]"
+                className="px-1.5 py-0.2 bg-[#0a0a0a] text-[#c2b691] rounded-full text-[10px] font-mono border border-[#2e2817]"
                 title={`العناصر التابعة: ${childCount}`}
               >
                 {childCount}
@@ -524,7 +524,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
 
         {/* Render Children if expanded */}
         {hasChildren && isExpanded && (
-          <div className="border-r border-[#313244]/40 mr-2">
+          <div className="border-r border-[#2e2817]/40 mr-2">
             {node.children!.map((child) => renderTreeNode(child, depth + 1))}
           </div>
         )}
@@ -533,7 +533,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#1e1e2e] text-[#cdd6f4] border-l border-[#313244] select-none">
+    <div className="h-full flex flex-col bg-[#121212] text-[#efe6cf] border-l border-[#2e2817] select-none">
       {/* Hidden File Input for loading project */}
       <input
         type="file"
@@ -544,25 +544,25 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
       />
 
       {/* Tree Panel Header & COMSOL Title */}
-      <div className="h-10 px-3 border-b border-[#313244] bg-[#181825] flex items-center justify-between">
+      <div className="h-10 px-3 border-b border-[#2e2817] bg-[#0a0a0a] flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-[#89b4fa]" />
-          <span className="font-semibold text-xs tracking-wide text-[#cdd6f4]">
-            IDEA BUILDER (باني الأفكار الهيكلي)
+          <Layers className="w-4 h-4 text-[#d4af37]" />
+          <span className="font-semibold text-xs tracking-wide text-[#efe6cf]">
+            شجرة الأفكار
           </span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => collapseAll()}
             title="طي كافة العناصر"
-            className="p-1 hover:bg-[#313244] rounded text-[#a6adc8] hover:text-white transition"
+            className="p-1 hover:bg-[#2e2817] rounded text-[#c2b691] hover:text-white transition"
           >
             <ChevronRight className="w-3.5 h-3.5 rotate-90" />
           </button>
           <button
             onClick={() => expandAll()}
             title="توسيع كافة العناصر"
-            className="p-1 hover:bg-[#313244] rounded text-[#a6adc8] hover:text-white transition"
+            className="p-1 hover:bg-[#2e2817] rounded text-[#c2b691] hover:text-white transition"
           >
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
@@ -570,11 +570,11 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
       </div>
 
       {/* COMSOL Model Builder Toolbar */}
-      <div className="p-2 border-b border-[#313244] bg-[#1e1e2e] flex flex-wrap items-center gap-1 text-xs">
+      <div className="p-2 border-b border-[#2e2817] bg-[#121212] flex flex-wrap items-center gap-1 text-xs">
         <button
           onClick={() => addChildNode(selectedNodeId || 'root-project', 'axis')}
           title="إضافة محور رئيسي جديد (Axis)"
-          className="flex items-center gap-1 px-2 py-1 bg-[#313244] hover:bg-[#45475a] text-blue-300 rounded transition font-medium text-[11px]"
+          className="flex items-center gap-1 px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] text-blue-300 rounded transition font-medium text-[11px]"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>+ محور</span>
@@ -583,18 +583,18 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
         <button
           onClick={() => addChildNode(selectedNodeId || 'root-project', 'idea')}
           title="إضافة فكرة فرعية تابعة (Idea)"
-          className="flex items-center gap-1 px-2 py-1 bg-[#313244] hover:bg-[#45475a] text-amber-300 rounded transition font-medium text-[11px]"
+          className="flex items-center gap-1 px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] text-amber-300 rounded transition font-medium text-[11px]"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>+ فكرة</span>
         </button>
 
-        <div className="h-4 w-px bg-[#45475a] mx-0.5" />
+        <div className="h-4 w-px bg-[#4a4027] mx-0.5" />
 
         <button
           onClick={() => moveNodeUp(selectedNodeId)}
           title="تحريك العنصر للأعلى"
-          className="p-1.5 hover:bg-[#313244] text-[#a6adc8] hover:text-white rounded transition"
+          className="p-1.5 hover:bg-[#2e2817] text-[#c2b691] hover:text-white rounded transition"
         >
           <ArrowUp className="w-3.5 h-3.5" />
         </button>
@@ -602,7 +602,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
         <button
           onClick={() => moveNodeDown(selectedNodeId)}
           title="تحريك العنصر للأسفل"
-          className="p-1.5 hover:bg-[#313244] text-[#a6adc8] hover:text-white rounded transition"
+          className="p-1.5 hover:bg-[#2e2817] text-[#c2b691] hover:text-white rounded transition"
         >
           <ArrowDown className="w-3.5 h-3.5" />
         </button>
@@ -620,7 +620,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
           <Trash2 className="w-3.5 h-3.5" />
         </button>
 
-        <div className="h-4 w-px bg-[#45475a] mx-0.5" />
+        <div className="h-4 w-px bg-[#4a4027] mx-0.5" />
 
         <button
           onClick={onOpenImportModal}
@@ -636,7 +636,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
         <button
           onClick={handleSaveProject}
           title="حفظ المشروع كملف JSON"
-          className="p-1.5 hover:bg-[#313244] text-emerald-400 hover:text-emerald-300 rounded transition"
+          className="p-1.5 hover:bg-[#2e2817] text-emerald-400 hover:text-emerald-300 rounded transition"
         >
           <Save className="w-3.5 h-3.5" />
         </button>
@@ -644,21 +644,21 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
         <button
           onClick={() => fileInputRef.current?.click()}
           title="فتح ملف مشروع محفوظ"
-          className="p-1.5 hover:bg-[#313244] text-sky-400 hover:text-sky-300 rounded transition"
+          className="p-1.5 hover:bg-[#2e2817] text-sky-400 hover:text-sky-300 rounded transition"
         >
           <Upload className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {/* Quick Search Filter */}
-      <div className="px-2 py-1.5 bg-[#181825]/60 border-b border-[#313244] flex items-center gap-2">
+      <div className="px-2 py-1.5 bg-[#0a0a0a]/60 border-b border-[#2e2817] flex items-center gap-2">
         <Search className="w-3.5 h-3.5 text-gray-400" />
         <input
           type="text"
           value={filterKeyword}
           onChange={(e) => setFilterKeyword(e.target.value)}
           placeholder="بحث سريع في عناصر الشجرة والآيات..."
-          className="bg-transparent text-xs text-[#cdd6f4] placeholder-gray-500 w-full focus:outline-none font-sans"
+          className="bg-transparent text-xs text-[#efe6cf] placeholder-gray-500 w-full focus:outline-none font-sans"
         />
         {filterKeyword && (
           <button
@@ -689,13 +689,13 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
                 markerHeight="6"
                 orient="auto-start-reverse"
               >
-                <path d="M 0 1 L 10 5 L 0 9 z" fill="#818cf8" />
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#e0bf5a" />
               </marker>
             </defs>
             <path
               d={svgCurvePath}
               fill="none"
-              stroke="#818cf8"
+              stroke="#e0bf5a"
               strokeWidth="2.5"
               strokeDasharray="4 3"
               className="animate-pulse"
@@ -708,7 +708,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
       </div>
 
       {/* Status Bar Legend */}
-      <div className="h-6 px-3 bg-[#181825] border-t border-[#313244] flex items-center justify-between text-[10px] text-[#a6adc8] font-sans">
+      <div className="h-6 px-3 bg-[#0a0a0a] border-t border-[#2e2817] flex items-center justify-between text-[10px] text-[#c2b691] font-sans">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-emerald-500"></span> منشور

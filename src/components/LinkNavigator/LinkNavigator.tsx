@@ -176,14 +176,14 @@ export const LinkNavigator: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#252536] text-[#cdd6f4] select-none text-right font-sans">
+    <div className="h-full flex flex-col bg-[#171717] text-[#efe6cf] select-none text-right font-sans">
       
       {/* 1. Header with Count Badge */}
-      <div className="h-10 px-3 bg-[#1e1e2d] border-b border-[#313244] flex items-center justify-between">
+      <div className="h-10 px-3 bg-[#121212] border-b border-[#2e2817] flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Link2 className="w-4 h-4 text-indigo-400" />
           <span className="font-bold text-xs text-white">التشابكات</span>
-          <span className="text-[10px] font-mono bg-[#313244] text-[#89b4fa] px-1.5 py-0.2 rounded-full border border-blue-900/40">
+          <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 py-0.2 rounded-full border border-blue-900/40">
             {linksList.length}
           </span>
         </div>
@@ -216,13 +216,13 @@ export const LinkNavigator: React.FC = () => {
       )}
 
       {/* 2. Filter Bar */}
-      <div className="p-2 bg-[#1e1e2d]/60 border-b border-[#313244] space-y-1.5">
+      <div className="p-2 bg-[#121212]/60 border-b border-[#2e2817] space-y-1.5">
         {/* Type & Axis Dropdowns */}
         <div className="flex items-center gap-1 text-[11px]">
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="bg-[#181825] border border-[#313244] rounded px-1.5 py-1 text-white text-[10.5px] flex-1 focus:outline-none"
+            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[10.5px] flex-1 focus:outline-none"
           >
             <option value="all">كل العلاقات ({linksList.length})</option>
             <option value="supports">يدعم (supports)</option>
@@ -235,7 +235,7 @@ export const LinkNavigator: React.FC = () => {
           <select
             value={filterAxis}
             onChange={(e) => setFilterAxis(e.target.value)}
-            className="bg-[#181825] border border-[#313244] rounded px-1.5 py-1 text-white text-[10.5px] w-24 truncate focus:outline-none"
+            className="bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-1 text-white text-[10.5px] w-24 truncate focus:outline-none"
           >
             <option value="all">كل المحاور</option>
             {allAxes.map(ax => (
@@ -253,7 +253,7 @@ export const LinkNavigator: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="بحث في التشابكات..."
-            className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-0.5 text-[10.5px] text-white placeholder-gray-500 focus:outline-none font-sans"
+            className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-0.5 text-[10.5px] text-white placeholder-gray-500 focus:outline-none font-sans"
           />
         </div>
       </div>
@@ -275,7 +275,7 @@ export const LinkNavigator: React.FC = () => {
               orphanNodes.map(node => (
                 <div
                   key={node.id}
-                  className="p-2 bg-[#1e1e2d] border border-[#313244] rounded hover:border-amber-500/50 transition group"
+                  className="p-2 bg-[#121212] border border-[#2e2817] rounded hover:border-amber-500/50 transition group"
                 >
                   <div className="flex items-center justify-between gap-1 mb-1">
                     <span className="font-quran font-bold text-xs text-gray-200 truncate">
@@ -283,7 +283,7 @@ export const LinkNavigator: React.FC = () => {
                     </span>
                     <span className={`w-2 h-2 rounded-full ${getStatusColorDot(node.status)}`} />
                   </div>
-                  <div className="flex items-center justify-between pt-1 border-t border-[#313244]/40 text-[10px]">
+                  <div className="flex items-center justify-between pt-1 border-t border-[#2e2817]/40 text-[10px]">
                     <span className="text-gray-400 font-mono">{node.type}</span>
                     <button
                       type="button"
@@ -320,11 +320,11 @@ export const LinkNavigator: React.FC = () => {
                   className={`relative p-2.5 rounded-lg border transition-all cursor-pointer group select-none ${
                     isHighlighted
                       ? `${rel.bgColor} ring-2 ring-indigo-400 ${rel.borderColor} shadow-md`
-                      : 'bg-[#1e1e2d] border-[#313244] hover:bg-[#252538] hover:border-[#45475a]'
+                      : 'bg-[#121212] border-[#2e2817] hover:bg-[#171717] hover:border-[#4a4027]'
                   }`}
                 >
                   {/* Action icons on hover */}
-                  <div className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity z-10 bg-[#181825] p-0.5 rounded shadow">
+                  <div className="absolute top-1.5 left-1.5 opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity z-10 bg-[#0a0a0a] p-0.5 rounded shadow">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -387,7 +387,7 @@ export const LinkNavigator: React.FC = () => {
 
                   {/* Optional Notes snippet */}
                   {item.notes && (
-                    <p className="mt-1.5 pt-1 border-t border-[#313244]/50 text-[10px] text-gray-400 font-quran line-clamp-1 italic">
+                    <p className="mt-1.5 pt-1 border-t border-[#2e2817]/50 text-[10px] text-gray-400 font-quran line-clamp-1 italic">
                       "{item.notes}"
                     </p>
                   )}
@@ -399,7 +399,7 @@ export const LinkNavigator: React.FC = () => {
       </div>
 
       {/* 4. Bottom Action: "+ New Link" */}
-      <div className="p-2 bg-[#1e1e2d] border-t border-[#313244]">
+      <div className="p-2 bg-[#121212] border-t border-[#2e2817]">
         <button
           type="button"
           onClick={() => {

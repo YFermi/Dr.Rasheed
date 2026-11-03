@@ -33,7 +33,7 @@ function highlightStems(text: string, stems: string[]): React.ReactNode {
   const re = new RegExp(`(${stems.map(escapeRegExp).sort((a, b) => b.length - a.length).join('|')})`, 'g');
   return text.split(re).map((part, i) =>
     i % 2 === 1 ? (
-      <mark key={i} className="bg-[#fef08a] text-[#1e1e2e] font-bold rounded-sm px-0.5">
+      <mark key={i} className="bg-[#fef08a] text-[#121212] font-bold rounded-sm px-0.5">
         {part}
       </mark>
     ) : (
@@ -117,7 +117,7 @@ export const BlogTab: React.FC = () => {
         type="button"
         onClick={onRead}
         title="فتح المقال في لوحة القراءة"
-        className="px-1.5 py-0.5 bg-[#313244] hover:bg-[#45475a] text-[#cdd6f4] rounded text-[10px] flex items-center gap-0.5 transition"
+        className="px-1.5 py-0.5 bg-[#2e2817] hover:bg-[#4a4027] text-[#efe6cf] rounded text-[10px] flex items-center gap-0.5 transition"
       >
         <BookOpen className="w-2.5 h-2.5" />
         <span>اقرأ</span>
@@ -126,7 +126,7 @@ export const BlogTab: React.FC = () => {
         type="button"
         onClick={onGoTo}
         title="الانتقال مباشرة إلى الفقرة داخل المقال"
-        className="px-1.5 py-0.5 bg-[#89b4fa]/90 hover:bg-[#89b4fa] text-[#1e1e2e] rounded text-[10px] font-semibold flex items-center gap-0.5 transition"
+        className="px-1.5 py-0.5 bg-[#d4af37]/90 hover:bg-[#d4af37] text-[#121212] rounded text-[10px] font-semibold flex items-center gap-0.5 transition"
       >
         <MapPin className="w-2.5 h-2.5" />
         <span>اذهب</span>
@@ -140,7 +140,7 @@ export const BlogTab: React.FC = () => {
     if (!corpus && (isLoading || !error)) {
       return (
         <div className="h-full flex flex-col items-center justify-center gap-2 text-gray-400 text-xs">
-          <Loader2 className="w-5 h-5 animate-spin text-[#89b4fa]" />
+          <Loader2 className="w-5 h-5 animate-spin text-[#d4af37]" />
           <span>جاري تحميل المقالات...</span>
         </div>
       );
@@ -148,16 +148,16 @@ export const BlogTab: React.FC = () => {
 
     if (error || articles.length === 0) {
       return (
-        <div className="p-4 m-2 bg-[#1e1e2d] border border-dashed border-[#45475a] rounded-lg text-center space-y-2">
+        <div className="p-4 m-2 bg-[#121212] border border-dashed border-[#4a4027] rounded-lg text-center space-y-2">
           <FolderOpen className="w-6 h-6 text-gray-500 mx-auto" />
           <p className="text-xs text-gray-300 leading-relaxed">
             لا توجد مقالات. ضع ملفات Word في المجلد:
           </p>
-          <code dir="ltr" className="block text-[10.5px] font-mono bg-[#181825] text-amber-300 px-2 py-1 rounded border border-[#313244]">
+          <code dir="ltr" className="block text-[10.5px] font-mono bg-[#0a0a0a] text-amber-300 px-2 py-1 rounded border border-[#2e2817]">
             content/blog/قصة لوط/
           </code>
           <p className="text-xs text-gray-300">ثم شغّل:</p>
-          <code dir="ltr" className="block text-[10.5px] font-mono bg-[#181825] text-emerald-300 px-2 py-1 rounded border border-[#313244]">
+          <code dir="ltr" className="block text-[10.5px] font-mono bg-[#0a0a0a] text-emerald-300 px-2 py-1 rounded border border-[#2e2817]">
             npm run blog
           </code>
           {error && <p className="text-[10px] text-rose-400 pt-1">{error}</p>}
@@ -179,11 +179,11 @@ export const BlogTab: React.FC = () => {
           {filteredResults.slice(0, MAX_RENDERED_RESULTS).map(({ article, paragraph, snippet, matchCount }) => (
             <div
               key={paragraph.id}
-              className="p-2 bg-[#1e1e2d] border border-[#313244] hover:border-[#89b4fa]/50 rounded-lg space-y-1 transition"
+              className="p-2 bg-[#121212] border border-[#2e2817] hover:border-[#d4af37]/50 rounded-lg space-y-1 transition"
             >
               <div className="flex items-center gap-1.5 text-[11px] min-w-0">
-                <FileText className="w-3 h-3 text-[#89b4fa] flex-shrink-0" />
-                <span className="text-[10px] font-mono bg-[#313244] text-[#89b4fa] px-1.5 rounded flex-shrink-0">
+                <FileText className="w-3 h-3 text-[#d4af37] flex-shrink-0" />
+                <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 rounded flex-shrink-0">
                   {toArabicDigits(article.partNumber)}
                 </span>
                 <span className="font-bold text-white truncate" title={article.title}>
@@ -194,7 +194,7 @@ export const BlogTab: React.FC = () => {
                 <span>¶ الفقرة {toArabicDigits(paragraphNumber(paragraph.id))}</span>
                 <span className="font-mono" title="عدد التطابقات">×{toArabicDigits(matchCount)}</span>
               </div>
-              <p className="font-quran text-[12.5px] leading-relaxed text-[#cdd6f4] line-clamp-3 select-text">
+              <p className="font-quran text-[12.5px] leading-relaxed text-[#efe6cf] line-clamp-3 select-text">
                 {highlightStems(snippet, stems)}
               </p>
               {renderActions(
@@ -251,13 +251,13 @@ export const BlogTab: React.FC = () => {
           const isExpanded = expandedArticleId === article.id;
           const headings = article.paragraphs.filter(p => p.isHeading);
           return (
-            <div key={article.id} className="bg-[#1e1e2d] border border-[#313244] rounded-lg overflow-hidden">
+            <div key={article.id} className="bg-[#121212] border border-[#2e2817] rounded-lg overflow-hidden">
               <div className="flex items-stretch">
                 <button
                   type="button"
                   onClick={() => setExpandedArticleId(isExpanded ? null : article.id)}
                   title={isExpanded ? 'طي العناوين' : 'عرض عناوين المقال'}
-                  className="px-1.5 text-gray-500 hover:text-white hover:bg-[#313244]/60 transition flex-shrink-0"
+                  className="px-1.5 text-gray-500 hover:text-white hover:bg-[#2e2817]/60 transition flex-shrink-0"
                 >
                   {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
                 </button>
@@ -265,10 +265,10 @@ export const BlogTab: React.FC = () => {
                   type="button"
                   onClick={() => handleRead(article)}
                   title="فتح المقال في لوحة القراءة"
-                  className="flex-1 min-w-0 p-2 pr-0.5 text-right hover:bg-[#313244]/40 transition space-y-1"
+                  className="flex-1 min-w-0 p-2 pr-0.5 text-right hover:bg-[#2e2817]/40 transition space-y-1"
                 >
                   <div className="flex items-center gap-1.5 text-[11px] min-w-0">
-                    <span className="text-[10px] font-mono bg-[#313244] text-[#89b4fa] px-1.5 rounded flex-shrink-0">
+                    <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 rounded flex-shrink-0">
                       {toArabicDigits(article.partNumber)}
                     </span>
                     <span className="font-bold text-white truncate" title={article.title}>
@@ -284,7 +284,7 @@ export const BlogTab: React.FC = () => {
               </div>
 
               {isExpanded && (
-                <div className="border-t border-[#313244] bg-[#181825] py-1">
+                <div className="border-t border-[#2e2817] bg-[#0a0a0a] py-1">
                   {headings.length === 0 ? (
                     <div className="px-3 py-1 text-[10px] text-gray-500">لا توجد عناوين فرعية.</div>
                   ) : (
@@ -293,7 +293,7 @@ export const BlogTab: React.FC = () => {
                         key={h.id}
                         type="button"
                         onClick={() => handleGoTo(article.id, h.id)}
-                        className="w-full text-right px-3 py-1 text-[10.5px] text-gray-300 hover:text-[#89b4fa] hover:bg-[#252536] truncate transition"
+                        className="w-full text-right px-3 py-1 text-[10.5px] text-gray-300 hover:text-[#d4af37] hover:bg-[#171717] truncate transition"
                         style={{ paddingRight: `${0.75 + ((h.headingLevel ?? 1) - 1) * 0.6}rem` }}
                         title={h.text}
                       >
@@ -313,15 +313,15 @@ export const BlogTab: React.FC = () => {
   const hasArticles = articles.length > 0;
 
   return (
-    <div className="h-full flex flex-col bg-[#252536] text-[#cdd6f4] select-none text-right font-sans">
+    <div className="h-full flex flex-col bg-[#171717] text-[#efe6cf] select-none text-right font-sans">
 
       {/* 1. Header */}
-      <div className="h-10 px-3 bg-[#1e1e2d] border-b border-[#313244] flex items-center justify-between flex-shrink-0">
+      <div className="h-10 px-3 bg-[#121212] border-b border-[#2e2817] flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-1.5 min-w-0">
-          <BookOpen className="w-4 h-4 text-[#89b4fa] flex-shrink-0" />
+          <BookOpen className="w-4 h-4 text-[#d4af37] flex-shrink-0" />
           <span className="font-bold text-xs text-white truncate">مقالات د. رشيد — قصة لوط</span>
           {hasArticles && (
-            <span className="text-[10px] font-mono bg-[#313244] text-[#89b4fa] px-1.5 py-0.2 rounded-full border border-blue-900/40">
+            <span className="text-[10px] font-mono bg-[#2e2817] text-[#d4af37] px-1.5 py-0.2 rounded-full border border-blue-900/40">
               {toArabicDigits(articles.length)}
             </span>
           )}
@@ -329,8 +329,8 @@ export const BlogTab: React.FC = () => {
       </div>
 
       {/* 2. Search & Filter Bar */}
-      <div className="p-2 bg-[#1e1e2d]/70 border-b border-[#313244] space-y-1.5 flex-shrink-0">
-        <div className="flex items-center gap-1.5 bg-[#181825] px-2 py-1 rounded border border-[#313244] focus-within:border-[#89b4fa]/60">
+      <div className="p-2 bg-[#121212]/70 border-b border-[#2e2817] space-y-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1.5 bg-[#0a0a0a] px-2 py-1 rounded border border-[#2e2817] focus-within:border-[#d4af37]/60">
           <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
           <input
             type="text"
@@ -338,7 +338,7 @@ export const BlogTab: React.FC = () => {
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="ابحث في مقالات د. رشيد..."
             disabled={!hasArticles}
-            className="bg-transparent text-xs text-[#cdd6f4] placeholder-gray-500 w-full focus:outline-none disabled:opacity-50"
+            className="bg-transparent text-xs text-[#efe6cf] placeholder-gray-500 w-full focus:outline-none disabled:opacity-50"
           />
           {inputValue && (
             <button
@@ -353,7 +353,7 @@ export const BlogTab: React.FC = () => {
         </div>
 
         {isSearching && (
-          <div className={`text-[10px] ${filteredResults.length ? 'text-[#89b4fa]' : 'text-gray-500'}`}>
+          <div className={`text-[10px] ${filteredResults.length ? 'text-[#d4af37]' : 'text-gray-500'}`}>
             {formatResultCount(filteredResults.length)}
           </div>
         )}
@@ -363,7 +363,7 @@ export const BlogTab: React.FC = () => {
             value={articleFilter}
             onChange={(e) => setArticleFilter(e.target.value)}
             disabled={!hasArticles}
-            className="flex-1 min-w-0 bg-[#181825] border border-[#313244] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none disabled:opacity-50"
+            className="flex-1 min-w-0 bg-[#0a0a0a] border border-[#2e2817] rounded px-1.5 py-0.5 text-white text-[10.5px] focus:outline-none disabled:opacity-50"
           >
             <option value="all">كل المقالات ({toArabicDigits(articles.length)})</option>
             {articles.map(a => (
@@ -381,7 +381,7 @@ export const BlogTab: React.FC = () => {
             className={`px-2 py-0.5 rounded border text-[10.5px] flex items-center gap-1 flex-shrink-0 transition disabled:opacity-50 ${
               versesOnly
                 ? 'bg-amber-600/80 border-amber-500 text-white'
-                : 'bg-[#181825] border-[#313244] text-gray-400 hover:text-white'
+                : 'bg-[#0a0a0a] border-[#2e2817] text-gray-400 hover:text-white'
             }`}
           >
             <BookMarked className="w-3 h-3" />
@@ -397,7 +397,7 @@ export const BlogTab: React.FC = () => {
 
       {/* 4. Bottom Stats Summary */}
       {hasArticles && corpus && (
-        <div className="p-2 bg-[#1e1e2d] border-t border-[#313244] text-[10px] text-gray-300 flex items-center justify-between flex-shrink-0">
+        <div className="p-2 bg-[#121212] border-t border-[#2e2817] text-[10px] text-gray-300 flex items-center justify-between flex-shrink-0">
           <div>
             <span>الفقرات: </span>
             <strong className="text-white font-mono">{toArabicDigits(corpus.totalParagraphs)}</strong>

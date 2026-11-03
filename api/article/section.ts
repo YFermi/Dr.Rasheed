@@ -27,6 +27,9 @@ import {
   wordCount,
   ORDINALS,
   referenceSection,
+  METHOD_RULES,
+  FORBIDDEN_PHRASES,
+  stripReaderAddress,
 } from '../_lib/gemini.js';
 
 // Dr. Rasheed's axes run 1,000–3,000 words. The client writes a long section in
@@ -50,8 +53,8 @@ const BLOCK_TYPES = new Set(['heading', 'subheading', 'paragraph', 'verse']);
 // and stitch calls still get the full guide).
 const CORE_STYLE_RULES = `## قواعد الأسلوب الأساسية
 - ضمير المتكلم الجمع مع التحوّط: «نظن»، «لا أظن»، «في رأينا»، «إننا»؛ لا جزم مطلق.
-- نبرة حوارية: مخاطبة «عزيزي القارئ»، وأسئلة كثيرة («لماذا…؟»، «السؤال: …»).
-- تطوير الفكرة: سؤال ← شاهد قرآني ← تفكيك اللفظ ومقابلته بمواضعه الأخرى في كتاب الله ← كشف وهم التفسير الموروث بأدب («ألا ترون – يا سادة – …») ← فهم جديد ← «النتيجة: …».
+- نبرة حوارية بلا منادى: أسئلة كثيرة («لماذا…؟»، «السؤال: …») تُطرح مباشرة دون مخاطبة القارئ.
+- تطوير الفكرة: سؤال ← شاهد قرآني ← تفكيك اللفظ وسياقه ومقابلته بمواضعه الأخرى في كتاب الله ← فهم جديد ← «النتيجة: …».
 - «افتراء من عند أنفسنا: …» لفكرة isNew فقط ومرة واحدة على الأكثر؛ والفكرة المنشورة سابقاً: «كما بيّنا في الجزء …».
 - فقرات قصيرة متصلة؛ لا تعداد نقطي، ولا عناوين إنجليزية، ولا «في الختام» أو «خلاصة القول».`;
 
@@ -92,10 +95,10 @@ function shortExample(e: StyleExample): StyleExample {
 
 // Three short examples of the core moves; «افتراء» only when the section has new ideas.
 export function pickExamples(examples: StyleExample[], nodes: ArticleNodeInput[]): StyleExample[] {
-  const wanted = ['question', nodes.some(n => n.isNew) ? 'iftiraa' : 'opinion', 'result', 'refutation'];
+  const wanted = ['question', nodes.some(n => n.isNew) ? 'iftiraa' : 'opinion', 'result', 'verse'];
   const picked: StyleExample[] = [];
   for (const category of wanted) {
-    const example = examples.find(e => e.category === category && !picked.includes(e));
+    const example = examples.find(e => e.category === category && !picked.includes(e) && !FORBIDDEN_PHRASES.test(e.text));
     if (example) picked.push(example);
     if (picked.length >= MAX_EXAMPLES) break;
   }
@@ -147,6 +150,8 @@ export function buildSectionPrompt(
   const system = `أنت تكتب بأسلوب د. رشيد الجراح محوراً واحداً من جزء جديد في سلسلته.
 
 ${CORE_STYLE_RULES}
+
+${METHOD_RULES}
 
 ${referenceSection(req.referenceContext)}
 
@@ -240,7 +245,7 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
       continue;
     }
 
-    const text = asString(b.text).trim();
+    const text = stripReaderAddress(asString(b.text));
     if (!text) continue;
     if (type !== 'paragraph' || !/[﴾﴿]/.test(text)) {
       blocks.push({ type: type as DraftBlock['type'], text });

@@ -64,11 +64,11 @@ export const ApiKeyModal: React.FC = () => {
       <div
         role="dialog"
         aria-label="إعداد مفتاح API"
-        className="w-full max-w-md bg-[#1e1e2e] border border-[#313244] rounded-xl shadow-2xl text-[#cdd6f4] text-right"
+        className="w-full max-w-md bg-[#121212] border border-[#2e2817] rounded-xl shadow-2xl text-[#efe6cf] text-right"
         onClick={e => e.stopPropagation()}
       >
         {/* A) Header */}
-        <div className="h-11 px-4 bg-[#181825] border-b border-[#313244] rounded-t-xl flex items-center justify-between">
+        <div className="h-11 px-4 bg-[#0a0a0a] border-b border-[#2e2817] rounded-t-xl flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-sm text-white">
             <KeyRound className="w-4 h-4 text-amber-300" />
             <span>🔑 إعداد مفتاح API</span>
@@ -84,7 +84,7 @@ export const ApiKeyModal: React.FC = () => {
             أدخل مفتاح Gemini API (<span dir="ltr" className="font-mono">GEMINI_API_KEY</span>) لتفعيل ميزات الذكاء الاصطناعي
             (استخراج الأفكار من السكريبتات + كتابة المقالات).
             يمكنك الحصول على مفتاح مجاني من Google AI Studio:{' '}
-            <a href={KEY_URL} target="_blank" rel="noopener noreferrer" dir="ltr" className="text-[#89b4fa] hover:underline select-text">
+            <a href={KEY_URL} target="_blank" rel="noopener noreferrer" dir="ltr" className="text-[#d4af37] hover:underline select-text">
               {KEY_URL}
             </a>
           </p>
@@ -103,7 +103,7 @@ export const ApiKeyModal: React.FC = () => {
           {/* C) Input */}
           <div className="space-y-1">
             <label className="text-[11px] text-gray-300 block">{hasKey ? 'استبدال المفتاح:' : 'المفتاح:'}</label>
-            <div className={`flex items-center gap-1 bg-[#181825] border rounded px-2 py-1 ${formatError ? 'border-rose-500' : 'border-[#313244] focus-within:border-amber-500/60'}`}>
+            <div className={`flex items-center gap-1 bg-[#0a0a0a] border rounded px-2 py-1 ${formatError ? 'border-rose-500' : 'border-[#2e2817] focus-within:border-amber-500/60'}`}>
               <input
                 type={visible ? 'text' : 'password'}
                 dir="ltr"
@@ -133,7 +133,7 @@ export const ApiKeyModal: React.FC = () => {
             <select
               value={model}
               onChange={e => { chooseModel(e.target.value); setTest({ status: 'idle' }); }}
-              className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-amber-500/60"
+              className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-amber-500/60"
             >
               {MODEL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
@@ -148,7 +148,7 @@ export const ApiKeyModal: React.FC = () => {
               type="button"
               onClick={handleTest}
               disabled={test.status === 'testing' || formatError || (!typed && !hasKey && !serverHasKey)}
-              className="px-2.5 py-1 bg-[#313244] hover:bg-[#45475a] disabled:opacity-40 text-white rounded text-[11px] transition"
+              className="px-2.5 py-1 bg-[#2e2817] hover:bg-[#4a4027] disabled:opacity-40 text-white rounded text-[11px] transition"
             >
               🧪 اختبار الاتصال
             </button>
@@ -167,7 +167,7 @@ export const ApiKeyModal: React.FC = () => {
         </div>
 
         {/* E) Buttons */}
-        <div className="px-4 py-3 bg-[#181825] border-t border-[#313244] rounded-b-xl flex items-center justify-between">
+        <div className="px-4 py-3 bg-[#0a0a0a] border-t border-[#2e2817] rounded-b-xl flex items-center justify-between">
           <button
             type="button"
             onClick={handleDelete}

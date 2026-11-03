@@ -80,15 +80,15 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[#161622] text-[#cdd6f4] border-x border-[#313244] select-none text-right">
+    <div className="h-full flex flex-col bg-[#0b0b0b] text-[#efe6cf] border-x border-[#2e2817] select-none text-right">
       {/* Middle Column Top Navigation Tabs */}
-      <div className="h-10 bg-[#11111b] border-b border-[#313244] px-1 flex items-center justify-around text-xs">
+      <div className="h-10 bg-[#050505] border-b border-[#2e2817] px-1 flex items-center justify-around text-xs">
         <button
           onClick={() => setActiveTab('links')}
           title="شجرة الروابط والتشابكات"
           className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition text-[11px] ${
             activeTab === 'links'
-              ? 'bg-[#313244] text-[#89b4fa] font-bold shadow-xs'
+              ? 'bg-[#2e2817] text-[#d4af37] font-bold shadow-xs'
               : 'text-gray-400 hover:text-white'
           }`}
         >
@@ -106,7 +106,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
           title="فهرس الشواهد والآيات"
           className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition text-[11px] ${
             activeTab === 'verses'
-              ? 'bg-[#313244] text-amber-300 font-bold shadow-xs'
+              ? 'bg-[#2e2817] text-amber-300 font-bold shadow-xs'
               : 'text-gray-400 hover:text-white'
           }`}
         >
@@ -122,7 +122,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
           title="المتحدثون ومشاركاتهم"
           className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition text-[11px] ${
             activeTab === 'speakers'
-              ? 'bg-[#313244] text-indigo-300 font-bold shadow-xs'
+              ? 'bg-[#2e2817] text-indigo-300 font-bold shadow-xs'
               : 'text-gray-400 hover:text-white'
           }`}
         >
@@ -135,7 +135,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
           title="المخطط الهيكلي والمحاور"
           className={`flex-1 py-1.5 px-1 rounded flex items-center justify-center gap-1 transition text-[11px] ${
             activeTab === 'outline'
-              ? 'bg-[#313244] text-emerald-300 font-bold shadow-xs'
+              ? 'bg-[#2e2817] text-emerald-300 font-bold shadow-xs'
               : 'text-gray-400 hover:text-white'
           }`}
         >
@@ -152,8 +152,8 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
           <div className="space-y-2.5">
             {/* Selected Node Connections */}
             {selectedNode.type !== 'project' && (
-              <div className="p-2 bg-[#1e1e2e] border border-blue-900/50 rounded-md">
-                <div className="text-[10.5px] font-bold text-[#89b4fa] mb-1.5 flex items-center justify-between">
+              <div className="p-2 bg-[#121212] border border-blue-900/50 rounded-md">
+                <div className="text-[10.5px] font-bold text-[#d4af37] mb-1.5 flex items-center justify-between">
                   <span>روابط العنصر المحدد حالياً:</span>
                   <span className="text-[9px] font-mono text-gray-400">
                     {selectedNode.linkedIdeas.length} رابط
@@ -173,7 +173,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                           onClick={() => onSelectNode(link.targetId)}
                           onMouseEnter={() => setHighlightedLinks([link.targetId])}
                           onMouseLeave={() => setHighlightedLinks([])}
-                          className="p-1.5 bg-[#181825] hover:bg-[#313244] border border-[#313244] rounded cursor-pointer transition text-[11px] flex items-center justify-between gap-1 group"
+                          className="p-1.5 bg-[#0a0a0a] hover:bg-[#2e2817] border border-[#2e2817] rounded cursor-pointer transition text-[11px] flex items-center justify-between gap-1 group"
                         >
                           <div className="flex items-center gap-1 truncate">
                             {getLinkTypeBadge(link.type)}
@@ -209,7 +209,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                         onClick={() => onSelectNode(link.source.id)}
                         onMouseEnter={() => setHighlightedLinks([link.source.id, link.targetId])}
                         onMouseLeave={() => setHighlightedLinks([])}
-                        className="p-2 bg-[#1e1e2e] hover:bg-[#252538] border border-[#313244] rounded text-[11px] cursor-pointer transition space-y-1"
+                        className="p-2 bg-[#121212] hover:bg-[#171717] border border-[#2e2817] rounded text-[11px] cursor-pointer transition space-y-1"
                       >
                         <div className="flex items-center justify-between">
                           <span className="font-quran font-bold text-gray-300 truncate">
@@ -247,12 +247,12 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
               <div
                 key={idx}
                 onClick={() => onSelectNode(item.node.id)}
-                className="p-2.5 bg-[#1e1e2e] hover:bg-[#2a2b3d] border-r-3 border-r-amber-500 border border-[#313244] rounded cursor-pointer transition group"
+                className="p-2.5 bg-[#121212] hover:bg-[#1f1d18] border-r-3 border-r-amber-500 border border-[#2e2817] rounded cursor-pointer transition group"
               >
                 <p className="font-quran text-[12.5px] text-amber-200/95 leading-relaxed mb-1 line-clamp-3 group-hover:text-amber-100">
                   {item.verse}
                 </p>
-                <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-[#313244]/50">
+                <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1 border-t border-[#2e2817]/50">
                   <span className="truncate text-gray-300 font-quran">
                     {item.node.arabicLabel}
                   </span>
@@ -273,10 +273,10 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
               أفكار منسوبة للمتحدثين:
             </div>
             {Array.from(speakerMap.entries()).map(([speaker, nodes]) => (
-              <div key={speaker} className="p-2 bg-[#1e1e2e] border border-[#313244] rounded">
-                <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-[#313244]">
+              <div key={speaker} className="p-2 bg-[#121212] border border-[#2e2817] rounded">
+                <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-[#2e2817]">
                   <span className="font-bold text-indigo-200 text-[11.5px]">{speaker}</span>
-                  <span className="text-[9.5px] bg-[#313244] text-gray-300 px-1.5 py-0.2 rounded font-mono">
+                  <span className="text-[9.5px] bg-[#2e2817] text-gray-300 px-1.5 py-0.2 rounded font-mono">
                     {nodes.length} فكرة
                   </span>
                 </div>
@@ -285,7 +285,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                     <div
                       key={node.id}
                       onClick={() => onSelectNode(node.id)}
-                      className="text-[10.5px] font-quran text-gray-300 hover:text-blue-300 hover:bg-[#313244]/40 p-1 rounded cursor-pointer truncate flex items-center gap-1"
+                      className="text-[10.5px] font-quran text-gray-300 hover:text-blue-300 hover:bg-[#2e2817]/40 p-1 rounded cursor-pointer truncate flex items-center gap-1"
                     >
                       <span>•</span>
                       <span className="truncate">{node.arabicLabel}</span>
@@ -309,7 +309,7 @@ export const MiddleColumn: React.FC<MiddleColumnProps> = ({ onSelectNode }) => {
                 <div
                   key={axis.id}
                   onClick={() => onSelectNode(axis.id)}
-                  className="p-2 bg-[#1e1e2e] hover:bg-[#28293d] border-r-3 border-r-blue-500 border border-[#313244] rounded cursor-pointer transition"
+                  className="p-2 bg-[#121212] hover:bg-[#1f1d18] border-r-3 border-r-blue-500 border border-[#2e2817] rounded cursor-pointer transition"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-quran font-bold text-gray-200 text-xs">

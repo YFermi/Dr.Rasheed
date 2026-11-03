@@ -23,8 +23,8 @@ const MAX_ORIGINAL_PART = 14; // articles 1–14 are Dr. Rasheed's own
 const MIN_WORDS = 50;
 const MAX_WORDS = 150;
 const IDEAL_WORDS = 100;
-// Two examples for the core idea-development moves, one for the rest → 15 in all
-const CORE_CATEGORIES = new Set(['question', 'verse', 'refutation', 'iftiraa', 'result']);
+// Two examples for the core idea-development moves, one for the rest → 12 in all
+const CORE_CATEGORIES = new Set(['question', 'verse', 'iftiraa', 'result']);
 const perCategory = (id: string) => (CORE_CATEGORIES.has(id) ? 2 : 1);
 
 interface Category {
@@ -47,15 +47,16 @@ const CATEGORIES: Category[] = [
   { id: 'opening', label: 'افتتاح بتلخيص الجزء السابق', pattern: /(وصلنا في الجزء السابق|خلص الجزء السابق|كان جل البحث في الجزء|في الجزء السابق|هذا هو الجزء)/, position: 'start' },
   { id: 'question', label: 'طرح الفكرة سؤالاً', pattern: /(السؤال\s*:|لماذا)[^.]*؟/, leading: /^(السؤال|لماذا|فلماذا)/ },
   { id: 'verse', label: 'الاستشهاد بالآية والتعليق عليها', pattern: /﴿/, requiresVerse: true },
-  { id: 'refutation', label: 'نقد التفسير الموروث', pattern: /(يا ساده|سادتنا|اهل العلم|علماءنا|علمائنا|المفسرين)/ },
   { id: 'iftiraa', label: 'افتراء من عند أنفسنا', pattern: /افتراء من عند انفسنا/, leading: /^ا?فتراء/ },
   { id: 'result', label: 'النتيجة المرحلية', pattern: /النتيجه?ة?(\s+\S+)?\s*:/, leading: /^النتيج/ },
   { id: 'opinion', label: 'الحكم الشخصي (رأينا)', pattern: /(^راينا|في راينا|نحن نظن|لا اظن)/, leading: /^(راينا|نحن نظن)/ },
-  // Patterns use normalized spelling: القارئ → القاري (ئ → ي)
-  { id: 'reader', label: 'مخاطبة القارئ', pattern: /(عزيزي القاري|القاري الكريم)/ },
   { id: 'transition', label: 'الانتقال والعودة', pattern: /(عوده على بدء|عودة على بدء|فنعود|لنعود|نعود الان|وهذا يقودنا|ولعلكم تسالون|حتى نعود اليها)/ },
   { id: 'closing', label: 'التمهيد للجزء القادم', pattern: /(في الجزء القادم|في الجزء التالي|الجزء القادم|للحديث بقيه)/, position: 'end' },
 ];
+
+// Reader address and exegetes' views are banned from generated prose (METHOD_RULES
+// in api/_lib/gemini.ts), so no example may model them. Normalized spelling.
+const FORBIDDEN = /(عزيز[يت] القاري|القاري الكريم|يا ساده|سادتي|سادتنا|سيادتكم|حضراتكم|اهل العلم|المفسر|التفسير الموروث|اسراي?يليات)/;
 
 const wordsOf = (text: string) => text.split(/\s+/).filter(Boolean).length;
 
@@ -169,6 +170,7 @@ async function main() {
         return window ? { ...c, text: collapseVerses(window.text), paragraphIds: window.paragraphIds } : null;
       })
       .filter((c): c is Candidate & { text: string; paragraphIds: string[] } => c !== null)
+      .filter(c => !FORBIDDEN.test(normalizeArabic(c.text)))
       .filter(c => !category.requiresVerse || wordsOf(c.text.replace(/﴿…﴾(\s*\[[^\]]*\])?/g, '')) >= MIN_COMMENTARY_WORDS)
       .sort((a, b) => score(b.text, category) - score(a.text, category));
 

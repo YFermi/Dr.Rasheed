@@ -183,7 +183,7 @@ export const BlogReader: React.FC = () => {
         key={p.id}
         data-pid={p.id}
         className={`group relative rounded px-2 -mx-2 border-l-4 transition-colors duration-300 ${
-          isHighlighted ? 'bg-[#fef08a]/70 border-[#89b4fa]' : 'border-transparent'
+          isHighlighted ? 'bg-[#fef08a]/70 border-[#d4af37]' : 'border-transparent'
         }`}
       >
         {/* Paragraph number (hover) */}
@@ -402,7 +402,7 @@ export const BlogReader: React.FC = () => {
             onMouseDown={(e) => e.preventDefault()}
             onClick={handleAddEvidence}
             title={selectedNodeLabel ? `إضافة شاهد تحت: ${selectedNodeLabel}` : 'اختر فكرة في الشجرة أولاً'}
-            className="flex flex-col items-center gap-0.5 px-3 py-1.5 bg-[#1e1e2e] hover:bg-[#313244] text-white rounded-lg shadow-xl ring-1 ring-[#89b4fa]/50 transition"
+            className="flex flex-col items-center gap-0.5 px-3 py-1.5 bg-[#121212] hover:bg-[#2e2817] text-white rounded-lg shadow-xl ring-1 ring-[#d4af37]/50 transition"
           >
             <span className="flex items-center gap-1.5 text-xs font-semibold">
               <Lightbulb className="w-3.5 h-3.5 text-amber-300" />

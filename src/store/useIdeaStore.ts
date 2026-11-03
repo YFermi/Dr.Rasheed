@@ -10,7 +10,7 @@ import {
   ReferenceIdeaInput,
   ideaRole
 } from '../types';
-import { initialProjectSettings, initialTreeData } from '../data/initialProject';
+import { initialProjectSettings, initialTreeData, newProjectSettings, PROJECT_RESEARCHER, LEGACY_DEFAULT_SETTINGS } from '../data/initialProject';
 
 // Root axes the imports create (IdeaNode.isArticleRoot)
 export const NEW_ARTICLE_LABEL = 'مقال جديد: جلسة عصف';
@@ -176,7 +176,7 @@ export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
   linkingMode: { active: false, sourceId: null },
   activeLinkHighlight: null,
   linkModalState: null,
-  activeMiddleTab: 'links',
+  activeMiddleTab: 'params',
 
   setActiveMiddleTab: (tab: 'links' | 'params' | 'verses' | 'stats' | 'blog') => set({ activeMiddleTab: tab }),
 
@@ -803,7 +803,7 @@ export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
       if (parsed.treeData && parsed.projectSettings) {
         set({
           treeData: parsed.treeData,
-          projectSettings: parsed.projectSettings,
+          projectSettings: { ...parsed.projectSettings, author: PROJECT_RESEARCHER },
           selectedNodeId: parsed.treeData.id,
           expandedNodeIds: collectAllIds(parsed.treeData)
         });
@@ -819,7 +819,7 @@ export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
   resetToInitial: () => {
     set({
       treeData: initialTreeData,
-      projectSettings: initialProjectSettings,
+      projectSettings: newProjectSettings(),
       selectedNodeId: initialTreeData.id,
       expandedNodeIds: [initialTreeData.id],
       clipboardNode: null,
@@ -829,8 +829,21 @@ export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
   }
 }), {
   name: 'idea-builder-project',
-  version: 1,
+  version: 2,
   storage: createJSONStorage(() => localStorage),
+  // v2: the researcher is fixed; the old sample title, subtitle, date and
+  // foreword give way to the new defaults (edited values are kept)
+  migrate: (persisted: any) => {
+    const settings = persisted?.projectSettings;
+    if (settings) {
+      const fresh = newProjectSettings();
+      for (const key of Object.keys(LEGACY_DEFAULT_SETTINGS) as (keyof typeof LEGACY_DEFAULT_SETTINGS)[]) {
+        if (settings[key] === LEGACY_DEFAULT_SETTINGS[key]) settings[key] = fresh[key];
+      }
+      settings.author = PROJECT_RESEARCHER;
+    }
+    return persisted;
+  },
   // Only project data (links live inside treeData.linkedIdeas) plus tree
   // navigation; transient UI state such as modals and the clipboard is not saved.
   partialize: (state) => ({

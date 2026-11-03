@@ -172,18 +172,18 @@ export const ReferenceArticleModal: React.FC = () => {
     setStep('done');
   };
 
-  const field = 'w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white focus:border-sky-500 focus:outline-none';
+  const field = 'w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1 text-white focus:border-sky-500 focus:outline-none';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 select-none text-right">
-      <div role="dialog" aria-label="إدخال مقال مرجعي" className="bg-[#1e1e2e] border border-[#45475a] rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden text-[#cdd6f4]">
+      <div role="dialog" aria-label="إدخال مقال مرجعي" className="bg-[#121212] border border-[#4a4027] rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden text-[#efe6cf]">
         {/* Header */}
-        <div className="h-12 px-4 bg-[#181825] border-b border-[#313244] flex items-center justify-between flex-shrink-0">
+        <div className="h-12 px-4 bg-[#0a0a0a] border-b border-[#2e2817] flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
             <Pin className="w-4 h-4 text-sky-400" />
             <h2 className="text-sm font-bold text-white">📄 إدخال مقال مرجعي (مقال سابق مكتمل)</h2>
           </div>
-          <button type="button" onClick={handleClose} title="إغلاق" className="p-1 hover:bg-[#313244] text-gray-400 hover:text-white rounded transition">
+          <button type="button" onClick={handleClose} title="إغلاق" className="p-1 hover:bg-[#2e2817] text-gray-400 hover:text-white rounded transition">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -224,14 +224,14 @@ export const ReferenceArticleModal: React.FC = () => {
               </div>
 
               {/* File or paste */}
-              <div className="space-y-2 border-t border-[#313244] pt-3">
+              <div className="space-y-2 border-t border-[#2e2817] pt-3">
                 <div className="flex gap-1.5">
                   {([['file', 'رفع ملف Word', Upload], ['paste', 'لصق نص', ClipboardPaste]] as const).map(([value, label, Icon]) => (
                     <button
                       key={value}
                       type="button"
                       onClick={() => setMode(value)}
-                      className={`px-3 py-1.5 rounded border text-xs flex items-center gap-1.5 transition ${mode === value ? 'bg-sky-700/40 border-sky-500 text-sky-100 font-medium' : 'bg-[#181825] border-[#313244] text-gray-400 hover:text-white'}`}
+                      className={`px-3 py-1.5 rounded border text-xs flex items-center gap-1.5 transition ${mode === value ? 'bg-sky-700/40 border-sky-500 text-sky-100 font-medium' : 'bg-[#0a0a0a] border-[#2e2817] text-gray-400 hover:text-white'}`}
                     >
                       <Icon className="w-3.5 h-3.5" /> {label}
                     </button>
@@ -239,7 +239,7 @@ export const ReferenceArticleModal: React.FC = () => {
                 </div>
 
                 {mode === 'file' ? (
-                  <label className="block p-5 border-2 border-dashed border-[#45475a] hover:border-sky-500 rounded-lg text-center cursor-pointer transition">
+                  <label className="block p-5 border-2 border-dashed border-[#4a4027] hover:border-sky-500 rounded-lg text-center cursor-pointer transition">
                     <input type="file" accept=".docx" className="hidden" onChange={e => { handleFile(e.target.files?.[0]); e.target.value = ''; }} />
                     {isReading ? (
                       <span className="flex items-center justify-center gap-2 text-gray-300"><Loader2 className="w-4 h-4 animate-spin" /> جاري قراءة الملف...</span>
@@ -255,7 +255,7 @@ export const ReferenceArticleModal: React.FC = () => {
                     value={text}
                     onChange={e => { setText(e.target.value); setFileName(''); setGlyphChars(0); }}
                     placeholder="الصق نص المقال المكتمل هنا..."
-                    className={`w-full bg-[#181825] border rounded p-3 text-white font-quran text-sm leading-relaxed focus:outline-none placeholder-gray-600 ${isTooLong ? 'border-amber-500' : 'border-[#313244] focus:border-sky-500'}`}
+                    className={`w-full bg-[#0a0a0a] border rounded p-3 text-white font-quran text-sm leading-relaxed focus:outline-none placeholder-gray-600 ${isTooLong ? 'border-amber-500' : 'border-[#2e2817] focus:border-sky-500'}`}
                   />
                 )}
 
@@ -303,7 +303,7 @@ export const ReferenceArticleModal: React.FC = () => {
           {/* Step 3: review */}
           {step === 'review' && analysis && (
             <div className="space-y-4">
-              <div className="p-3 bg-[#181825] border border-[#313244] rounded-lg space-y-2">
+              <div className="p-3 bg-[#0a0a0a] border border-[#2e2817] rounded-lg space-y-2">
                 <h3 className="font-bold text-sm text-white">بنية المقال</h3>
                 {analysis.structure.introduction && <p className="text-[11.5px] text-gray-300 leading-relaxed"><strong className="text-sky-300">المقدمة: </strong>{analysis.structure.introduction}</p>}
                 <div className="space-y-1">
@@ -321,14 +321,14 @@ export const ReferenceArticleModal: React.FC = () => {
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-sm text-white">الأفكار المستخرجة ({acceptedCount} من {ideas.length} مقبولة)</h3>
                 <div className="flex gap-1.5">
-                  <button type="button" onClick={() => setIdeas(prev => prev.map(i => ({ ...i, accepted: true })))} className="px-2 py-1 bg-[#313244] hover:bg-[#45475a] rounded text-[11px]">تحديد الكل</button>
-                  <button type="button" onClick={() => setIdeas(prev => prev.map(i => ({ ...i, accepted: false })))} className="px-2 py-1 bg-[#313244] hover:bg-[#45475a] rounded text-[11px]">إلغاء الكل</button>
+                  <button type="button" onClick={() => setIdeas(prev => prev.map(i => ({ ...i, accepted: true })))} className="px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] rounded text-[11px]">تحديد الكل</button>
+                  <button type="button" onClick={() => setIdeas(prev => prev.map(i => ({ ...i, accepted: false })))} className="px-2 py-1 bg-[#2e2817] hover:bg-[#4a4027] rounded text-[11px]">إلغاء الكل</button>
                 </div>
               </div>
 
               <div className="space-y-2.5">
                 {ideas.map(idea => (
-                  <div key={idea.key} className={`p-3 rounded-lg border transition-all ${idea.accepted ? 'bg-[#1e3a5f]/40 border-sky-700/60' : 'bg-[#181825]/40 border-[#313244] opacity-50'}`}>
+                  <div key={idea.key} className={`p-3 rounded-lg border transition-all ${idea.accepted ? 'bg-[#1e3a5f]/40 border-sky-700/60' : 'bg-[#0a0a0a]/40 border-[#2e2817] opacity-50'}`}>
                     <div className="flex items-center gap-2 mb-2">
                       <input
                         type="checkbox"
@@ -337,12 +337,12 @@ export const ReferenceArticleModal: React.FC = () => {
                         title={idea.accepted ? 'مقبولة (انقر للاستبعاد)' : 'مستبعدة (انقر للقبول)'}
                         className="w-4 h-4 accent-sky-500 flex-shrink-0"
                       />
-                      <input type="text" value={idea.title} onChange={e => updateIdea(idea.key, { title: e.target.value })} className="flex-1 bg-[#1e1e2e] border border-[#313244] rounded px-2 py-1 text-white font-quran text-sm font-bold focus:border-sky-500 focus:outline-none" />
+                      <input type="text" value={idea.title} onChange={e => updateIdea(idea.key, { title: e.target.value })} className="flex-1 bg-[#121212] border border-[#2e2817] rounded px-2 py-1 text-white font-quran text-sm font-bold focus:border-sky-500 focus:outline-none" />
                       <span className="text-[10.5px] text-gray-400 flex-shrink-0 max-w-40 truncate" title={analysis.structure.axes[idea.axisIndex]}>
                         المحور {idea.axisIndex + 1}
                       </span>
                     </div>
-                    <textarea rows={2} value={idea.summary} onChange={e => updateIdea(idea.key, { summary: e.target.value })} className="w-full bg-[#1e1e2e] border border-[#313244] rounded p-2 text-xs text-gray-300 font-quran focus:outline-none mb-1.5" />
+                    <textarea rows={2} value={idea.summary} onChange={e => updateIdea(idea.key, { summary: e.target.value })} className="w-full bg-[#121212] border border-[#2e2817] rounded p-2 text-xs text-gray-300 font-quran focus:outline-none mb-1.5" />
                     {idea.verses.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-1.5">
                         {idea.verses.map(v => <span key={v} className="px-1.5 py-0.5 bg-amber-950/40 border border-amber-800/50 rounded text-[10.5px] text-amber-300 font-quran">[{v}]</span>)}
@@ -359,7 +359,7 @@ export const ReferenceArticleModal: React.FC = () => {
               </div>
 
               {analysis.styleNotes && (
-                <div className="p-3 bg-[#181825] border border-[#313244] rounded-lg">
+                <div className="p-3 bg-[#0a0a0a] border border-[#2e2817] rounded-lg">
                   <h3 className="font-bold text-[12px] text-white mb-1">الملاحظات الأسلوبية (للاطلاع؛ تُحفظ مرجعاً للأسلوب)</h3>
                   <p className="text-[11.5px] text-gray-300 leading-relaxed whitespace-pre-wrap font-quran">{analysis.styleNotes}</p>
                 </div>
@@ -382,7 +382,7 @@ export const ReferenceArticleModal: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div className="h-14 px-4 bg-[#181825] border-t border-[#313244] flex items-center justify-between flex-shrink-0">
+        <div className="h-14 px-4 bg-[#0a0a0a] border-t border-[#2e2817] flex items-center justify-between flex-shrink-0">
           <button type="button" onClick={handleClose} className="px-4 py-1.5 text-xs text-gray-400 hover:text-white transition">
             {step === 'done' ? 'إغلاق' : 'إلغاء'}
           </button>
@@ -398,7 +398,7 @@ export const ReferenceArticleModal: React.FC = () => {
           )}
           {step === 'review' && (
             <div className="flex items-center gap-2">
-              <button type="button" onClick={() => setStep('input')} className="px-3 py-1.5 bg-[#313244] hover:bg-[#45475a] text-xs text-gray-300 rounded">← العودة للنص</button>
+              <button type="button" onClick={() => setStep('input')} className="px-3 py-1.5 bg-[#2e2817] hover:bg-[#4a4027] text-xs text-gray-300 rounded">← العودة للنص</button>
               <button
                 type="button"
                 onClick={handleAdd}

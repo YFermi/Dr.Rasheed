@@ -145,10 +145,10 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-xs p-4 select-none text-right">
-      <div className="bg-[#1e1e2e] border border-[#45475a] rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden text-[#cdd6f4]">
+      <div className="bg-[#121212] border border-[#4a4027] rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden text-[#efe6cf]">
         
         {/* Header */}
-        <div className="h-12 px-4 bg-[#181825] border-b border-[#313244] flex items-center justify-between">
+        <div className="h-12 px-4 bg-[#0a0a0a] border-b border-[#2e2817] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-indigo-400" />
             <h2 className="text-sm font-bold text-white">
@@ -157,7 +157,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-[#313244] text-gray-400 hover:text-white rounded transition"
+            className="p-1 hover:bg-[#2e2817] text-gray-400 hover:text-white rounded transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -180,7 +180,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
             <>
               {/* Presets buttons */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-[#89b4fa] block">
+                <label className="text-xs font-medium text-[#d4af37] block">
                   نماذج تفريغ تجريبية جاهزة للاختبار السريع:
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -189,7 +189,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                       key={idx}
                       type="button"
                       onClick={() => handleLoadSample(sample.text)}
-                      className="px-3 py-1.5 bg-[#313244] hover:bg-[#45475a] text-blue-200 rounded border border-blue-900/40 text-xs transition flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-[#2e2817] hover:bg-[#4a4027] text-blue-200 rounded border border-blue-900/40 text-xs transition flex items-center gap-1.5"
                     >
                       <FileText className="w-3.5 h-3.5 text-blue-400" />
                       <span>{sample.title}</span>
@@ -199,8 +199,8 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
               </div>
 
               {/* Speaker filter selector */}
-              <div className="space-y-1.5 border-t border-[#313244] pt-3">
-                <label className="text-xs font-medium text-[#cdd6f4] block">
+              <div className="space-y-1.5 border-t border-[#2e2817] pt-3">
+                <label className="text-xs font-medium text-[#efe6cf] block">
                   المتحدثون الحاضرون في جلسة العصف:
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -214,7 +214,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                         className={`px-2.5 py-1 rounded text-xs transition border ${
                           isSelected
                             ? 'bg-indigo-600/40 border-indigo-500 text-indigo-200 font-medium'
-                            : 'bg-[#181825] border-[#313244] text-gray-400 hover:text-white'
+                            : 'bg-[#0a0a0a] border-[#2e2817] text-gray-400 hover:text-white'
                         }`}
                       >
                         {isSelected ? '✓ ' : ''}{spk}
@@ -225,8 +225,8 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
               </div>
 
               {/* Textarea for transcript */}
-              <div className="space-y-1.5 border-t border-[#313244] pt-3">
-                <label className="text-xs font-medium text-[#cdd6f4] block">
+              <div className="space-y-1.5 border-t border-[#2e2817] pt-3">
+                <label className="text-xs font-medium text-[#efe6cf] block">
                   الصق تفريغ جلسة العصف الذهني هنا (Arabic Transcript):
                 </label>
                 <textarea
@@ -234,7 +234,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
                   placeholder="د. رشيد: دعونا ننظر في آية العنكبوت...&#10;مصطفى: نعم دكتور، هل يمكن أن يكون قطع السبيل هو قطع النسل..."
-                  className={`w-full bg-[#181825] border rounded p-3 text-white font-quran text-sm leading-relaxed focus:outline-none placeholder-gray-600 ${isTooLong ? 'border-amber-500' : 'border-[#313244] focus:border-indigo-500'}`}
+                  className={`w-full bg-[#0a0a0a] border rounded p-3 text-white font-quran text-sm leading-relaxed focus:outline-none placeholder-gray-600 ${isTooLong ? 'border-amber-500' : 'border-[#2e2817] focus:border-indigo-500'}`}
                 />
                 <div className="flex items-center justify-between text-[11px]">
                   <span className={isTooLong ? 'text-amber-300' : 'text-transparent'}>
@@ -267,7 +267,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
           ) : (
             /* Review Step */
             <div className="space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-[#313244]">
+              <div className="flex items-center justify-between pb-2 border-b border-[#2e2817]">
                 <div>
                   <h3 className="font-bold text-sm text-white">مراجعة الأفكار والشواهد المستخرجة</h3>
                   <p className="text-[11px] text-gray-400">
@@ -277,7 +277,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                 </div>
                 <button
                   onClick={() => setStep('input')}
-                  className="px-2.5 py-1 bg-[#313244] hover:bg-[#45475a] text-xs text-gray-300 rounded"
+                  className="px-2.5 py-1 bg-[#2e2817] hover:bg-[#4a4027] text-xs text-gray-300 rounded"
                 >
                   ← العودة للنص
                 </button>
@@ -294,8 +294,8 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                     key={item.id}
                     className={`p-3 rounded-lg border transition-all ${
                       item.accepted
-                        ? 'bg-[#181825] border-indigo-500/60 shadow-xs'
-                        : 'bg-[#181825]/40 border-[#313244] opacity-50'
+                        ? 'bg-[#0a0a0a] border-indigo-500/60 shadow-xs'
+                        : 'bg-[#0a0a0a]/40 border-[#2e2817] opacity-50'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
@@ -306,7 +306,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                           className={`w-5 h-5 rounded flex items-center justify-center transition-colors ${
                             item.accepted
                               ? 'bg-emerald-600 text-white'
-                              : 'bg-[#313244] text-gray-400'
+                              : 'bg-[#2e2817] text-gray-400'
                           }`}
                           title={item.accepted ? 'مقبولة (انقر للاستبعاد)' : 'مستبعدة (انقر للقبول)'}
                         >
@@ -316,18 +316,18 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                           type="text"
                           value={item.title}
                           onChange={(e) => handleUpdateSuggestion(item.id, { title: e.target.value })}
-                          className="bg-[#1e1e2e] border border-[#313244] rounded px-2 py-1 text-white font-quran text-sm font-bold flex-1 focus:border-blue-500 focus:outline-none"
+                          className="bg-[#121212] border border-[#2e2817] rounded px-2 py-1 text-white font-quran text-sm font-bold flex-1 focus:border-blue-500 focus:outline-none"
                         />
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-[#313244] text-indigo-300 font-mono">
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-[#2e2817] text-indigo-300 font-mono">
                           {item.speaker || 'غير محدد'}
                         </span>
                         <select
                           value={item.type}
                           onChange={(e) => handleUpdateSuggestion(item.id, { type: e.target.value as any })}
-                          className="bg-[#1e1e2e] border border-[#313244] rounded px-2 py-0.5 text-xs text-[#cdd6f4]"
+                          className="bg-[#121212] border border-[#2e2817] rounded px-2 py-0.5 text-xs text-[#efe6cf]"
                         >
                           <option value="idea">💡 فكرة</option>
                           <option value="evidence">📖 شاهد</option>
@@ -342,7 +342,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                         rows={2}
                         value={item.summary}
                         onChange={(e) => handleUpdateSuggestion(item.id, { summary: e.target.value })}
-                        className="w-full bg-[#1e1e2e] border border-[#313244] rounded p-2 text-xs text-gray-300 font-quran focus:outline-none"
+                        className="w-full bg-[#121212] border border-[#2e2817] rounded p-2 text-xs text-gray-300 font-quran focus:outline-none"
                       />
                     </div>
 
@@ -353,7 +353,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                           type="text"
                           value={item.quranicVerses}
                           onChange={(e) => handleUpdateSuggestion(item.id, { quranicVerses: e.target.value })}
-                          className="w-full bg-[#1e1e2e] border border-[#ca8a04]/40 rounded px-2 py-1 text-xs text-amber-300 font-quran"
+                          className="w-full bg-[#121212] border border-[#ca8a04]/40 rounded px-2 py-1 text-xs text-amber-300 font-quran"
                         />
                       </div>
                     )}
@@ -367,7 +367,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
                         value={item.suggestedParentLabel ?? ''}
                         placeholder="أفكار الجلسة"
                         onChange={(e) => handleUpdateSuggestion(item.id, { suggestedParentLabel: e.target.value })}
-                        className="bg-[#1e1e2e] border border-[#313244] rounded px-2 py-1 text-xs text-white flex-1 font-quran focus:outline-none focus:border-indigo-500"
+                        className="bg-[#121212] border border-[#2e2817] rounded px-2 py-1 text-xs text-white flex-1 font-quran focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   </div>
@@ -378,7 +378,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
         </div>
 
         {/* Footer */}
-        <div className="h-14 px-4 bg-[#181825] border-t border-[#313244] flex items-center justify-between">
+        <div className="h-14 px-4 bg-[#0a0a0a] border-t border-[#2e2817] flex items-center justify-between">
           <button
             onClick={onClose}
             className="px-4 py-1.5 text-xs text-gray-400 hover:text-white transition"

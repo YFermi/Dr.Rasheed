@@ -1,26 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useIdeaStore, getAllNodeList } from '../store/useIdeaStore';
-import { exportToWord } from '../utils/docxExport';
+import { exportArticleToWord } from '../utils/articleDocxExport';
 import { useArticleStore } from '../store/useArticleStore';
 import { useApiKeyStore } from '../store/useApiKeyStore';
 import { useReferenceStore } from '../store/useReferenceStore';
+import { SpiderWebLogo } from './SpiderWebLogo';
 import {
   PenLine,
-  FolderTree,
-  Sparkles, 
-  FileDown, 
-  RotateCcw, 
-  Printer, 
-  Layers, 
-  BookOpen, 
+  FileDown,
+  FilePlus2,
   Columns,
-  Maximize2
+  Loader2,
 } from 'lucide-react';
+
+// Column widths in % of the window: idea tree | middle tabs | document
+export const DEFAULT_COLUMN_RATIO = 22; // the tree and the middle column share one width
+const LAYOUT_PRESETS = [
+  { label: '22:22:56', right: DEFAULT_COLUMN_RATIO, mid: true, title: 'التوزيع النموذجي: الشجرة والعمود الأوسط بعرض واحد (22%) | 56% مستند' },
+  { label: '30:70', right: 30, mid: false, title: 'شجرة ومستند: 30% شجرة | 70% مستند' },
+  { label: '22:78', right: DEFAULT_COLUMN_RATIO, mid: false, title: 'معاينة واسعة للمستند: 22% شجرة | 78% مستند' },
+];
 
 interface NavbarProps {
   onOpenImportModal: () => void;
   rightRatio: number;
   setRightRatio: (ratio: number) => void;
+  setMidRatio: (ratio: number) => void;
   showMidCol: boolean;
   setShowMidCol: (show: boolean) => void;
 }
@@ -29,6 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenImportModal, 
   rightRatio, 
   setRightRatio,
+  setMidRatio,
   showMidCol,
   setShowMidCol
 }) => {
@@ -54,8 +60,18 @@ export const Navbar: React.FC<NavbarProps> = ({
     checkServerKey();
   }, [checkServerKey]);
 
-  const handleExportDocx = () => {
-    exportToWord(treeData, projectSettings);
+  // Exports the written article (the draft), not the tree document; the tree's
+  // own Word export stays in the document preview toolbar.
+  const draft = useArticleStore(state => state.draft);
+  const [isExporting, setIsExporting] = useState(false);
+  const handleExportDocx = async () => {
+    if (!draft) return;
+    try {
+      setIsExporting(true);
+      await exportArticleToWord(draft, projectSettings.author);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleReset = () => {
@@ -64,159 +80,123 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
+  const outlineButton = 'flex items-center gap-1.5 px-3 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#4a4027] hover:border-[#d4af37] text-[#efe6cf] rounded text-xs font-medium transition';
+
   return (
-    <header className="h-12 bg-[#11111b] border-b border-[#313244] px-4 flex items-center justify-between select-none text-[#cdd6f4] z-20">
-      {/* Brand & Project Info */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-sm font-bold text-sm">
-            📐
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-white tracking-tight">
-                باني الأفكار <span className="text-blue-400 font-mono text-xs">Idea Builder</span>
-              </span>
-              <span className="text-[10px] px-1.5 py-0.2 bg-[#313244] text-[#89b4fa] rounded-full border border-[#45475a] font-mono">
-                RTL IDE
-              </span>
-            </div>
-          </div>
+    <header className="h-12 bg-[#050505] border-b border-[#4a4027] px-4 flex items-center gap-2 select-none text-[#efe6cf] z-20">
+      {/* 1. Brand */}
+      <div
+        className="flex items-center gap-2 ml-2 flex-shrink-0"
+        title={projectSettings.title ? `المشروع: ${projectSettings.title}` : 'بيت العنكبوت'}
+      >
+        <div className="w-8 h-8 rounded-md bg-[#0a0a0a] border border-[#d4af37]/60 flex items-center justify-center text-[#d4af37] shadow-[0_0_12px_rgba(212,175,55,0.25)]">
+          <SpiderWebLogo className="w-6 h-6" />
         </div>
-
-        <div className="h-4 w-px bg-[#313244] mx-1" />
-
-        {/* Project Title */}
-        <div className="hidden md:flex items-center gap-2 text-xs text-[#a6adc8]">
-          <span className="text-gray-500">المشروع:</span>
-          <span className="text-white font-quran font-semibold">{projectSettings.title}</span>
-        </div>
+        <span className="font-bold text-base text-[#d4af37] tracking-tight whitespace-nowrap">بيت العنكبوت</span>
       </div>
 
-      {/* Center: Live Research Stats */}
-      <div className="hidden xl:flex items-center gap-3 bg-[#181825] px-3 py-1 rounded-full border border-[#313244] text-[11px] text-[#a6adc8]">
-        <span className="flex items-center gap-1">
-          <span>📐</span>
-          <span>{axesCount} محاور</span>
-        </span>
-        <span className="text-gray-600">•</span>
-        <span className="flex items-center gap-1">
-          <span>💡</span>
-          <span>{ideasCount} فكرة</span>
-        </span>
-        <span className="text-gray-600">•</span>
-        <span className="flex items-center gap-1">
-          <span>📖</span>
-          <span>{evidencesCount} شواهد</span>
-        </span>
-        <span className="text-gray-600">•</span>
-        <span className="flex items-center gap-1">
-          <span>❓</span>
-          <span>{questionsCount} أسئلة</span>
-        </span>
-        <span className="text-gray-600">•</span>
-        <span className="text-emerald-400 font-medium">
-          {includedCount} عنصر بالوثيقة
-        </span>
+      <div className="h-5 w-px bg-[#2e2817] mx-1" />
+
+      {/* 2–4. The workflow: reference article → brainstorm session → article */}
+      <button
+        onClick={openReferenceModal}
+        title="إدخال مقال سابق مكتمل وتحليله: تُضاف أفكاره للشجرة أفكاراً مرجعية"
+        className={outlineButton}
+      >
+        <span>📄 مقال مرجعي</span>
+      </button>
+
+      <button
+        onClick={onOpenImportModal}
+        title="استيراد وتفريغ جلسة عصف ذهني"
+        className={outlineButton}
+      >
+        <span>✨ استيراد نص عصف</span>
+      </button>
+
+      <button
+        onClick={openGenerateModal}
+        disabled={isGeneratingArticle}
+        title="كتابة مقال نثري بأسلوب د. رشيد من شجرة الأفكار"
+        className="flex items-center gap-1.5 px-3 py-1 bg-gradient-to-b from-[#e3c66b] to-[#b8901f] hover:from-[#ecd99c] hover:to-[#c9a227] disabled:opacity-60 text-[#0a0a0a] rounded text-xs font-bold transition shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+      >
+        <PenLine className="w-3.5 h-3.5" />
+        <span>{isGeneratingArticle ? 'جاري الكتابة...' : '✍️ كتابة المقال'}</span>
+      </button>
+
+      {/* 5. Live research stats */}
+      <div className="hidden xl:flex items-center gap-3 bg-[#0a0a0a] px-3 py-1 rounded-full border border-[#2e2817] text-[11px] text-[#c2b691] mx-1">
+        <span>📐 {axesCount} محاور</span>
+        <span className="text-[#4a4027]">•</span>
+        <span>💡 {ideasCount} فكرة</span>
+        <span className="text-[#4a4027]">•</span>
+        <span>📖 {evidencesCount} شواهد</span>
+        <span className="text-[#4a4027]">•</span>
+        <span>❓ {questionsCount} أسئلة</span>
+        <span className="text-[#4a4027]">•</span>
+        <span className="text-[#d4af37] font-medium">{includedCount} عنصر بالوثيقة</span>
       </div>
 
-      {/* Left/Right Actions */}
-      <div className="flex items-center gap-2">
-        {/* Mid Column Toggle */}
-        <button
-          onClick={() => setShowMidCol(!showMidCol)}
-          title={showMidCol ? 'إخفاء العمود الأوسط (10%)' : 'إظهار العمود الأوسط (10%)'}
-          className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition ${
-            showMidCol 
-              ? 'bg-[#313244] text-blue-300 border-blue-800' 
-              : 'bg-[#181825] text-gray-400 border-[#313244] hover:text-white'
-          }`}
-        >
-          <Columns className="w-3.5 h-3.5" />
-          <span className="text-[11px] hidden sm:inline">العمود الأوسط</span>
-        </button>
+      {/* 6. Word export of the written article */}
+      <button
+        onClick={handleExportDocx}
+        disabled={!draft || isExporting}
+        title={draft ? `تصدير المقال المكتوب «${draft.title}» كملف Word` : 'لا يوجد مقال مكتوب بعد — اكتب المقال أولاً (✍️ كتابة المقال)'}
+        className="flex items-center gap-1.5 px-3 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#d4af37] text-[#d4af37] disabled:opacity-40 disabled:cursor-not-allowed rounded text-xs font-semibold transition"
+      >
+        {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5" />}
+        <span>تصدير Word</span>
+      </button>
 
-        {/* Layout Presets */}
-        <div className="hidden sm:flex items-center gap-0.5 bg-[#181825] p-0.5 rounded border border-[#313244] text-[10px] font-mono">
+      {/* 7. New project (empty tree) */}
+      <button
+        onClick={handleReset}
+        title="مشروع جديد (شجرة فارغة)"
+        className="flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0a] hover:bg-rose-950/60 border border-[#4a4027] hover:border-rose-500 text-[#c2b691] hover:text-rose-300 rounded text-xs transition"
+      >
+        <FilePlus2 className="w-3.5 h-3.5" />
+        <span className="hidden lg:inline">مشروع جديد</span>
+      </button>
+
+      {/* Settings: API key and layout (far left) */}
+      <div className="flex-1" />
+
+      <button
+        onClick={openKeyModal}
+        title={
+          hasKey ? 'مفتاح Gemini محفوظ في هذا المتصفح' :
+          serverHasKey ? 'يُستعمل مفتاح الخادم — يمكنك إدخال مفتاحك' :
+          'أدخل مفتاح Gemini API لتفعيل ميزات الذكاء الاصطناعي'
+        }
+        className="flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0a] hover:bg-[#1f1d18] border border-[#2e2817] text-[#efe6cf] rounded text-xs transition"
+      >
+        <span className={`w-2 h-2 rounded-full ${hasKey ? 'bg-emerald-400' : serverHasKey ? 'bg-amber-400' : 'bg-rose-500'}`} />
+        <span>{hasKey ? '🔑 المفتاح ✓' : serverHasKey ? '🔑 مفتاح الخادم' : '🔑 أدخل المفتاح'}</span>
+      </button>
+
+      <button
+        onClick={() => setShowMidCol(!showMidCol)}
+        title={showMidCol ? 'إخفاء العمود الأوسط' : 'إظهار العمود الأوسط'}
+        className={`flex items-center gap-1 px-2 py-1 rounded text-xs border transition ${
+          showMidCol
+            ? 'bg-[#1f1d18] text-[#d4af37] border-[#4a4027]'
+            : 'bg-[#0a0a0a] text-[#8a7f66] border-[#2e2817] hover:text-[#efe6cf]'
+        }`}
+      >
+        <Columns className="w-3.5 h-3.5" />
+      </button>
+
+      <div className="hidden 2xl:flex items-center gap-0.5 bg-[#0a0a0a] p-0.5 rounded border border-[#2e2817] text-[10px]">
+        {LAYOUT_PRESETS.map(preset => (
           <button
-            onClick={() => { setRightRatio(33); setShowMidCol(true); }}
-            title="التوزيع النموذجي: 33% شجرة | 18% تبويبات | 49% مستند"
-            className={`px-1.5 py-0.5 rounded transition ${rightRatio === 33 && showMidCol ? 'bg-[#313244] text-white font-bold' : 'text-gray-400 hover:text-white'}`}
+            key={preset.label}
+            onClick={() => { setRightRatio(preset.right); setMidRatio(DEFAULT_COLUMN_RATIO); setShowMidCol(preset.mid); }}
+            title={preset.title}
+            className={`px-1.5 py-0.5 rounded transition ${rightRatio === preset.right && showMidCol === preset.mid ? 'bg-[#2e2817] text-[#d4af37] font-bold' : 'text-[#8a7f66] hover:text-[#efe6cf]'}`}
           >
-            33:18:49
+            {preset.label}
           </button>
-          <button
-            onClick={() => { setRightRatio(40); setShowMidCol(false); }}
-            title="شجرة كاملة ومستند: 40% شجرة | 60% مستند"
-            className={`px-1.5 py-0.5 rounded transition ${rightRatio === 40 && !showMidCol ? 'bg-[#313244] text-white font-bold' : 'text-gray-400 hover:text-white'}`}
-          >
-            40:60
-          </button>
-          <button
-            onClick={() => { setRightRatio(28); setShowMidCol(false); }}
-            title="معاينة واسعة للمستند: 28% شجرة | 72% مستند"
-            className={`px-1.5 py-0.5 rounded transition ${rightRatio === 28 && !showMidCol ? 'bg-[#313244] text-white font-bold' : 'text-gray-400 hover:text-white'}`}
-          >
-            28:72
-          </button>
-        </div>
-
-        <button
-          onClick={onOpenImportModal}
-          title="استيراد وتفريغ جلسة عصف ذهني"
-          className="flex items-center gap-1.5 px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-medium transition shadow-xs"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">استيراد نص عصف</span>
-        </button>
-
-        <button
-          onClick={openReferenceModal}
-          title="إدخال مقال سابق مكتمل وتحليله: تُضاف أفكاره للشجرة أفكاراً مرجعية"
-          className="flex items-center gap-1.5 px-3 py-1 bg-sky-700 hover:bg-sky-600 text-white rounded text-xs font-medium transition shadow-xs"
-        >
-          <span>📄 مقال مرجعي</span>
-        </button>
-
-        <button
-          onClick={openGenerateModal}
-          disabled={isGeneratingArticle}
-          title="كتابة مقال نثري بأسلوب د. رشيد من شجرة الأفكار"
-          className="flex items-center gap-1.5 px-3 py-1 bg-amber-600 hover:bg-amber-500 disabled:opacity-60 text-white rounded text-xs font-semibold transition shadow-xs"
-        >
-          <PenLine className="w-3.5 h-3.5" />
-          <span>{isGeneratingArticle ? 'جاري الكتابة...' : '✍️ كتابة المقال'}</span>
-        </button>
-
-        <button
-          onClick={openKeyModal}
-          title={
-            hasKey ? 'مفتاح Gemini محفوظ في هذا المتصفح' :
-            serverHasKey ? 'يُستعمل مفتاح الخادم — يمكنك إدخال مفتاحك' :
-            'أدخل مفتاح Gemini API لتفعيل ميزات الذكاء الاصطناعي'
-          }
-          className="flex items-center gap-1.5 px-2.5 py-1 bg-[#181825] hover:bg-[#313244] border border-[#313244] text-[#cdd6f4] rounded text-xs transition"
-        >
-          <span className={`w-2 h-2 rounded-full ${hasKey ? 'bg-emerald-400' : serverHasKey ? 'bg-amber-400' : 'bg-rose-500'}`} />
-          <span>{hasKey ? '🔑 المفتاح ✓' : serverHasKey ? '🔑 مفتاح الخادم' : '🔑 أدخل المفتاح'}</span>
-        </button>
-
-        <button
-          onClick={handleExportDocx}
-          title="تصدير المستند المنسق كملف Word"
-          className="flex items-center gap-1.5 px-3 py-1 bg-blue-700 hover:bg-blue-600 text-white rounded text-xs font-semibold transition shadow-xs"
-        >
-          <FileDown className="w-3.5 h-3.5" />
-          <span>تصدير Word</span>
-        </button>
-
-        <button
-          onClick={handleReset}
-          title="مشروع جديد (شجرة فارغة)"
-          className="p-1.5 hover:bg-[#313244] text-gray-400 hover:text-amber-300 rounded transition"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-        </button>
+        ))}
       </div>
     </header>
   );

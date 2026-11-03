@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Navbar } from './components/Navbar';
+import { Navbar, DEFAULT_COLUMN_RATIO } from './components/Navbar';
 import { WordPreview } from './components/WordPreview/WordPreview';
 import { IdeaTree } from './components/IdeaTree/IdeaTree';
 import { MiddleTabPanel } from './components/MiddleColumn/MiddleTabPanel';
@@ -19,9 +19,10 @@ import { toArabicDigits } from './utils/arabic';
 export default function App() {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
-  // Layout Ratios (RTL Workflow: Right 30-35%, Middle 15-20%, Left 50-55%)
-  const [rightRatio, setRightRatio] = useState(33); // 33% Idea Builder (Right side - FULL HEIGHT)
-  const [midRatio, setMidRatio] = useState(18);     // 18% Middle Tabbed Column (min 240px, max 360px)
+  // Layout ratios (RTL): the idea tree (right) and the middle tabs start at the
+  // same width; the document (left) takes the rest
+  const [rightRatio, setRightRatio] = useState(DEFAULT_COLUMN_RATIO);
+  const [midRatio, setMidRatio] = useState(DEFAULT_COLUMN_RATIO);
   const [showMidCol, setShowMidCol] = useState(true);
 
   // Resizing states
@@ -48,7 +49,7 @@ export default function App() {
       if (isDraggingRight) {
         // In RTL: right panel width = rect.right - e.clientX
         const rightWidth = rect.right - e.clientX;
-        const percent = Math.min(Math.max((rightWidth / rect.width) * 100, 25), 45);
+        const percent = Math.min(Math.max((rightWidth / rect.width) * 100, 15), 45);
         setRightRatio(Math.round(percent));
       }
 
@@ -78,12 +79,13 @@ export default function App() {
   }, [isDraggingRight, isDraggingMid, rightRatio, showMidCol]);
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#181825] overflow-hidden text-[#cdd6f4]">
+    <div className="h-screen w-screen flex flex-col bg-[#0a0a0a] overflow-hidden text-[#efe6cf]">
       {/* Top Application Navbar */}
       <Navbar
         onOpenImportModal={() => setIsImportModalOpen(true)}
         rightRatio={rightRatio}
         setRightRatio={setRightRatio}
+        setMidRatio={setMidRatio}
         showMidCol={showMidCol}
         setShowMidCol={setShowMidCol}
       />
@@ -91,39 +93,39 @@ export default function App() {
       {/* 
         3-PANEL RTL WORKSPACE:
         Under <html dir="rtl">, flex items flow from RIGHT to LEFT:
-        1. Panel 1 (Right, 30-35%): IDEA BUILDER TREE ONLY (100% FULL HEIGHT)
+        1. Panel 1 (Right, 22%): IDEA TREE ONLY (100% FULL HEIGHT)
         2. Resizer 1 (Draggable divider)
-        3. Panel 2 (Middle, 15-20%, min 240px, max 360px): TABBED INFORMATION PANEL (التشابكات | الخصائص | الآيات | الإحصائيات)
+        3. Panel 2 (Middle, 22%, same width as the tree): TABBED INFORMATION PANEL (الخصائص | المقالات | الآيات | التشابكات | الإحصائيات)
         4. Resizer 2 (Draggable divider)
-        5. Panel 3 (Left, 50-55%): WORD DOCUMENT PREVIEW (A4)
+        5. Panel 3 (Left, the rest): WORD DOCUMENT PREVIEW (A4)
       */}
       <div 
         ref={containerRef}
         className="flex-1 flex overflow-hidden relative select-none"
       >
-        {/* PANEL 1 (RIGHT SIDE, 30-35%): IDEA BUILDER TREE ONLY (FULL HEIGHT) */}
+        {/* PANEL 1 (RIGHT SIDE): IDEA TREE ONLY (FULL HEIGHT) */}
         <div 
           style={{ width: `${rightRatio}%` }}
-          className="h-full flex flex-col flex-shrink-0 overflow-hidden relative bg-[#1e1e2e] z-10"
+          className="h-full flex flex-col flex-shrink-0 min-w-[240px] overflow-hidden relative bg-[#121212] z-10"
         >
           <IdeaTree onOpenImportModal={() => setIsImportModalOpen(true)} />
         </div>
 
-        {/* Resizer 1: Draggable divider between Idea Builder and Middle Column */}
+        {/* Resizer 1: Draggable divider between the idea tree and the middle column */}
         <div
           onMouseDown={() => setIsDraggingRight(true)}
           title="اسحب لتعديل عرض شجرة الأفكار"
-          className="w-1.5 hover:w-2 bg-[#313244] hover:bg-[#89b4fa] cursor-col-resize flex items-center justify-center transition-all z-20 group"
+          className="w-1.5 hover:w-2 bg-[#2e2817] hover:bg-[#d4af37] cursor-col-resize flex items-center justify-center transition-all z-20 group"
         >
           <div className="w-0.5 h-8 bg-gray-500 group-hover:bg-white rounded" />
         </div>
 
-        {/* PANEL 2 (MIDDLE COLUMN, 15-20%, min 240px, max 360px): TABBED INFORMATION PANEL */}
+        {/* PANEL 2 (MIDDLE COLUMN, same default width as the tree): TABBED INFORMATION PANEL */}
         {showMidCol && (
           <>
             <div 
               style={{ width: `${midRatio}%` }}
-              className="h-full flex-shrink-0 min-w-[240px] max-w-[360px] overflow-hidden relative bg-[#252536] border-l border-r border-[#313244] z-10"
+              className="h-full flex-shrink-0 min-w-[240px] overflow-hidden relative bg-[#171717] border-l border-r border-[#2e2817] z-10"
             >
               <MiddleTabPanel />
             </div>
@@ -132,7 +134,7 @@ export default function App() {
             <div
               onMouseDown={() => setIsDraggingMid(true)}
               title="اسحب لتعديل عرض لوحة المعلومات"
-              className="w-1.5 hover:w-2 bg-[#313244] hover:bg-[#89b4fa] cursor-col-resize flex items-center justify-center transition-all z-20 group"
+              className="w-1.5 hover:w-2 bg-[#2e2817] hover:bg-[#d4af37] cursor-col-resize flex items-center justify-center transition-all z-20 group"
             >
               <div className="w-0.5 h-8 bg-gray-500 group-hover:bg-white rounded" />
             </div>

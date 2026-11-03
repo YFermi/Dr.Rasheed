@@ -1,6 +1,6 @@
 {
-  "name": "Idea Builder (باني الأفكار)",
-  "description": "Professional research IDE for structuring, organizing, and exporting academic and religious research ideas with COMSOL-inspired tree hierarchy and live Word preview.",
+  "name": "بيت العنكبوت",
+  "description": "بيت العنكبوت: بيئة بحثية لبناء شجرة الأفكار من جلسات العصف الذهني وتحويلها إلى مقالات بأسلوب د. رشيد الجراح، مع معاينة Word حية.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

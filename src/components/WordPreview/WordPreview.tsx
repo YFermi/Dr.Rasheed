@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useIdeaStore } from '../../store/useIdeaStore';
 import { exportToWord } from '../../utils/docxExport';
+import { PROJECT_TITLE_PLACEHOLDER } from '../../data/initialProject';
 import { IdeaNode } from '../../types';
 import { 
   FileDown, 
@@ -277,13 +278,13 @@ export const WordPreview: React.FC = () => {
           {/* Running Header */}
           <div className="border-b border-gray-200 pb-2 mb-8 flex items-center justify-between text-[11px] text-gray-400 font-quran">
             <span>{projectSettings.title}</span>
-            <span>باني الأفكار — دراسة استقرائية وتفكيك دلالي</span>
+            <span>بيت العنكبوت — دراسة استقرائية وتفكيك دلالي</span>
           </div>
 
           {/* Document Title Header */}
           <div className="text-center mb-8">
-            <h1 className="text-[28px] font-bold text-[#1e3a8a] font-quran tracking-tight mb-2">
-              {projectSettings.title}
+            <h1 className={`text-[28px] font-bold font-quran tracking-tight mb-2 ${projectSettings.title ? 'text-[#1e3a8a]' : 'text-gray-300'}`}>
+              {projectSettings.title || PROJECT_TITLE_PLACEHOLDER}
             </h1>
             {projectSettings.subtitle && (
               <p className="text-[15px] text-gray-600 font-quran italic mb-3">
@@ -300,7 +301,7 @@ export const WordPreview: React.FC = () => {
           {/* Document Abstract / Overview */}
           {projectSettings.description && (
             <div className="p-4 bg-gray-50 border-r-3 border-blue-600 rounded mb-6 text-[13.5px] leading-relaxed text-gray-700 font-quran">
-              <strong className="text-blue-900 block mb-1">توطئة ومنهجية البحث:</strong>
+              <strong className="text-blue-900 block mb-1">التوطئة:</strong>
               {projectSettings.description}
             </div>
           )}
@@ -312,7 +313,7 @@ export const WordPreview: React.FC = () => {
 
           {/* Running Footer */}
           <div className="mt-16 pt-4 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-400 font-sans">
-            <span>تم استخراج المستند عبر نظام Idea Builder</span>
+            <span>تم استخراج المستند عبر «بيت العنكبوت»</span>
             <div className="flex items-center gap-1 font-mono">
               <span title="تقدير من ارتفاع المحتوى ÷ ارتفاع صفحة A4">عدد الصفحات ≈ {pageCount}</span>
               <span>•</span>
