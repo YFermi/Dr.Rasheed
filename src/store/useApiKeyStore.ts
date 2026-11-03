@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getApiKey, setApiKey, removeApiKey, maskKey, fetchServerHasKey } from '../utils/apiKey';
+import { getApiKey, setApiKey, removeApiKey, maskKey, fetchServerHasKey, getModel, setModel } from '../utils/apiKey';
 
 // Reactive view of the API key state for the Navbar, the key modal and the AI
 // features. The key itself lives only in localStorage (see utils/apiKey.ts).
@@ -9,10 +9,12 @@ interface ApiKeyStoreState {
   // Whether the server has its own GEMINI_API_KEY (null until checked)
   serverHasKey: boolean | null;
   isModalOpen: boolean;
+  model: string; // '' = the server's default
 
   saveKey: (key: string) => void;
   deleteKey: () => void;
   checkServerKey: () => Promise<void>;
+  chooseModel: (model: string) => void;
   openModal: () => void;
   closeModal: () => void;
 }
@@ -26,6 +28,7 @@ export const useApiKeyStore = create<ApiKeyStoreState>((set) => ({
   ...snapshot(),
   serverHasKey: null,
   isModalOpen: false,
+  model: getModel(),
 
   saveKey: (key) => {
     setApiKey(key);
@@ -36,6 +39,10 @@ export const useApiKeyStore = create<ApiKeyStoreState>((set) => ({
     set(snapshot());
   },
   checkServerKey: async () => set({ serverHasKey: await fetchServerHasKey() }),
+  chooseModel: (model) => {
+    setModel(model);
+    set({ model: getModel() });
+  },
   openModal: () => set({ isModalOpen: true }),
   closeModal: () => set({ isModalOpen: false }),
 }));

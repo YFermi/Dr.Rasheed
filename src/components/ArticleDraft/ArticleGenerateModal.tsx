@@ -3,12 +3,15 @@ import { useArticleStore, currentArticleInput } from '../../store/useArticleStor
 import { useBlogStore } from '../../store/useBlogStore';
 import { useIdeaStore, getAllNodeList } from '../../store/useIdeaStore';
 import { useApiKeyStore, selectAiAvailable } from '../../store/useApiKeyStore';
-import { hasEnoughContent } from '../../utils/articleBuilder';
+import { useReferenceStore } from '../../store/useReferenceStore';
+import { latestReferenceArticle } from '../../utils/referenceContext';
+import { modelLabel } from '../../utils/apiKey';
+import { hasEnoughContent, SECTION_LENGTHS, partCount, withOptionDefaults } from '../../utils/articleBuilder';
 import { toArabicDigits } from '../../utils/arabic';
 import { ArticleOptions } from '../../types/article';
 import { PenLine, X, AlertTriangle, Lock } from 'lucide-react';
 
-const LENGTHS = [3000, 4000, 5000, 6000];
+const formatWords = (n: number) => n.toLocaleString('ar-EG');
 
 export const ArticleGenerateModal: React.FC = () => {
   const { isGenerateModalOpen, closeGenerateModal, generate, lastOptions, draft, sectionMeta, isGenerating } = useArticleStore();
@@ -16,7 +19,10 @@ export const ArticleGenerateModal: React.FC = () => {
   const setLeftPanelView = useBlogStore(state => state.setLeftPanelView);
   const aiAvailable = useApiKeyStore(selectAiAvailable);
   const openKeyModal = useApiKeyStore(state => state.openModal);
-  const [options, setOptions] = useState<ArticleOptions>(lastOptions);
+  const model = useApiKeyStore(state => state.model);
+  const { stories, referenceArticles, openModal: openReferenceModal } = useReferenceStore();
+  // Options saved before the per-axis length existed get its default (3,000 words)
+  const [options, setOptions] = useState<ArticleOptions>(() => withOptionDefaults(lastOptions));
 
   const input = useMemo(
     () => (isGenerateModalOpen ? currentArticleInput(options) : null),
@@ -33,6 +39,8 @@ export const ArticleGenerateModal: React.FC = () => {
   const enough = hasEnoughContent(input);
   const ideaCount = input.sections.reduce((n, s) => n + s.nodes.filter(x => x.depth > 0).length, 0);
   const lockedCount = draft ? draft.sections.filter(s => sectionMeta[s.id]?.locked).length : 0;
+  const reference = latestReferenceArticle(referenceArticles, options.storyName);
+  const storyChoices = stories.includes(options.storyName) ? stories : [options.storyName, ...stories];
 
   const handleStart = () => {
     closeGenerateModal();
@@ -94,26 +102,55 @@ export const ArticleGenerateModal: React.FC = () => {
             </div>
           )}
 
-          {/* Target length */}
+          {/* Length per axis */}
           <div className="space-y-1.5">
-            <label className="text-[11px] text-gray-300 block">الطول المستهدف:</label>
-            <div className="grid grid-cols-4 gap-1">
-              {LENGTHS.map(n => (
+            <label className="text-[11px] text-gray-300 block">طول كل محور:</label>
+            <div className="grid grid-cols-3 gap-1">
+              {SECTION_LENGTHS.map(({ words, label }) => (
                 <button
-                  key={n}
+                  key={words}
                   type="button"
-                  onClick={() => setOptions({ ...options, targetLength: n })}
+                  onClick={() => setOptions({ ...options, sectionLength: words })}
                   className={`py-1.5 rounded border text-[11px] transition ${
-                    options.targetLength === n
+                    options.sectionLength === words
                       ? 'bg-amber-600/80 border-amber-500 text-white font-bold'
                       : 'bg-[#181825] border-[#313244] text-gray-400 hover:text-white'
                   }`}
                 >
-                  {toArabicDigits(n)} كلمة
+                  {label} ({formatWords(words)} كلمة)
                 </button>
               ))}
             </div>
+            <p className="text-[10.5px] text-gray-500">
+              المقال كله نحو {formatWords(options.sectionLength * input.sections.length)} كلمة؛
+              يُكتب كل محور على {toArabicDigits(partCount(options.sectionLength))} {partCount(options.sectionLength) > 1 ? 'أجزاء متتالية' : 'جزء واحد'}.
+            </p>
           </div>
+
+          {/* Story → reference article (style) and story passages */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] text-gray-300 block">القصة:</label>
+            <select
+              value={options.storyName}
+              onChange={e => setOptions({ ...options, storyName: e.target.value })}
+              className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1.5 text-white text-xs focus:outline-none"
+            >
+              {storyChoices.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            {reference ? (
+              <p className="text-[10.5px] text-sky-300 leading-relaxed">📌 مرجع الأسلوب: «{reference.title}» (أحدث مقال مرجعي لهذه القصة)</p>
+            ) : (
+              <p className="text-[10.5px] text-amber-300/90 leading-relaxed">
+                ⚠️ لا يوجد مقال مرجعي لهذه القصة؛ يُكتب المقال بدليل الأسلوب العام فقط.{' '}
+                <button type="button" onClick={openReferenceModal} className="underline hover:text-white">إدخال مقال مرجعي</button>
+              </p>
+            )}
+          </div>
+
+          <p className="text-[10.5px] text-gray-400">
+            الموديل: <span className="text-gray-200">{modelLabel(model)}</span>{' '}
+            <button type="button" onClick={openKeyModal} className="underline hover:text-white">تغيير</button>
+          </p>
 
           {/* Style */}
           <div className="space-y-1.5">
@@ -147,7 +184,7 @@ export const ArticleGenerateModal: React.FC = () => {
           )}
 
           <p className="text-[10.5px] text-gray-500 leading-relaxed">
-            تُكتب المسودة محوراً محوراً (قد يستغرق ذلك دقيقة أو أكثر)، وتُدرَج نصوص الآيات من المصحف الموثّق لا من النموذج.
+            تُكتب المسودة محوراً محوراً وجزءاً جزءاً (قد يستغرق المقال الطويل عدة دقائق)، وتُدرَج نصوص الآيات من المصحف الموثّق لا من النموذج.
             تبقى المسودة موسومة «مسودة بمساعدة الذكاء الاصطناعي» حتى تعتمدها.
           </p>
         </div>

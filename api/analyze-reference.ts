@@ -175,7 +175,7 @@ export function normalizeAnalysis(raw: Partial<ReferenceAnalysis> | null, text: 
 // quota or timeout error, where a retry would not help.
 const isBadOutput = (e: unknown) => e instanceof HttpError && e.status === 502 && /JSON|أي نص/.test(e.message);
 
-export async function analyzeReference(apiKey: string, body: AnalyzeRequestBody): Promise<ReferenceAnalysis> {
+export async function analyzeReference(apiKey: string, body: AnalyzeRequestBody, model?: string): Promise<ReferenceAnalysis> {
   const text = asString(body.text).trim();
   const title = asString(body.title).trim();
   const prompt = buildPrompt(text, title, asString(body.storyName).trim());
@@ -186,6 +186,7 @@ export async function analyzeReference(apiKey: string, body: AnalyzeRequestBody)
     try {
       const raw = await generateJson<Partial<ReferenceAnalysis>>({
         apiKey,
+        model,
         system: SYSTEM_PROMPT,
         prompt,
         schema: ANALYSIS_SCHEMA,
@@ -206,7 +207,7 @@ export async function analyzeReference(apiKey: string, body: AnalyzeRequestBody)
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   // handleJson: method check, the browser's key (header) or the server's GEMINI_API_KEY
-  return handleJson(req, res, async (body, apiKey) => {
+  return handleJson(req, res, async (body, apiKey, model) => {
     const request = body as AnalyzeRequestBody;
     const text = typeof request.text === 'string' ? request.text.trim() : '';
     if (!text) throw new HttpError(400, 'يرجى تزويد نص المقال (text)');
@@ -214,6 +215,6 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       throw new HttpError(413, `المقال أطول من ${MAX_ARTICLE_CHARS.toLocaleString('en-US')} حرف`);
     }
     if (wordCount(text) < 50) throw new HttpError(400, 'النص أقصر من أن يكون مقالاً مكتملاً');
-    return analyzeReference(apiKey, request);
+    return analyzeReference(apiKey, request, model);
   });
 }

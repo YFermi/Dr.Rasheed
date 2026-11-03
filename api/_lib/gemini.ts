@@ -23,6 +23,18 @@ export function geminiModel(): string {
   return process.env.GEMINI_MODEL || DEFAULT_MODEL;
 }
 
+// Models the user may pick in the app (🔑 window), sent in the X-Gemini-Model
+// header. Only these are accepted, so a request cannot point the key at any model.
+export const SELECTABLE_MODELS = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.1-pro-preview'];
+export const MODEL_HEADER = 'x-gemini-model';
+
+// The picked model when allowed, else GEMINI_MODEL / the default
+export function resolveModel(req: ApiRequest): string {
+  const raw = req.headers?.[MODEL_HEADER];
+  const picked = (Array.isArray(raw) ? raw[0] : raw)?.trim();
+  return picked && SELECTABLE_MODELS.includes(picked) ? picked : geminiModel();
+}
+
 // ---- HTTP plumbing -----------------------------------------------------------
 
 export interface ApiRequest {
@@ -61,7 +73,7 @@ export function resolveApiKey(req: ApiRequest): { key: string; source: 'header' 
 export async function handleJson<T>(
   req: ApiRequest,
   res: ApiResponse,
-  run: (body: Record<string, unknown>, apiKey: string) => Promise<T>
+  run: (body: Record<string, unknown>, apiKey: string, model: string) => Promise<T>
 ) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const body = req.body && typeof req.body === 'object' ? (req.body as Record<string, unknown>) : null;
@@ -71,7 +83,7 @@ export async function handleJson<T>(
   if (!apiKey) return res.status(500).json({ error: MISSING_KEY_ERROR });
 
   try {
-    return res.status(200).json(await run(body, apiKey));
+    return res.status(200).json(await run(body, apiKey, resolveModel(req)));
   } catch (error) {
     if (error instanceof HttpError) return res.status(error.status).json({ error: error.message });
     console.error('Gemini API error:', error);
@@ -85,6 +97,7 @@ export type Effort = 'minimal' | 'low' | 'medium' | 'high';
 
 export interface GeminiRequest {
   apiKey: string;
+  model?: string; // default: geminiModel()
   system?: string;
   prompt: string;
   timeoutMs?: number; // default DEFAULT_TIMEOUT_MS
@@ -148,7 +161,7 @@ function apiError(status: number, detail: string, model: string): HttpError {
 }
 
 export async function callGemini(req: GeminiRequest): Promise<GeminiResponse> {
-  const model = geminiModel();
+  const model = req.model ?? geminiModel();
   const thinking = thinkingConfig(model, req.effort);
   const body = {
     ...(req.system ? { systemInstruction: { parts: [{ text: req.system }] } } : {}),
@@ -290,3 +303,25 @@ export const asStringArray = (v: unknown): string[] =>
 export const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
 
 export const ORDINALS = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع', 'العاشر'];
+
+// ---- Prompt pieces shared by the article calls ------------------------------
+
+// Same text as NO_REFERENCE in src/utils/referenceContext.ts
+export const NO_REFERENCE = 'لا يوجد مقال مرجعي. التزم بدليل الأسلوب العام فقط.';
+
+// The reference article (the previous part of the series) as a direct style model
+export function referenceSection(referenceContext: string | undefined): string {
+  const context = referenceContext?.trim();
+  if (!context || context === NO_REFERENCE) return `## مرجع أسلوب مباشر\n${NO_REFERENCE}`;
+  return `## مرجع أسلوب مباشر (المقال السابق من نفس السلسلة)
+
+اقرأ هذا المقتطف من المقال السابق بعناية. التزم بنفس:
+- نبرة الصوت وطريقة مخاطبة القارئ
+- طريقة تطوير الفكرة (سؤال ← شاهد ← نقد ← نتيجة)
+- عبارات الانتقال والتحفّظ
+- طريقة الاستشهاد القرآني
+
+لا تنسخ منه، بل اكتب بنفس الأسلوب:
+
+${context}`;
+}

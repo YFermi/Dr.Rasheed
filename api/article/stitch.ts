@@ -77,12 +77,13 @@ function validateInput(body: Record<string, unknown>): StitchRequest {
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
-  return handleJson(req, res, async (body, apiKey) => {
+  return handleJson(req, res, async (body, apiKey, model) => {
     const request = validateInput(body);
     const { styleGuide } = await loadStylePack();
     const { system, prompt } = buildStitchPrompt(request, styleGuide);
     const raw = await generateJson<Partial<StitchResponse>>({
       apiKey,
+      model,
       system,
       prompt,
       schema: STITCH_SCHEMA,

@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
+import type { BlogArticle } from '../types/blog';
+import { toBlogArticle, paragraphsFromText } from '../utils/blogArticle';
 
 // Finished, verified articles added as references (ReferenceArticleModal): their
 // full text and style notes, kept for the style reference of later generation.
@@ -44,6 +46,8 @@ interface ReferenceStoreState {
   getArticle: (id: string) => ReferenceArticle | undefined;
   getArticlesByStory: (storyName: string) => ReferenceArticle[];
   removeArticle: (id: string) => void;
+  // The article in the story-corpus format (blog.json), ready to be added to it
+  exportToBlogJson: (id: string, partNumber?: number) => BlogArticle | undefined;
   addStory: (name: string) => void;
   openModal: () => void;
   closeModal: () => void;
@@ -72,6 +76,11 @@ export const useReferenceStore = create<ReferenceStoreState>()(persist((set, get
 
   removeArticle: (id) => set(state => ({ referenceArticles: state.referenceArticles.filter(a => a.id !== id) })),
 
+  exportToBlogJson: (id, partNumber = 0) => {
+    const article = get().getArticle(id);
+    return article && referenceToBlogArticle(article, partNumber);
+  },
+
   addStory: (name) => {
     const story = name.trim();
     if (story && !get().stories.includes(story)) set(state => ({ stories: [...state.stories, story] }));
@@ -94,4 +103,11 @@ export function referenceArticleTitle(
 ): string {
   const article = node.referenceArticleId ? articles.find(a => a.id === node.referenceArticleId) : undefined;
   return article?.title ?? node.sessionRef?.replace(/^مقال مرجعي:\s*/, '') ?? '';
+}
+
+export function referenceToBlogArticle(article: ReferenceArticle, partNumber = 0): BlogArticle {
+  return toBlogArticle(
+    { id: article.id, partNumber, title: article.title, sourceFile: `مقال مرجعي: ${article.title}` },
+    paragraphsFromText(article.fullText)
+  );
 }

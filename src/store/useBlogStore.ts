@@ -3,11 +3,60 @@ import type { BlogCorpus, BlogRef, SearchResult } from '../types/blog';
 import { loadBlogCorpus } from '../data/blogLoader';
 import { searchCorpus } from '../utils/arabic';
 import { findRefArticle } from '../utils/blogLinks';
+import { toBlogArticle, type StoryParagraph } from '../utils/blogArticle';
+
+// Approved articles saved to the story corpus from the app. blog.json is a static
+// file, so they live in this browser (localStorage) and are merged in at load.
+export interface SavedStoryArticle {
+  id: string;
+  partNumber: number;
+  title: string;
+  savedAt: string; // ISO date
+  paragraphs: StoryParagraph[];
+}
+
+const SAVED_KEY = 'idea-builder-story-additions';
+
+function readSaved(): SavedStoryArticle[] {
+  try {
+    const raw = localStorage.getItem(SAVED_KEY);
+    return raw ? (JSON.parse(raw) as SavedStoryArticle[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+// false when storage is blocked or full
+function writeSaved(list: SavedStoryArticle[]): boolean {
+  try {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(list));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const savedToBlog = (a: SavedStoryArticle) =>
+  toBlogArticle({ id: a.id, partNumber: a.partNumber, title: a.title, sourceFile: 'محفوظ من التطبيق' }, a.paragraphs);
+
+function mergeCorpus(base: BlogCorpus, saved: SavedStoryArticle[]): BlogCorpus {
+  const ids = new Set(saved.map(a => a.id));
+  const articles = [...base.articles.filter(a => !ids.has(a.id)), ...saved.map(savedToBlog)];
+  return {
+    ...base,
+    articles,
+    totalArticles: articles.length,
+    totalParagraphs: articles.reduce((n, a) => n + a.paragraphs.length, 0),
+    totalVerses: articles.reduce((n, a) => n + a.verses.length, 0),
+  };
+}
 
 // Read-only blog corpus — kept apart from useIdeaStore so it is never persisted
 // or included in project exports.
 interface BlogStoreState {
-  corpus: BlogCorpus | null;
+  corpus: BlogCorpus | null; // blog.json + savedArticles
+  baseCorpus: BlogCorpus | null; // blog.json as loaded
+  savedArticles: SavedStoryArticle[];
   isLoading: boolean;
   error: string | null;
   searchQuery: string;
@@ -20,6 +69,9 @@ interface BlogStoreState {
   leftPanelView: 'document' | 'blog' | 'draft';
 
   loadCorpus: () => Promise<void>;
+  // Adds (or replaces, same id) an article in the story corpus; false when it could not be saved
+  saveToStory: (article: Omit<SavedStoryArticle, 'savedAt'>) => boolean;
+  nextPartNumber: () => number;
   search: (query: string) => void;
   openArticle: (id: string, highlightParagraphId?: string) => void;
   highlightParagraph: (id: string) => void;
@@ -32,6 +84,8 @@ interface BlogStoreState {
 
 export const useBlogStore = create<BlogStoreState>((set, get) => ({
   corpus: null,
+  baseCorpus: null,
+  savedArticles: readSaved(),
   isLoading: false,
   error: null,
   searchQuery: '',
@@ -45,14 +99,28 @@ export const useBlogStore = create<BlogStoreState>((set, get) => ({
     if (get().corpus || get().isLoading) return;
     set({ isLoading: true, error: null });
     try {
-      const corpus = await loadBlogCorpus();
-      set({ corpus, isLoading: false });
+      const baseCorpus = await loadBlogCorpus();
+      set({ baseCorpus, corpus: mergeCorpus(baseCorpus, get().savedArticles), isLoading: false });
       // Re-run a query typed before the corpus arrived.
       const { searchQuery } = get();
       if (searchQuery) get().search(searchQuery);
     } catch (e) {
       set({ isLoading: false, error: e instanceof Error ? e.message : String(e) });
     }
+  },
+
+  saveToStory: (article) => {
+    const saved = [...get().savedArticles.filter(a => a.id !== article.id), { ...article, savedAt: new Date().toISOString() }];
+    if (!writeSaved(saved)) return false;
+    const { baseCorpus, searchQuery } = get();
+    set({ savedArticles: saved, ...(baseCorpus ? { corpus: mergeCorpus(baseCorpus, saved) } : {}) });
+    if (searchQuery) get().search(searchQuery);
+    return true;
+  },
+
+  nextPartNumber: () => {
+    const parts = [...(get().corpus?.articles ?? []).map(a => a.partNumber), ...get().savedArticles.map(a => a.partNumber)];
+    return parts.length ? Math.max(...parts) + 1 : 1;
   },
 
   search: (query: string) => {

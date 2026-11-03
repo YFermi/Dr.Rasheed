@@ -39,6 +39,12 @@ export function countGlyphChars(text: string): number {
   return text.match(QURAN_GLYPH_RE_GLOBAL)?.length ?? 0;
 }
 
+// Each run of glyph characters (with the spaces inside it) becomes `replacement`:
+// glyph text is unreadable outside its font.
+export function replaceQuranGlyphs(text: string, replacement: string): string {
+  return text.replace(new RegExp(`(?:${QURAN_GLYPH_RE.source})(?:[\\s]*(?:${QURAN_GLYPH_RE.source}))*`, 'g'), replacement);
+}
+
 // Longest first, so "وال" wins over "و".
 const PREFIXES = ['ولل', 'وال', 'فال', 'بال', 'كال', 'لل', 'ال', 'و', 'ف', 'ب', 'ك', 'ل'];
 const SUFFIXES = ['ات', 'ين', 'ون', 'ان', 'ة', 'ه', 'ي', 'ن', 'ا'];

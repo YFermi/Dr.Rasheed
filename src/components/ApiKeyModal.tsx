@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useApiKeyStore } from '../store/useApiKeyStore';
-import { getApiKey, testApiKey, hasValidKeyFormat, KEY_PREFIX } from '../utils/apiKey';
+import { getApiKey, testApiKey, hasValidKeyFormat, KEY_PREFIX, MODEL_OPTIONS } from '../utils/apiKey';
 import { KeyRound, Eye, EyeOff, ClipboardPaste, X, Loader2, ShieldAlert } from 'lucide-react';
 
 type TestState = { status: 'idle' } | { status: 'testing' } | { status: 'valid'; source: string } | { status: 'invalid'; error: string };
@@ -9,7 +9,7 @@ type TestState = { status: 'idle' } | { status: 'testing' } | { status: 'valid';
 const KEY_URL = 'https://aistudio.google.com/app/apikey';
 
 export const ApiKeyModal: React.FC = () => {
-  const { isModalOpen, closeModal, hasKey, maskedKey, serverHasKey, saveKey, deleteKey } = useApiKeyStore();
+  const { isModalOpen, closeModal, hasKey, maskedKey, serverHasKey, saveKey, deleteKey, model, chooseModel } = useApiKeyStore();
   const [value, setValue] = useState('');
   const [visible, setVisible] = useState(false);
   const [test, setTest] = useState<TestState>({ status: 'idle' });
@@ -124,6 +124,21 @@ export const ApiKeyModal: React.FC = () => {
             </div>
             <p role={formatError ? 'alert' : undefined} className={`text-[10.5px] ${formatError ? 'text-rose-400 font-semibold' : 'text-gray-500'}`}>
               {formatError ? '⚠️ ' : ''}المفتاح يجب أن يبدأ بـ <span dir="ltr" className="font-mono">{KEY_PREFIX}</span>
+            </p>
+          </div>
+
+          {/* Model: applies at once, kept in this browser */}
+          <div className="space-y-1">
+            <label className="text-[11px] text-gray-300 block">الموديل:</label>
+            <select
+              value={model}
+              onChange={e => { chooseModel(e.target.value); setTest({ status: 'idle' }); }}
+              className="w-full bg-[#181825] border border-[#313244] rounded px-2 py-1 text-white text-xs focus:outline-none focus:border-amber-500/60"
+            >
+              {MODEL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            <p className="text-[10.5px] text-gray-500">
+              لكل ميزات الذكاء الاصطناعي. الأقوى أجود كتابةً لكنه أبطأ وأغلى؛ «اختبار الاتصال» يختبر المفتاح مع الموديل المختار.
             </p>
           </div>
 

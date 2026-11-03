@@ -2,10 +2,16 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { ArticleInput, ArticleOptions, ArticleSectionInput, DraftSection, GeneratedArticle, OutlineSection } from '../types/article';
 import { useIdeaStore } from './useIdeaStore';
-import { useBlogStore } from './useBlogStore';
+import { useBlogStore, type SavedStoryArticle } from './useBlogStore';
+import { useReferenceStore, DEFAULT_STORY } from './useReferenceStore';
+import { latestReferenceArticle, referenceEnding } from '../utils/referenceContext';
 import {
   DEFAULT_ARTICLE_OPTIONS,
   buildArticleInput,
+  buildGenerationContext,
+  withOptionDefaults,
+  type GenerationContext,
+  type PreviousArticle,
   computeSectionHash,
   generateArticle,
   hasEnoughContent,
@@ -51,12 +57,38 @@ interface ArticleStoreState {
   clearError: () => void;
 }
 
+// The previous part, for the opening recap: the newest of the story's latest
+// reference article (the verified previous article) and the latest approved
+// article saved to the story corpus; else the last part of blog.json.
+function previousPart(storyName: string): PreviousArticle {
+  const reference = latestReferenceArticle(useReferenceStore.getState().referenceArticles, storyName);
+  const { corpus, savedArticles } = useBlogStore.getState();
+  const saved = storyName === DEFAULT_STORY
+    ? savedArticles.reduce<SavedStoryArticle | undefined>((best, a) => (!best || a.savedAt > best.savedAt ? a : best), undefined)
+    : undefined;
+  if (saved && corpus && (!reference || saved.savedAt > reference.dateAdded)) {
+    return previousArticleOf({ ...corpus, articles: corpus.articles.filter(a => a.id === saved.id) });
+  }
+  if (reference) return { title: reference.title, ending: referenceEnding(reference) };
+  return previousArticleOf(corpus);
+}
+
 // The current tree as article input (with the draft's options when one exists)
 export function currentArticleInput(options: ArticleOptions): ArticleInput {
+  const opts = withOptionDefaults(options);
   const { treeData, projectSettings } = useIdeaStore.getState();
-  return buildArticleInput(treeData, options, {
+  return buildArticleInput(treeData, opts, {
     projectTitle: projectSettings.title,
-    previous: previousArticleOf(useBlogStore.getState().corpus),
+    previous: previousPart(opts.storyName),
+  });
+}
+
+// The reference article, story passages and reference ideas sent with the calls
+export function currentGenerationContext(options: ArticleOptions): GenerationContext {
+  return buildGenerationContext(withOptionDefaults(options), {
+    tree: useIdeaStore.getState().treeData,
+    corpus: useBlogStore.getState().corpus,
+    referenceArticles: useReferenceStore.getState().referenceArticles,
   });
 }
 
@@ -79,11 +111,13 @@ export const useArticleStore = create<ArticleStoreState>()(persist((set, get) =>
   isGenerateModalOpen: false,
   lastOptions: DEFAULT_ARTICLE_OPTIONS,
 
-  generate: async (options: ArticleOptions) => {
+  generate: async (chosen: ArticleOptions) => {
     if (get().isGenerating) return;
-    // The previous blog part feeds the opening recap
+    const options = withOptionDefaults(chosen);
+    // The blog corpus feeds the opening recap and the story passages
     await useBlogStore.getState().loadCorpus();
     const input = currentArticleInput(options);
+    const context = currentGenerationContext(options);
     if (!hasEnoughContent(input)) {
       set({ error: 'يلزم محوران على الأقل فيهما أفكار مدرجة في الوثيقة.' });
       return;
@@ -112,6 +146,8 @@ export const useArticleStore = create<ArticleStoreState>()(persist((set, get) =>
         signal: controller.signal,
         existing: draft,
         locked,
+        contextFor: context.contextFor,
+        outlineContext: context.outlineContext,
       });
       set({
         draft: article,
@@ -136,12 +172,14 @@ export const useArticleStore = create<ArticleStoreState>()(persist((set, get) =>
     const { draft, sectionMeta, isGenerating } = get();
     if (!draft || isGenerating || sectionMeta[sectionId]?.locked) return;
 
+    await useBlogStore.getState().loadCorpus();
     const input = currentArticleInput(draft.options);
     const section = input.sections.find(s => s.id === sectionId);
     if (!section) {
       set({ error: 'هذا المحور لم يعد في الشجرة أو لم تعد فيه أفكار مدرجة.' });
       return;
     }
+    const context = currentGenerationContext(draft.options).contextFor(section);
     const plan = draft.outline.sections.find(s => s.id === sectionId);
     const wordBudget = opts.lengthFactor && plan ? Math.round((plan.wordBudget * opts.lengthFactor) / 10) * 10 : undefined;
     const locked = new Set(Object.keys(sectionMeta).filter(id => sectionMeta[id].locked));
@@ -161,7 +199,7 @@ export const useArticleStore = create<ArticleStoreState>()(persist((set, get) =>
         input.allowedVerseRefs,
         { ...(wordBudget ? { wordBudget } : {}), ...(opts.instruction ? { instruction: opts.instruction } : {}) },
         progress => set({ progress }),
-        { signal: controller.signal, locked }
+        { signal: controller.signal, locked, context }
       );
       set(state => ({
         draft: article,

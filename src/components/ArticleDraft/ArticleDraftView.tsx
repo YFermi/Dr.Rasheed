@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { useArticleStore, currentArticleInput, treeAxisIds } from '../../store/useArticleStore';
 import { useIdeaStore } from '../../store/useIdeaStore';
+import { useBlogStore } from '../../store/useBlogStore';
 import { articleWordCount, sortByAxisOrder } from '../../utils/articleBuilder';
+import { paragraphsFromDraft } from '../../utils/blogArticle';
 import { exportArticleToWord, AI_DRAFT_LABEL } from '../../utils/articleDocxExport';
 import { toArabicDigits } from '../../utils/arabic';
 import { ArticleSectionInput, DraftBlock, DraftSection } from '../../types/article';
@@ -201,6 +203,11 @@ export const ArticleDraftView: React.FC = () => {
   const treeData = useIdeaStore(state => state.treeData);
   const author = useIdeaStore(state => state.projectSettings.author);
   const [isExporting, setIsExporting] = useState(false);
+  const savedArticles = useBlogStore(state => state.savedArticles);
+  const [storyMessage, setStoryMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  // One story-corpus entry per generated draft (saving again updates it)
+  const storyId = draft ? `story-${draft.generatedAt}` : '';
+  const savedEntry = savedArticles.find(a => a.id === storyId);
 
   // Coverage: which included ideas of the current tree the draft treats
   const coverage = useMemo(() => {
@@ -241,6 +248,23 @@ export const ArticleDraftView: React.FC = () => {
     }
   };
 
+  // The approved article joins the story corpus (this browser): later parts
+  // retrieve passages from it and recap it in their opening
+  const handleSaveToStory = async () => {
+    if (!draft?.approvedAt) return;
+    const blog = useBlogStore.getState();
+    await blog.loadCorpus();
+    const ok = blog.saveToStory({
+      id: storyId,
+      partNumber: savedEntry?.partNumber ?? blog.nextPartNumber(),
+      title: draft.title,
+      paragraphs: paragraphsFromDraft(draft),
+    });
+    setStoryMessage(ok
+      ? { ok: true, text: 'تمت إضافة المقال لقاعدة القصة. سيُستخدم كمرجع في الأجزاء القادمة.' }
+      : { ok: false, text: 'تعذر الحفظ: مساحة التخزين في المتصفح ممتلئة أو محظورة.' });
+  };
+
   const percent = progress ? Math.round((progress.step / Math.max(1, progress.total)) * 100) : 0;
   const isDraftLabelled = draft && !draft.approvedAt;
 
@@ -276,6 +300,19 @@ export const ArticleDraftView: React.FC = () => {
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{isDraftLabelled ? 'اعتماد' : 'إلغاء الاعتماد'}</span>
+            </button>
+          )}
+          {draft?.approvedAt && (
+            <button
+              type="button"
+              disabled={isGenerating}
+              onClick={handleSaveToStory}
+              title={savedEntry
+                ? `محفوظ في قاعدة القصة جزءاً ${savedEntry.partNumber} — انقر لتحديثه`
+                : 'إضافة المقال المعتمد إلى قاعدة القصة ليكون مرجعاً للأجزاء القادمة'}
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded shadow-xs disabled:opacity-40 transition"
+            >
+              <span>{savedEntry ? `💾 تحديث في قاعدة القصة (${toArabicDigits(savedEntry.partNumber)})` : '💾 حفظ في قاعدة القصة'}</span>
             </button>
           )}
           <button
@@ -319,6 +356,15 @@ export const ArticleDraftView: React.FC = () => {
           <div className="h-1.5 bg-blue-100 rounded-full overflow-hidden">
             <div className="h-full bg-blue-600 rounded-full transition-all duration-500" style={{ width: `${percent}%` }} />
           </div>
+        </div>
+      )}
+
+      {storyMessage && (
+        <div role="status" className={`px-4 py-2 border-b text-xs flex items-center justify-between no-print select-none flex-shrink-0 ${storyMessage.ok ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}>
+          <span>{storyMessage.ok ? '✅ ' : '⚠️ '}{storyMessage.text}</span>
+          <button type="button" onClick={() => setStoryMessage(null)} title="إخفاء" className="opacity-60 hover:opacity-100">
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 

@@ -74,12 +74,13 @@ ${transcript.slice(0, MAX_TRANSCRIPT_CHARS)}
 - accepted: true`;
 }
 
-export async function extractIdeas(apiKey: string, body: ExtractRequestBody) {
+export async function extractIdeas(apiKey: string, body: ExtractRequestBody, model?: string) {
   const transcript = typeof body.transcript === 'string' ? body.transcript : '';
   // Titles and summaries follow Dr. Rasheed's style guide (data/style-guide.md)
   const { styleGuide } = await loadStylePack();
   const result = await generateJson<{ ideas?: unknown[] }>({
     apiKey,
+    model,
     system: `${SYSTEM_PROMPT}\n\n${styleGuide}`,
     prompt: buildPrompt(transcript, body.speakers ?? [], body.axes ?? []),
     schema: IDEA_SCHEMA,
@@ -91,11 +92,11 @@ export async function extractIdeas(apiKey: string, body: ExtractRequestBody) {
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   // handleJson: method check, the browser's key (header) or the server's GEMINI_API_KEY
-  return handleJson(req, res, async (body, apiKey) => {
+  return handleJson(req, res, async (body, apiKey, model) => {
     const request = body as ExtractRequestBody;
     if (typeof request.transcript !== 'string' || !request.transcript.trim()) {
       throw new HttpError(400, 'يرجى تزويد نص العصف الذهني (transcript)');
     }
-    return extractIdeas(apiKey, request);
+    return extractIdeas(apiKey, request, model);
   });
 }

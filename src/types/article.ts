@@ -4,9 +4,11 @@
 export type StyleMode = 'rasheed-original';
 
 export interface ArticleOptions {
-  targetLength: number; // words
+  targetLength: number; // words, whole article (= sectionLength × axes when generating)
+  sectionLength: number; // words per axis (1500 / 2500 / 3000)
   styleMode: StyleMode;
   includeDeferred: boolean;
+  storyName: string; // picks the reference article and the story corpus
 }
 
 // ---- Input built from the idea tree ---------------------------------------
@@ -36,6 +38,7 @@ export interface ArticleInput {
   previousArticleTitle: string;
   previousArticleEnding: string;
   targetLength: number;
+  sectionLength?: number; // every axis gets this budget when set
   styleMode: StyleMode;
   sections: ArticleSectionInput[];
   allowedVerseRefs: string[];
@@ -98,10 +101,34 @@ export interface GeneratedArticle {
 
 export interface OutlineRequest {
   tree: ArticleInput;
+  referenceContext?: string;
+  previousIdeas?: PreviousIdea[];
   previousArticleEnding: string;
   targetLength: number;
   numAxes: number;
   styleMode: StyleMode;
+}
+
+// A passage of an earlier article of the story, picked for one axis (corpusSearch)
+export interface CorpusExcerpt {
+  source: string; // "الجزء 15" / "مقال مرجعي"
+  title: string;
+  text: string;
+  reason: string; // why it was picked
+}
+
+// A reference idea (role 'reference'): already treated in an earlier part
+export interface PreviousIdea {
+  title: string;
+  summary: string; // one sentence
+}
+
+// A long section is written in parts (each call writes ≤ ~1500 words)
+export interface SectionPart {
+  index: number; // 1-based
+  count: number;
+  previousPartEnding: string; // the end of what this section has so far
+  subheadingsSoFar: string[];
 }
 
 export interface SectionRequest {
@@ -113,6 +140,10 @@ export interface SectionRequest {
   allowedVerseRefs: string[];
   wordBudget?: number; // overrides the outline's budget (longer / shorter)
   instruction?: string; // the editor's extra instruction for this section
+  referenceContext?: string; // excerpt of the reference article (style reference)
+  corpusExcerpts?: CorpusExcerpt[];
+  previousIdeas?: PreviousIdea[];
+  part?: SectionPart;
 }
 
 export interface StitchRequest {

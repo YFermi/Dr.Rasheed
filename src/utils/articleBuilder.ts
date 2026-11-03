@@ -6,23 +6,48 @@ import type {
   ArticleOptions,
   ArticleOutline,
   ArticleSectionInput,
+  CorpusExcerpt,
   DraftSection,
   GeneratedArticle,
+  PreviousIdea,
+  SectionPart,
   SectionResponse,
   StitchResponse,
 } from '../types/article';
+import type { ReferenceArticle } from '../store/useReferenceStore';
 import { extractVerses, containsQuranGlyphs, normalizeArabic, toArabicDigits } from './arabic';
 import { callApiWithKey } from './apiKey';
+import { latestReferenceArticle, referenceContextOf } from './referenceContext';
+import { corpusSearch, storySources } from './corpusSearch';
 
 // Client-side orchestration of article generation: tree → input, then the
 // /api/article/* calls one after another (outline → sections → stitches), then
 // canonical verse text from the Tanzil data (loaded lazily, ~2 MB).
 
 export const DEFAULT_ARTICLE_OPTIONS: ArticleOptions = {
-  targetLength: 4000,
+  targetLength: 12000,
+  sectionLength: 3000,
   styleMode: 'rasheed-original',
   includeDeferred: false,
+  storyName: 'قصة لوط',
 };
+
+// Words per axis offered in the generation modal (Dr. Rasheed's axes: 1,000–3,000)
+export const SECTION_LENGTHS = [
+  { words: 1500, label: 'قصير' },
+  { words: 2500, label: 'متوسط' },
+  { words: 3000, label: 'طويل' },
+];
+
+// Options saved before sectionLength / storyName existed get the defaults
+export function withOptionDefaults(options: Partial<ArticleOptions> | null | undefined): ArticleOptions {
+  return { ...DEFAULT_ARTICLE_OPTIONS, ...(options ?? {}) };
+}
+
+// A long section is written in parts of at most this many words: models fall
+// well short of long targets in one call, and each call stays short.
+export const PART_MAX_WORDS = 1500;
+export const partCount = (words: number) => Math.max(1, Math.ceil(words / PART_MAX_WORDS));
 
 const MIN_SECTIONS = 2;
 const PREVIOUS_ENDING_MAX_PARAGRAPHS = 4;
@@ -145,7 +170,9 @@ export function buildArticleInput(
     projectTitle: context.projectTitle,
     previousArticleTitle: context.previous.title,
     previousArticleEnding: context.previous.ending,
-    targetLength: options.targetLength,
+    // The whole article: the per-axis length × the axes
+    targetLength: options.sectionLength ? options.sectionLength * sections.length : options.targetLength,
+    ...(options.sectionLength ? { sectionLength: options.sectionLength } : {}),
     styleMode: options.styleMode,
     sections,
     allowedVerseRefs: [...new Set([...verseRefsOf(tree), ...sections.flatMap(s => s.verseRefs)])],
@@ -256,26 +283,66 @@ type ProgressFn = (p: GenerationProgress) => void;
 
 const ordinal = (i: number) => toArabicDigits(i + 1);
 
+// What the model gets besides the tree, per section and for the outline: the
+// reference article (style), passages of the story corpus and the reference
+// ideas (already treated). Built by the store from its data.
+export interface SectionContext {
+  referenceContext?: string;
+  corpusExcerpts?: CorpusExcerpt[];
+  previousIdeas?: PreviousIdea[];
+}
+export type SectionContextFn = (section: ArticleSectionInput) => SectionContext;
+
+const noContext: SectionContextFn = () => ({});
+
+// Writes one section, in parts when it is long: each part continues from the end
+// of the one before. Returns the merged section.
 async function writeSection(
   outline: ArticleOutline,
   section: ArticleSectionInput,
   allowedVerseRefs: string[],
   previousEnding: string,
   nextPlan: string,
-  signal?: AbortSignal,
+  signal: AbortSignal | undefined,
+  context: SectionContext,
+  onPart: (index: number, count: number) => void,
   extra: { wordBudget?: number; instruction?: string } = {}
 ): Promise<DraftSection> {
   const plan = outline.sections.find(s => s.id === section.id)!;
-  const response = await callAPI<SectionResponse>('/api/article/section', {
-    outline,
-    sectionId: section.id,
-    sectionNodes: section.nodes,
-    previousSectionEnding: previousEnding,
-    nextSectionPlan: nextPlan,
-    allowedVerseRefs,
-    ...extra,
-  }, signal);
-  return { ...response, id: section.id, axisName: plan.axisName };
+  const count = partCount(extra.wordBudget ?? plan.wordBudget);
+  let merged: DraftSection = { id: section.id, axisName: plan.axisName, blocks: [], coveredNodeIds: [], wordCount: 0 };
+
+  for (let index = 1; index <= count; index++) {
+    onPart(index, count);
+    const part: SectionPart | undefined = count > 1
+      ? {
+        index,
+        count,
+        previousPartEnding: lastParagraphs(merged, STITCH_PARAGRAPHS).join('\n\n'),
+        subheadingsSoFar: merged.blocks.filter(b => b.type === 'subheading').map(b => b.text),
+      }
+      : undefined;
+    const response = await callAPI<SectionResponse>('/api/article/section', {
+      outline,
+      sectionId: section.id,
+      sectionNodes: section.nodes,
+      previousSectionEnding: previousEnding,
+      nextSectionPlan: nextPlan,
+      allowedVerseRefs,
+      ...context,
+      ...extra,
+      ...(part ? { part } : {}),
+    }, signal);
+    const rejectedRefs = [...(merged.rejectedRefs ?? []), ...(response.rejectedRefs ?? [])];
+    merged = {
+      ...merged,
+      blocks: [...merged.blocks, ...response.blocks],
+      coveredNodeIds: [...new Set([...merged.coveredNodeIds, ...response.coveredNodeIds])],
+      wordCount: merged.wordCount + response.wordCount,
+      ...(rejectedRefs.length ? { rejectedRefs } : {}),
+    };
+  }
+  return merged;
 }
 
 // Smooths the boundary between sections[i] and sections[i + 1]; a locked side
@@ -308,10 +375,24 @@ export async function generateArticle(
   input: ArticleInput,
   options: ArticleOptions,
   onProgress: ProgressFn,
-  { signal, existing, locked = new Set() }: { signal?: AbortSignal; existing?: GeneratedArticle | null; locked?: Set<string> } = {}
+  {
+    signal,
+    existing,
+    locked = new Set(),
+    contextFor = noContext,
+    outlineContext = {},
+  }: {
+    signal?: AbortSignal;
+    existing?: GeneratedArticle | null;
+    locked?: Set<string>;
+    contextFor?: SectionContextFn;
+    outlineContext?: Pick<SectionContext, 'referenceContext' | 'previousIdeas'>;
+  } = {}
 ): Promise<GeneratedArticle> {
   const n = input.sections.length;
-  const total = 1 + n + Math.max(0, n - 1) + 1;
+  // Until the outline gives the budgets, the parts are estimated from the chosen length
+  const estimatedParts = partCount(input.sectionLength ?? input.targetLength / Math.max(1, n));
+  let total = 1 + n * estimatedParts + Math.max(0, n - 1) + 1;
   let step = 0;
   const report = (label: string) => onProgress({ label, step: ++step, total });
 
@@ -320,16 +401,19 @@ export async function generateArticle(
   const outline = await callAPI<ArticleOutline>('/api/article/outline', {
     tree: input,
     previousArticleEnding: input.previousArticleEnding,
-    targetLength: options.targetLength,
+    targetLength: input.targetLength,
     numAxes: n,
     styleMode: options.styleMode,
+    ...outlineContext,
   }, signal);
+  const toWrite = input.sections.filter(s => !locked.has(s.id) || !existing?.sections.some(e => e.id === s.id));
+  total = 1 + toWrite.reduce((k, s) => k + partCount(outline.sections.find(p => p.id === s.id)?.wordBudget ?? 0), 0)
+    + Math.max(0, n - 1) + 1;
 
-  // 2. Sections, one after another (each call stays under the function time limit)
+  // 2. Sections, one after another, each in one or more parts
   const sections: DraftSection[] = [];
   for (let i = 0; i < n; i++) {
     const s = input.sections[i];
-    report(`جاري كتابة المحور ${ordinal(i)} من ${toArabicDigits(n)}...`);
     const kept = locked.has(s.id) ? existing?.sections.find(e => e.id === s.id) : undefined;
     if (kept) {
       sections.push(kept);
@@ -337,7 +421,9 @@ export async function generateArticle(
     }
     const previousEnding = i === 0 ? outline.opening : lastParagraphs(sections[i - 1], 1).join('\n');
     const nextPlan = i + 1 < n ? outline.sections[i + 1].thesis : outline.closing;
-    sections.push(await writeSection(outline, s, input.allowedVerseRefs, previousEnding, nextPlan, signal));
+    sections.push(await writeSection(outline, s, input.allowedVerseRefs, previousEnding, nextPlan, signal, contextFor(s), (p, count) =>
+      report(`جاري كتابة المحور ${ordinal(i)} من ${toArabicDigits(n)}${count > 1 ? ` (الجزء ${toArabicDigits(p)} من ${toArabicDigits(count)})` : ''}...`)
+    ));
   }
 
   // 3. Transitions between neighbours
@@ -370,7 +456,7 @@ export async function regenerateOneSection(
   allowedVerseRefs: string[],
   extra: { wordBudget?: number; instruction?: string },
   onProgress: ProgressFn,
-  { signal, locked = new Set() }: { signal?: AbortSignal; locked?: Set<string> } = {}
+  { signal, locked = new Set(), context = {} }: { signal?: AbortSignal; locked?: Set<string>; context?: SectionContext } = {}
 ): Promise<GeneratedArticle> {
   const i = article.sections.findIndex(s => s.id === section.id);
   if (i < 0) throw new Error('هذا المحور غير موجود في المسودة');
@@ -378,14 +464,17 @@ export async function regenerateOneSection(
     ? { ...article.outline, sections: article.outline.sections.map(s => (s.id === section.id ? { ...s, wordBudget: extra.wordBudget! } : s)) }
     : article.outline;
   const sections = [...article.sections];
-  const total = 1 + (i > 0 ? 1 : 0) + (i < sections.length - 1 ? 1 : 0) + 1;
+  const parts = partCount(outline.sections.find(s => s.id === section.id)?.wordBudget ?? 0);
+  const total = parts + (i > 0 ? 1 : 0) + (i < sections.length - 1 ? 1 : 0) + 1;
   let step = 0;
   const report = (label: string) => onProgress({ label, step: ++step, total });
 
-  report(`جاري إعادة كتابة المحور ${ordinal(i)}...`);
   const previousEnding = i === 0 ? article.opening : lastParagraphs(sections[i - 1], 1).join('\n');
   const nextPlan = i + 1 < sections.length ? outline.sections[i + 1]?.thesis ?? '' : article.closing;
-  sections[i] = await writeSection(outline, section, allowedVerseRefs, previousEnding, nextPlan, signal, extra);
+  sections[i] = await writeSection(outline, section, allowedVerseRefs, previousEnding, nextPlan, signal, context, (p, count) =>
+    report(`جاري إعادة كتابة المحور ${ordinal(i)}${count > 1 ? ` (الجزء ${toArabicDigits(p)} من ${toArabicDigits(count)})` : ''}...`),
+    extra
+  );
 
   if (i > 0) {
     report('جاري تنعيم الانتقال السابق...');
@@ -399,6 +488,78 @@ export async function regenerateOneSection(
   report('جاري إدراج الآيات...');
   const resolved = await resolveVerses(sections);
   return { ...article, outline, sections: resolved, approvedAt: null };
+}
+
+// ---- Context sent with the calls -------------------------------------------------
+
+export interface GenerationSources {
+  tree: IdeaNode;
+  corpus: BlogCorpus | null;
+  referenceArticles: ReferenceArticle[];
+}
+
+export interface GenerationContext {
+  referenceTitle: string | null; // the reference article used, if any
+  outlineContext: Pick<SectionContext, 'referenceContext' | 'previousIdeas'>;
+  contextFor: SectionContextFn;
+}
+
+const MAX_PREVIOUS_IDEAS = 40;
+const PREVIOUS_SUMMARY_WORDS = 30;
+
+// A reference idea as "already treated": its title and one short sentence
+// (the notes hold the summary, then «من المقال: …» with the excerpt)
+function toPreviousIdea(node: IdeaNode): PreviousIdea {
+  const summary = (node.notes ?? '').split(/\n\nمن المقال:/)[0].split(/(?<=[.؟!])\s/)[0].trim();
+  const words = summary.split(/\s+/).filter(Boolean);
+  return {
+    title: node.arabicLabel,
+    summary: words.length > PREVIOUS_SUMMARY_WORDS ? `${words.slice(0, PREVIOUS_SUMMARY_WORDS).join(' ')}…` : summary,
+  };
+}
+
+const allNodes = (n: IdeaNode): IdeaNode[] => [n, ...(n.children ?? []).flatMap(allNodes)];
+
+// Reference ideas for one axis: those under it, and those linked to (or from) its ideas
+function previousIdeasFor(tree: IdeaNode, axisId: string): PreviousIdea[] {
+  const everything = allNodes(tree);
+  const axis = everything.find(n => n.id === axisId);
+  if (!axis) return [];
+  const inAxis = allNodes(axis);
+  const inAxisIds = new Set(inAxis.map(n => n.id));
+  const linkedIds = new Set(inAxis.flatMap(n => n.linkedIdeas.map(l => l.targetId)));
+  const picked = everything.filter(n => ideaRole(n) === 'reference' && n.type !== 'project' && (
+    inAxisIds.has(n.id) || linkedIds.has(n.id) || n.linkedIdeas.some(l => inAxisIds.has(l.targetId))
+  ));
+  return picked.slice(0, MAX_PREVIOUS_IDEAS).map(toPreviousIdea);
+}
+
+// The style reference (the latest reference article of the story) goes with the
+// outline and every section; each section also gets the story passages most
+// relevant to its ideas and the reference ideas it may refer back to.
+export function buildGenerationContext(options: ArticleOptions, sources: GenerationSources): GenerationContext {
+  const reference = latestReferenceArticle(sources.referenceArticles, options.storyName);
+  const referenceContext = referenceContextOf(reference);
+  const story = storySources(options.storyName, sources.corpus, sources.referenceArticles);
+  const allPrevious = allNodes(sources.tree)
+    .filter(n => ideaRole(n) === 'reference' && n.type !== 'project')
+    .slice(0, MAX_PREVIOUS_IDEAS)
+    .map(toPreviousIdea);
+  const cache = new Map<string, SectionContext>();
+  return {
+    referenceTitle: reference?.title ?? null,
+    outlineContext: { referenceContext, previousIdeas: allPrevious },
+    contextFor: (section) => {
+      if (!cache.has(section.id)) {
+        cache.set(section.id, {
+          referenceContext,
+          corpusExcerpts: corpusSearch(section.nodes, story),
+          previousIdeas: previousIdeasFor(sources.tree, section.id),
+        });
+      }
+      return cache.get(section.id)!;
+    },
+  };
 }
 
 export function articleWordCount(article: GeneratedArticle): number {
