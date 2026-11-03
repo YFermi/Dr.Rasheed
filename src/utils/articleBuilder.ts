@@ -1,4 +1,4 @@
-import type { IdeaNode } from '../types';
+import { ideaRole, type IdeaNode } from '../types';
 import type { BlogCorpus } from '../types/blog';
 import type {
   ArticleInput,
@@ -36,6 +36,8 @@ const STITCH_PARAGRAPHS = 2;
 
 export function isIncluded(node: IdeaNode, options: ArticleOptions): boolean {
   if (!node.includeInDoc || node.status === 'rejected') return false;
+  // Reference ideas (from a finished article) are for linking, not for the text
+  if (ideaRole(node) === 'reference') return false;
   return options.includeDeferred || node.status !== 'deferred';
 }
 

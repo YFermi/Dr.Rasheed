@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useIdeaStore, getAllNodeList } from '../../store/useIdeaStore';
 import { useApiKeyStore, selectAiAvailable } from '../../store/useApiKeyStore';
 import { callApiWithKey } from '../../utils/apiKey';
+import { aiErrorMessage } from '../../utils/aiErrors';
 import { ExtractedIdeaSuggestion } from '../../types';
 import { 
   X, 
@@ -21,18 +22,6 @@ import {
 const MAX_TRANSCRIPT_CHARS = 50_000;
 
 const formatCount = (n: number) => n.toLocaleString('en-US');
-
-// A clear Arabic reason for a failed extraction (never replaced by made-up ideas)
-function extractionErrorMessage(e: unknown): string {
-  const message = e instanceof Error ? e.message : String(e);
-  if (/Missing GEMINI_API_KEY|المفتاح غير صالح|صلاحية/.test(message)) {
-    return 'تعذر الاتصال بالذكاء الاصطناعي. تأكد من إدخال مفتاح API صالح في الإعدادات (زر 🔑).';
-  }
-  if (e instanceof TypeError || /Failed to fetch|NetworkError/i.test(message)) {
-    return 'تعذر الاتصال بالخادم. تحقق من اتصالك بالإنترنت ثم أعد المحاولة.';
-  }
-  return `تعذر استخراج الأفكار: ${message}`;
-}
 
 interface ScriptImportModalProps {
   isOpen: boolean;
@@ -126,7 +115,7 @@ export const ScriptImportModal: React.FC<ScriptImportModalProps> = ({ isOpen, on
       }
     } catch (e) {
       console.warn('Idea extraction failed:', e);
-      setErrorMsg(extractionErrorMessage(e));
+      setErrorMsg(aiErrorMessage(e, 'استخراج الأفكار'));
       setCanRetry(true);
     } finally {
       setIsExtracting(false);

@@ -5,6 +5,7 @@ import { IdeaTree } from './components/IdeaTree/IdeaTree';
 import { MiddleTabPanel } from './components/MiddleColumn/MiddleTabPanel';
 import { LinkModal } from './components/LinkNavigator/LinkModal';
 import { ScriptImportModal } from './components/ScriptImportModal/ScriptImportModal';
+import { ReferenceArticleModal } from './components/ReferenceArticle/ReferenceArticleModal';
 import { BlogReader } from './components/Blog/BlogReader';
 import { ArticleDraftView } from './components/ArticleDraft/ArticleDraftView';
 import { ArticleGenerateModal } from './components/ArticleDraft/ArticleGenerateModal';
@@ -206,6 +207,9 @@ export default function App() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
       />
+
+      {/* Reference article: a finished article's ideas as reference ideas */}
+      <ReferenceArticleModal />
 
       {/* Article generation options */}
       <ArticleGenerateModal />

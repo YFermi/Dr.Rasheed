@@ -10,9 +10,11 @@ import {
   ArrowDown, 
   Eye, 
   EyeOff, 
-  Layers
+  Layers,
+  Pin,
+  PenLine
 } from 'lucide-react';
-import { IdeaNode } from '../types';
+import { IdeaNode, ideaRole } from '../types';
 
 interface ContextMenuProps {
   x: number;
@@ -29,6 +31,7 @@ interface ContextMenuProps {
   onCopy: () => void;
   onPaste: () => void;
   onToggleInclude: () => void;
+  onToggleRole: () => void;
   hasClipboard: boolean;
 }
 
@@ -47,8 +50,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   onCopy,
   onPaste,
   onToggleInclude,
+  onToggleRole,
   hasClipboard,
 }) => {
+  const isReference = ideaRole(node) === 'reference';
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,7 +76,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
 
   // Adjust position so it doesn't overflow screen
   const adjustedX = Math.min(x, window.innerWidth - 230);
-  const adjustedY = Math.min(y, window.innerHeight - 340);
+  const adjustedY = Math.min(y, window.innerHeight - 370);
 
   return (
     <div
@@ -213,6 +218,26 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
           </div>
           <span className="text-[10px] text-gray-500 font-mono">Space</span>
         </button>
+
+        {node.type !== 'project' && (
+          <button
+            onClick={() => { onToggleRole(); onClose(); }}
+            title={isReference ? 'تصبح مادة تُكتب في المقال الجديد' : 'تصبح للربط والاستدلال فقط، ولا تُكتب في المقال'}
+            className="w-full text-right px-3 py-1.5 hover:bg-[#313244] flex items-center gap-2 transition-colors"
+          >
+            {isReference ? (
+              <>
+                <PenLine className="w-3.5 h-3.5 text-amber-300" />
+                <span>تحويل إلى فكرة كتابة</span>
+              </>
+            ) : (
+              <>
+                <Pin className="w-3.5 h-3.5 text-sky-400" />
+                <span>تحويل إلى فكرة مرجعية</span>
+              </>
+            )}
+          </button>
+        )}
 
         {node.type !== 'project' && (
           <button

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useIdeaStore, findNodeById } from '../../store/useIdeaStore';
-import { IdeaNode, NodeType, NodeStatus } from '../../types';
+import { IdeaNode, NodeType, NodeStatus, ideaRole } from '../../types';
 import { ContextMenu } from '../ContextMenu';
+import { useReferenceStore, referenceArticleTitle } from '../../store/useReferenceStore';
 import { 
   ChevronRight, 
   ChevronDown, 
@@ -57,6 +58,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
     importProjectJson,
   } = useIdeaStore();
 
+  const referenceArticles = useReferenceStore(state => state.referenceArticles);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; node: IdeaNode } | null>(null);
@@ -323,6 +325,10 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
     const isLinkTarget = activeLinkHighlight?.targetId === node.id;
     const isPulsing = isLinkSource || isLinkTarget;
     const isNewlyAdded = pulsingNodeId === node.id;
+    const isReference = ideaRole(node) === 'reference';
+    const referenceTooltip = isReference
+      ? `فكرة مرجعية من مقال «${referenceArticleTitle(node, referenceArticles) || 'غير معروف'}» – للربط والاستدلال فقط`
+      : undefined;
 
     return (
       <div 
@@ -393,6 +399,8 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
               ? 'bg-emerald-950/60 text-emerald-200 font-bold ring-2 ring-emerald-400 shadow-lg animate-pulse'
               : isSelected
               ? 'bg-[#313244] text-[#89b4fa] font-medium shadow-xs ring-1 ring-[#89b4fa]/30'
+              : isReference
+              ? 'bg-[#1e3a5f]/70 hover:bg-[#1e3a5f] text-sky-100'
               : 'hover:bg-[#313244]/60 text-[#cdd6f4]'
           } ${
             isLinkedHighlighted && !isPulsing ? 'ring-2 ring-amber-400 bg-amber-950/20' : ''
@@ -446,7 +454,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
 
             {/* Level Icon */}
             <span className="flex-shrink-0 select-none">
-              {getNodeIcon(node.type)}
+              {isReference ? <span className="text-sm">📌</span> : getNodeIcon(node.type)}
             </span>
 
             {/* Label or Inline Input */}
@@ -468,7 +476,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
                 className={`truncate font-quran text-[13px] ${
                   !node.includeInDoc ? 'line-through opacity-50' : ''
                 }`}
-                title={node.arabicLabel}
+                title={referenceTooltip ?? node.arabicLabel}
               >
                 {node.arabicLabel}
               </span>
@@ -733,6 +741,7 @@ export const IdeaTree: React.FC<IdeaTreeProps> = ({ onOpenImportModal }) => {
           onCopy={() => copyNode(contextMenu.node.id)}
           onPaste={() => pasteNode(contextMenu.node.id)}
           onToggleInclude={() => toggleIncludeInDoc(contextMenu.node.id)}
+          onToggleRole={() => updateNode(contextMenu.node.id, { role: ideaRole(contextMenu.node) === 'reference' ? 'draft' : 'reference' })}
           hasClipboard={Boolean(clipboardNode)}
         />
       )}

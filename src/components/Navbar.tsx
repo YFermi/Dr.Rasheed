@@ -3,6 +3,7 @@ import { useIdeaStore, getAllNodeList } from '../store/useIdeaStore';
 import { exportToWord } from '../utils/docxExport';
 import { useArticleStore } from '../store/useArticleStore';
 import { useApiKeyStore } from '../store/useApiKeyStore';
+import { useReferenceStore } from '../store/useReferenceStore';
 import {
   PenLine,
   FolderTree,
@@ -47,6 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const openGenerateModal = useArticleStore(state => state.openGenerateModal);
   const isGeneratingArticle = useArticleStore(state => state.isGenerating);
   const { hasKey, serverHasKey, openModal: openKeyModal, checkServerKey } = useApiKeyStore();
+  const openReferenceModal = useReferenceStore(state => state.openModal);
 
   useEffect(() => {
     checkServerKey();
@@ -166,6 +168,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">استيراد نص عصف</span>
+        </button>
+
+        <button
+          onClick={openReferenceModal}
+          title="إدخال مقال سابق مكتمل وتحليله: تُضاف أفكاره للشجرة أفكاراً مرجعية"
+          className="flex items-center gap-1.5 px-3 py-1 bg-sky-700 hover:bg-sky-600 text-white rounded text-xs font-medium transition shadow-xs"
+        >
+          <span>📄 مقال مرجعي</span>
         </button>
 
         <button

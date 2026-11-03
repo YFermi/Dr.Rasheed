@@ -6,7 +6,8 @@ import {
   LinkType,
   IdeaLink, 
   ProjectSettings, 
-  ExtractedIdeaSuggestion 
+  ExtractedIdeaSuggestion,
+  ReferenceIdeaInput
 } from '../types';
 import { initialProjectSettings, initialTreeData } from '../data/initialProject';
 
@@ -149,6 +150,7 @@ interface IdeaStoreState {
   setWordPreviewZoom: (zoom: number) => void;
   updateProjectSettings: (settings: Partial<ProjectSettings>) => void;
   importBatchIdeas: (suggestions: ExtractedIdeaSuggestion[]) => void;
+  importReferenceIdeas: (ideas: ReferenceIdeaInput[], articleId: string, articleTitle: string) => number;
   exportProjectJson: () => string;
   importProjectJson: (jsonStr: string) => boolean;
   resetToInitial: () => void;
@@ -688,6 +690,7 @@ export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
         linkedIdeas: [],
         notes: item.summary || '',
         includeInDoc: true,
+        role: 'draft',
         children: [],
       };
 
@@ -712,6 +715,88 @@ export const useIdeaStore = create<IdeaStoreState>()(persist((set, get) => ({
       treeData: currentTree,
       expandedNodeIds: collectAllIds(currentTree)
     });
+  },
+
+  // Ideas of a finished article, in the article's order: under an existing axis,
+  // or under a new axis (one per distinct newAxisLabel). Returns how many were added.
+  importReferenceIdeas: (ideas: ReferenceIdeaInput[], articleId: string, articleTitle: string) => {
+    if (ideas.length === 0) return 0;
+    const state = get();
+    let currentTree = state.treeData;
+    const stamp = Date.now();
+    const uid = (prefix: string) => `${prefix}-${stamp}-${Math.random().toString(36).slice(2, 6)}`;
+    const sessionRef = `مقال مرجعي: ${articleTitle}`;
+    const newAxisIds = new Map<string, string>();
+    const touched: string[] = [];
+
+    const appendTo = (parentId: string, node: IdeaNode) => {
+      const rec = (root: IdeaNode): IdeaNode => {
+        if (root.id === parentId) return { ...root, children: [...(root.children || []), node] };
+        if (!root.children) return root;
+        return { ...root, children: root.children.map(rec) };
+      };
+      currentTree = rec(currentTree);
+    };
+
+    for (const idea of ideas) {
+      let parentId = idea.parentId && findNodeById(currentTree, idea.parentId) ? idea.parentId : '';
+      if (!parentId) {
+        const label = idea.newAxisLabel?.trim() || articleTitle;
+        parentId = newAxisIds.get(label) ?? '';
+        if (!parentId) {
+          parentId = uid('ref-axis');
+          newAxisIds.set(label, parentId);
+          appendTo(currentTree.id, {
+            id: parentId,
+            name: label,
+            arabicLabel: label,
+            type: 'axis',
+            status: 'published',
+            priority: 'medium',
+            source: 'rasheed_article',
+            sessionRef,
+            speakers: ['د. رشيد'],
+            targetArticle: '',
+            quranicVerses: '',
+            crossReferences: [],
+            linkedIdeas: [],
+            notes: '',
+            includeInDoc: true,
+            role: 'draft', // an axis only groups; its reference ideas stay out of the article
+            children: [],
+          });
+        }
+      }
+
+      const verses = idea.verses.map(v => `[${v}]`).join(' ');
+      appendTo(parentId, {
+        id: uid('ref'),
+        name: idea.title,
+        arabicLabel: idea.title,
+        type: 'idea',
+        status: 'published',
+        priority: 'medium',
+        source: 'rasheed_article',
+        sessionRef,
+        speakers: ['د. رشيد'],
+        targetArticle: '',
+        quranicVerses: verses,
+        crossReferences: [],
+        linkedIdeas: [],
+        notes: idea.excerpt.trim() ? `${idea.summary}\n\nمن المقال: «${idea.excerpt.trim()}»` : idea.summary,
+        includeInDoc: true,
+        role: 'reference',
+        referenceArticleId: articleId,
+        children: [],
+      });
+      touched.push(parentId);
+    }
+
+    set({
+      treeData: currentTree,
+      expandedNodeIds: Array.from(new Set([...state.expandedNodeIds, currentTree.id, ...touched])),
+    });
+    return ideas.length;
   },
 
   exportProjectJson: () => {

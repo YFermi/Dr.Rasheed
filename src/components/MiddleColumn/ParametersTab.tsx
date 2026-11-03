@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useIdeaStore, findNodeById, getAllNodeList } from '../../store/useIdeaStore';
 import { BlogRefsSection } from './BlogRefsSection';
+import { useReferenceStore, referenceArticleTitle } from '../../store/useReferenceStore';
 import { 
   IdeaSource, 
   NodeStatus, 
   NodePriority, 
   LinkType, 
-  IdeaLink 
+  IdeaLink,
+  IdeaRole,
+  ideaRole
 } from '../../types';
 import { 
   Sliders, 
@@ -42,6 +45,7 @@ export const ParametersTab: React.FC = () => {
   } = useIdeaStore();
 
   const selectedNode = findNodeById(treeData, selectedNodeId) || treeData;
+  const referenceArticles = useReferenceStore(state => state.referenceArticles);
   const isProjectRoot = selectedNode.id === treeData.id;
 
   // Auto-save visual feedback indicator (debounced 500ms)
@@ -288,6 +292,27 @@ export const ParametersTab: React.FC = () => {
                 />
               </div>
             </div>
+
+            {/* Role: reference (from a finished article, for linking only) or draft (to write) */}
+            {selectedNode.type !== 'project' && (
+              <div className={`space-y-1 p-2 rounded border ${ideaRole(selectedNode) === 'reference' ? 'bg-[#1e3a5f]/40 border-sky-800/60' : 'border-[#313244]'}`}>
+                <label className="text-[10px] text-gray-400 block">دور الفكرة (Role):</label>
+                <select
+                  value={ideaRole(selectedNode)}
+                  onChange={(e) => handleFieldChange({ role: e.target.value as IdeaRole })}
+                  className="w-full bg-[#181825] border border-[#313244] rounded px-1.5 py-1 text-white text-[11px] focus:outline-none"
+                >
+                  <option value="draft">✍️ فكرة كتابة (تُكتب في المقال الجديد)</option>
+                  <option value="reference">📌 فكرة مرجعية (للربط والاستدلال فقط)</option>
+                </select>
+                {selectedNode.referenceArticleId && (
+                  <p className="text-[10px] text-sky-300/80 leading-relaxed">
+                    من المقال المرجعي: «{referenceArticleTitle(selectedNode, referenceArticles) || 'غير معروف'}»
+                    <span dir="ltr" className="block font-mono text-gray-500">{selectedNode.referenceArticleId}</span>
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* 3. Status & Priority */}
             <div className="grid grid-cols-2 gap-2 pt-1">

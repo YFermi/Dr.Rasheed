@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import extractIdeasHandler from './api/extract-ideas';
+import analyzeReferenceHandler from './api/analyze-reference';
 import articleOutlineHandler from './api/article/outline';
 import articleSectionHandler from './api/article/section';
 import articleStitchHandler from './api/article/stitch';
@@ -24,6 +25,7 @@ app.use(express.json({ limit: '10mb' }));
 // Same handler as the Vercel function; it only uses req.method, req.body and
 // res.status().json(), which Express provides.
 app.post('/api/extract-ideas', (req, res) => extractIdeasHandler(req, res));
+app.post('/api/analyze-reference', (req, res) => analyzeReferenceHandler(req, res));
 app.post('/api/article/outline', (req, res) => articleOutlineHandler(req, res));
 app.post('/api/article/section', (req, res) => articleSectionHandler(req, res));
 app.post('/api/article/stitch', (req, res) => articleStitchHandler(req, res));
