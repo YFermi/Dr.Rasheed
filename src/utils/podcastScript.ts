@@ -1,11 +1,11 @@
 import type { GeneratedArticle } from '../types/article';
-import type { PodcastLine, PodcastSegment, PodcastSegmentKind, PodcastSpeaker } from '../types/podcast';
-import { PODCAST_SPEAKERS } from '../types/podcast';
+import type { PodcastLine, PodcastScript, PodcastSegment, PodcastSegmentKind, PodcastSpeaker } from '../types/podcast';
+import { COMMENT_SLOT, MAX_GUEST_RUN_WORDS, PODCAST_SPEAKERS, isGuest } from '../types/podcast';
 import type { ReferenceArticle } from '../store/useReferenceStore';
 import { paragraphsFromText, type StoryParagraph } from './blogArticle';
 import { replaceQuranGlyphs, toArabicDigits } from './arabic';
 
-// Splits an article (an approved reference article or the current draft) into the
+// Splits an article (pasted text or a Word file, a reference article, or the current draft) into the
 // segments of a recording script: the introduction, the body in parts of at most
 // SEGMENT_MAX_WORDS (one /api/generate-podcast-script call each), and the closing.
 
@@ -89,7 +89,8 @@ export function referenceRefCandidates(text: string): string[] {
   return [...refs];
 }
 
-export function referenceSegments(article: ReferenceArticle): { segments: PodcastSegment[]; refCandidates: string[] } {
+// A reference article, or any text pasted or read from a Word file in the script window
+export function referenceSegments(article: Pick<ReferenceArticle, 'title' | 'fullText'>): { segments: PodcastSegment[]; refCandidates: string[] } {
   // Quran-font glyph runs are unreadable outside their font; their reference stays
   const text = replaceQuranGlyphs(article.fullText, '﴿…﴾');
   let paragraphs: StoryParagraph[] = paragraphsFromText(text);
@@ -151,4 +152,67 @@ export function lastLinesOf(segment: PodcastSegment | undefined, n = 4): string[
     .filter(l => l.type === 'speech')
     .slice(-n)
     .map(l => `${speakerName(l.speaker)}: ${l.text}`);
+}
+
+// ---- Smart cutter, verse format, plain text ------------------------------------------
+
+const wordCount = (text: string) => text.split(/\s+/).filter(Boolean).length;
+
+// Guest runs longer than MAX_GUEST_RUN_WORDS without a host's question (verses count
+// as the guest's): the id of each run's last line → its word count
+export function overlongGuestRuns(lines: PodcastLine[]): Map<string, number> {
+  const flagged = new Map<string, number>();
+  let run = 0;
+  let lastId = '';
+  const close = () => {
+    if (run > MAX_GUEST_RUN_WORDS && lastId) flagged.set(lastId, run);
+    run = 0;
+  };
+  for (const l of lines) {
+    if (l.text === COMMENT_SLOT) continue; // an empty comment slot neither adds nor ends a run
+    if (l.type === 'verse' || isGuest(l.speaker)) {
+      run += wordCount(l.text);
+      lastId = l.id;
+    } else close();
+  }
+  close();
+  return flagged;
+}
+
+// The unified Quranic format of the scripts:
+// > قال تعالى:
+// > {نص الآية}
+// > [السورة: الآية]
+export const verseRefLabel = (ref: string | undefined) => `[${(ref ?? '').replace(':', ': ')}]`;
+export function verseBlockLines(line: PodcastLine): string[] {
+  return ['قال تعالى:', line.unresolved || !line.text ? '{تعذر العثور على الآية}' : `{${line.text}}`, verseRefLabel(line.ref)];
+}
+
+// The whole script as text (to paste into a teleprompter or a document)
+export function scriptToText(script: PodcastScript, lead: PodcastSpeaker): string {
+  const out: string[] = [
+    `${script.episode.programName} — EPISODE ${script.episode.episodeNumber}`,
+    script.episode.dateText,
+    '',
+    `${PODCAST_SPEAKERS[lead]}: ${script.episode.disclaimer}`,
+  ];
+  for (const segment of script.segments) {
+    if (!segment.lines.length) continue;
+    out.push('', `— ${segment.title} —`, '');
+    for (const l of segment.lines) {
+      if (l.type === 'verse') out.push('', ...verseBlockLines(l).map(t => `> ${t}`), '');
+      else out.push(`${speakerName(l.speaker)}: ${l.text}`);
+    }
+  }
+  if (script.interruptionBank?.length) {
+    out.push('', '— بنك المقاطعات —', '', ...script.interruptionBank.map((q, i) => `${i + 1}. ${q}`));
+  }
+  return out.join('\n');
+}
+
+// The opening words of each body segment (the closing call writes the interruption bank from them)
+export function segmentHighlights(script: PodcastScript, words = 40): string[] {
+  return script.segments
+    .filter(s => s.kind === 'body')
+    .map(s => `${s.title}: ${s.sourceText.split(/\s+/).slice(0, words).join(' ')}…`);
 }

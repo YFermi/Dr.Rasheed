@@ -107,6 +107,9 @@ export interface GeminiRequest {
   effort?: Effort;
   // JSON Schema for structured output
   schema?: Record<string, unknown>;
+  // Sampling settings (only the recording script sets them; Gemini 3.6+ ignores
+  // temperature, and later models may reject it)
+  sampling?: { temperature?: number; frequencyPenalty?: number };
 }
 
 interface GeminiPart {
@@ -170,6 +173,8 @@ export async function callGemini(req: GeminiRequest): Promise<GeminiResponse> {
       maxOutputTokens: req.maxOutputTokens ?? MAX_OUTPUT_TOKENS,
       ...(req.schema ? { responseMimeType: 'application/json', responseJsonSchema: req.schema } : {}),
       ...(thinking ? { thinkingConfig: thinking } : {}),
+      ...(req.sampling?.temperature !== undefined ? { temperature: req.sampling.temperature } : {}),
+      ...(req.sampling?.frequencyPenalty !== undefined ? { frequencyPenalty: req.sampling.frequencyPenalty } : {}),
     },
   };
 

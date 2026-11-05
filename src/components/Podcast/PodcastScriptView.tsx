@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
-import { Mic, FileDown, Loader2, RefreshCw, Plus, Trash2, Play, Square, AlertTriangle, X } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Mic, FileDown, Loader2, RefreshCw, Plus, Trash2, Play, Square, AlertTriangle, X, Scissors, Copy, Check } from 'lucide-react';
 import { usePodcastStore } from '../../store/usePodcastStore';
 import { exportPodcastToWord } from '../../utils/podcastDocxExport';
 import { toArabicDigits } from '../../utils/arabic';
-import { DEFAULT_LEAD_HOST, PODCAST_DISCLAIMER, PODCAST_SPEAKERS, type PodcastLine, type PodcastSegment, type PodcastSpeaker } from '../../types/podcast';
+import { COMMENT_SLOT, DEFAULT_LEAD_HOST, MAX_GUEST_RUN_WORDS, PODCAST_DISCLAIMER, PODCAST_SPEAKERS, type PodcastLine, type PodcastSegment, type PodcastSpeaker } from '../../types/podcast';
+import { overlongGuestRuns, scriptToText, verseBlockLines } from '../../utils/podcastScript';
 
-// 🎙️ سكريبت التسجيل: the generated studio script in black and gold; every line can
-// be edited in place, and every segment written again (with an optional note).
+// 🎙️ سكريبت التسجيل: the generated studio script in black and gold, after the
+// official disclaimer; every line can be edited in place, every segment written
+// again (with an optional note); the interruption bank closes it.
 
+// Each speaker's colour: Dr. Rasheed gold, Zakaria maroon, Mustafa green, Mohammed blue
+// (explicit hex: Tailwind's blue scale is gold in this theme)
 export const SPEAKER_BADGES: Record<PodcastSpeaker, string> = {
   rasheed: 'bg-[#d4af37] text-[#0a0a0a] border-[#d4af37]',
-  yousef: 'bg-sky-950/70 text-sky-200 border-sky-700',
+  zakaria: 'bg-[#4a0f17] text-[#fecdd3] border-[#9f1239]',
   mustafa: 'bg-emerald-950/70 text-emerald-200 border-emerald-700',
-  zakaria: 'bg-rose-950/70 text-rose-200 border-rose-700',
+  mohammed: 'bg-[#0c2547] text-[#bfdbfe] border-[#2563eb]',
+  ali: 'bg-violet-950/70 text-violet-200 border-violet-700',
+  yousef: 'bg-zinc-800 text-zinc-200 border-zinc-600',
 };
 
-const SPEAKER_ORDER: PodcastSpeaker[] = ['yousef', 'rasheed', 'mustafa', 'zakaria'];
+const SPEAKER_ORDER: PodcastSpeaker[] = ['zakaria', 'mustafa', 'mohammed', 'rasheed', 'ali'];
 
 const autoSize = (el: HTMLTextAreaElement | null) => {
   if (!el) return;
@@ -31,7 +37,7 @@ const SpeakerBadge: React.FC<{ speaker: PodcastSpeaker; onChange?: (s: PodcastSp
       title="تغيير المتحدث"
       className={`px-2 py-0.5 rounded-full border fs-11 font-bold cursor-pointer appearance-none text-center focus:outline-none ${SPEAKER_BADGES[speaker]}`}
     >
-      {SPEAKER_ORDER.map(s => <option key={s} value={s} className="bg-[#0a0a0a] text-[#efe6cf]">{PODCAST_SPEAKERS[s]}</option>)}
+      {(SPEAKER_ORDER.includes(speaker) ? SPEAKER_ORDER : [...SPEAKER_ORDER, speaker]).map(s => <option key={s} value={s} className="bg-[#0a0a0a] text-[#efe6cf]">{PODCAST_SPEAKERS[s]}</option>)}
     </select>
   ) : (
     <span className={`px-2 py-0.5 rounded-full border fs-11 font-bold whitespace-nowrap ${SPEAKER_BADGES[speaker]}`}>{PODCAST_SPEAKERS[speaker]}</span>
@@ -61,24 +67,34 @@ const EditableText: React.FC<{ value: string; onSave: (v: string) => void; place
   );
 };
 
-const VerseBox: React.FC<{ line: PodcastLine; onDelete: () => void }> = ({ line, onDelete }) => (
-  <div className="group relative my-3 mx-6 px-5 py-4 rounded-lg border-x-4 border-y border-[#d4af37] bg-gradient-to-b from-[#2b2208] to-[#1f1a0b] text-center shadow-[0_0_18px_rgba(212,175,55,0.15)]">
-    {line.unresolved || !line.text ? (
-      <span className="text-rose-300 fs-13">تعذر العثور على الآية: {line.ref}</span>
-    ) : (
-      <p className="font-quran fs-19 leading-loose text-[#f6edcf]">﴿{line.text}﴾</p>
-    )}
-    <span className="block mt-1 fs-12 text-[#d4af37]">[{(line.ref ?? '').replace(':', ': ')}]</span>
+// The unified Quranic format: «قال تعالى:» / {نص الآية} / [السورة: الآية], as a quote
+// Below the last line of a guest run longer than MAX_GUEST_RUN_WORDS
+const CutterFlag: React.FC<{ words: number }> = ({ words }) => (
+  <p className="flex items-center gap-1 fs-11 text-amber-300 px-2 no-print" title={`المقص الذكي: الضيف لا يتكلم أكثر من ${MAX_GUEST_RUN_WORDS} كلمة متصلة`}>
+    <Scissors className="w-3 h-3" />
+    {toArabicDigits(words)} كلمة متصلة — أطول من {toArabicDigits(MAX_GUEST_RUN_WORDS)}: أضف سؤالاً استيضاحياً أو أعد توليد المقطع
+  </p>
+);
+
+const VerseBox: React.FC<{ line: PodcastLine; onDelete: () => void }> = ({ line, onDelete }) => {
+  const [intro, verse, ref] = verseBlockLines(line);
+  return (
+  <blockquote className="group relative my-3 mr-28 ml-6 pr-4 pl-5 py-3 border-r-4 border-[#d4af37] rounded-l-lg bg-gradient-to-l from-[#2b2208] to-[#1a160b] shadow-[0_0_18px_rgba(212,175,55,0.12)]">
+    <p className="fs-13 text-[#d4af37] font-bold">{intro}</p>
+    <p className={`font-quran fs-19 leading-loose ${line.unresolved || !line.text ? 'text-rose-300' : 'text-[#f6edcf]'}`}>{verse}</p>
+    <p className="fs-12 text-[#d4af37]">{ref}</p>
     <button type="button" onClick={onDelete} title="حذف الآية" className="absolute top-1.5 left-1.5 p-1 text-[#8a7f66] hover:text-rose-300 opacity-0 group-hover:opacity-100 transition">
       <Trash2 className="w-3.5 h-3.5" />
     </button>
-  </div>
-);
+  </blockquote>
+  );
+};
 
 const SegmentBlock: React.FC<{ segment: PodcastSegment }> = ({ segment }) => {
   const { isGenerating, regenerateSegment, updateLine, deleteLine, insertLineAfter } = usePodcastStore();
   const [askNote, setAskNote] = useState(false);
   const [note, setNote] = useState('');
+  const overlong = useMemo(() => overlongGuestRuns(segment.lines), [segment.lines]);
 
   const regenerate = () => {
     if (segment.lines.length && !window.confirm(`إعادة كتابة «${segment.title}» تستبدل أسطره الحالية (ومنها تعديلاتك). هل تريد المتابعة؟`)) return;
@@ -95,6 +111,7 @@ const SegmentBlock: React.FC<{ segment: PodcastSegment }> = ({ segment }) => {
         <div className="h-px flex-1 bg-gradient-to-r from-[#d4af37]/60 to-transparent" />
         <div className="flex items-center gap-1 no-print">
           {segment.status === 'generating' && <Loader2 className="w-4 h-4 animate-spin text-[#d4af37]" />}
+          {segment.model && <span title="النموذج الذي كتب هذا المقطع" className="fs-10 text-[#8a7f66] font-mono" dir="ltr">{segment.model}</span>}
           <button
             type="button"
             onClick={() => setAskNote(!askNote)}
@@ -137,19 +154,27 @@ const SegmentBlock: React.FC<{ segment: PodcastSegment }> = ({ segment }) => {
 
       {segment.lines.map(line =>
         line.type === 'verse' ? (
-          <VerseBox key={line.id} line={line} onDelete={() => deleteLine(segment.id, line.id)} />
+          <React.Fragment key={line.id}>
+            <VerseBox line={line} onDelete={() => deleteLine(segment.id, line.id)} />
+            {overlong.has(line.id) && <div className="mr-28"><CutterFlag words={overlong.get(line.id)!} /></div>}
+          </React.Fragment>
         ) : (
           <div key={line.id} className="group flex items-start gap-3">
             <div className="w-28 flex-shrink-0 flex justify-end pt-1">
               <SpeakerBadge speaker={line.speaker ?? 'rasheed'} onChange={s => updateLine(segment.id, line.id, { speaker: s })} />
             </div>
             <div className="flex-1 min-w-0">
-              <EditableText
-                value={line.text}
-                placeholder="اكتب نص المداخلة…"
-                onSave={text => updateLine(segment.id, line.id, { text })}
-                className={`fs-15 leading-loose px-2 py-1 ${line.speaker === 'rasheed' ? 'text-[#f6edcf]' : 'text-[#c2b691]'}`}
-              />
+              {line.text === COMMENT_SLOT ? (
+                <p title="مساحة فارغة للتعقيب: يرتجلها الضيف في التسجيل" className="fs-15 px-2 py-1 text-[#8a7f66] tracking-[0.3em]">{COMMENT_SLOT}</p>
+              ) : (
+                <EditableText
+                  value={line.text}
+                  placeholder="اكتب نص المداخلة…"
+                  onSave={text => updateLine(segment.id, line.id, { text })}
+                  className={`fs-15 leading-loose px-2 py-1 ${line.speaker === 'rasheed' || line.speaker === 'ali' ? 'text-[#f6edcf]' : 'text-[#c2b691]'}`}
+                />
+              )}
+              {overlong.has(line.id) && <CutterFlag words={overlong.get(line.id)!} />}
             </div>
             <div className="flex flex-col gap-1 pt-1 opacity-0 group-hover:opacity-100 transition no-print">
               <button type="button" onClick={() => insertLineAfter(segment.id, line.id)} title="إضافة مداخلة بعدها" className="p-1 text-[#8a7f66] hover:text-[#d4af37]"><Plus className="w-3.5 h-3.5" /></button>
@@ -163,8 +188,21 @@ const SegmentBlock: React.FC<{ segment: PodcastSegment }> = ({ segment }) => {
 };
 
 export const PodcastScriptView: React.FC = () => {
-  const { script, isGenerating, progress, error, openModal, resume, cancel, updateEpisode, clearError } = usePodcastStore();
+  const { script, isGenerating, progress, error, openModal, resume, cancel, updateEpisode, updateInterruption, clearError } = usePodcastStore();
   const [isExporting, setIsExporting] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const lead = script?.episode.leadHost ?? DEFAULT_LEAD_HOST;
+
+  const handleCopy = async () => {
+    if (!script) return;
+    try {
+      await navigator.clipboard.writeText(scriptToText(script, lead));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  };
 
   const handleExport = async () => {
     if (!script) return;
@@ -180,7 +218,7 @@ export const PodcastScriptView: React.FC = () => {
     return (
       <div className="h-full flex flex-col items-center justify-center gap-4 bg-[#0a0a0a] text-[#c2b691] p-8 text-center">
         <Mic className="w-12 h-12 text-[#d4af37]" />
-        <p className="fs-15 max-w-md leading-relaxed">حوّل المقال المرجعي المعتمد أو المسودة الحالية إلى سكريبت حواري للتسجيل بين د. رشيد الجراح وفريق البرنامج.</p>
+        <p className="fs-15 max-w-md leading-relaxed">حوّل أي مقال مباشرة — نص تلصقه أو ملف Word أو مقال مرجعي أو المسودة — إلى سكريبت حواري للتسجيل بين د. رشيد الجراح وفريق البرنامج، دون المرور بشجرة الأفكار.</p>
         <button type="button" onClick={openModal} className="px-4 py-2 rounded bg-gradient-to-b from-[#e3c66b] to-[#b8901f] text-[#0a0a0a] font-bold text-sm">🎙️ سكريبت تسجيل جديد</button>
       </div>
     );
@@ -212,6 +250,10 @@ export const PodcastScriptView: React.FC = () => {
             <button type="button" onClick={resume} className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#d4af37] text-[#d4af37] text-xs hover:bg-[#1f1d18]"><Play className="w-3 h-3" />استئناف الكتابة</button>
           )}
           <button type="button" onClick={openModal} disabled={isGenerating} className="px-2.5 py-1 rounded border border-[#4a4027] text-xs text-[#c2b691] hover:text-[#efe6cf] disabled:opacity-40">سكريبت جديد</button>
+          <button type="button" onClick={handleCopy} title="نسخ السكريبت نصاً بالتنسيق القرآني الموحد" className="flex items-center gap-1 px-2.5 py-1 rounded border border-[#4a4027] text-xs text-[#c2b691] hover:text-[#efe6cf]">
+            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+            <span>{copied ? 'نُسخ' : 'نسخ كنص'}</span>
+          </button>
           <button
             type="button"
             onClick={handleExport}
@@ -219,7 +261,7 @@ export const PodcastScriptView: React.FC = () => {
             className="flex items-center gap-1.5 px-3 py-1 rounded bg-gradient-to-b from-[#e3c66b] to-[#b8901f] text-[#0a0a0a] text-xs font-bold disabled:opacity-50"
           >
             {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5" />}
-            <span>تصدير السكريبت Word</span>
+            <span>تصدير السكريبت الكامل Docx</span>
           </button>
         </div>
       </div>
@@ -255,14 +297,14 @@ export const PodcastScriptView: React.FC = () => {
               onChange={e => updateEpisode({ dateText: e.target.value })}
               className="w-full bg-transparent text-center fs-13 text-[#c2b691] focus:outline-none"
             />
-            <p className="fs-12 text-[#8a7f66]">عن مقال: {script.source.title} • المذيع الرئيسي: {PODCAST_SPEAKERS[script.episode.leadHost ?? DEFAULT_LEAD_HOST]}</p>
+            <p className="fs-12 text-[#8a7f66]">عن مقال: {script.source.title} • قائد الحلقة: {PODCAST_SPEAKERS[lead]}{script.episode.coGuest ? ` • ضيف مشارك: ${PODCAST_SPEAKERS.ali}` : ''}</p>
           </header>
 
-          {/* Disclaimer (Zakaria) */}
-          <section className="mt-6 p-4 rounded-lg border border-[#2e2817] bg-[#0a0a0a] flex items-start gap-3">
+          {/* The official disclaimer, read by the lead host first */}
+          <section className="mt-6 p-4 rounded-lg border border-[#d4af37]/40 bg-[#0a0a0a] flex items-start gap-3">
             <div className="w-28 flex-shrink-0 flex flex-col items-end gap-1 pt-1">
-              <SpeakerBadge speaker="zakaria" />
-              <span className="fs-10 text-[#8a7f66]">إخلاء المسؤولية</span>
+              <SpeakerBadge speaker={lead} />
+              <span className="fs-10 text-[#8a7f66]">إخلاء المسؤولية المنهجي</span>
             </div>
             <div className="flex-1 min-w-0">
               {/* Fixed text, not editable */}
@@ -271,6 +313,21 @@ export const PodcastScriptView: React.FC = () => {
           </section>
 
           {script.segments.map(segment => <SegmentBlock key={segment.id} segment={segment} />)}
+
+          {/* Interruption bank: alternative questions for the audio editor */}
+          {script.interruptionBank?.length ? (
+            <section className="mt-10 p-4 rounded-lg border border-dashed border-[#d4af37]/60 bg-[#0a0a0a] space-y-2" aria-label="بنك المقاطعات">
+              <h3 className="fs-15 font-bold text-[#d4af37]">✂️ بنك المقاطعات</h3>
+              <p className="fs-11 text-[#8a7f66]">أسئلة مقاطعة بديلة يستعين بها مخرج الصوت في المونتاج.</p>
+              <ol className="space-y-1 list-decimal pr-6 marker:text-[#d4af37]">
+                {script.interruptionBank.map((q, i) => (
+                  <li key={`${i}-${q}`}>
+                    <EditableText value={q} onSave={text => updateInterruption(i, text)} className="fs-14 leading-relaxed text-[#c2b691] px-2 py-0.5" />
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
         </article>
       </div>
     </div>

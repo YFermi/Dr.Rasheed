@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { DEFAULT_LEAD_HOST, PODCAST_DISCLAIMER } from '../types/podcast';
+import { DEFAULT_LEAD_HOST, PODCAST_DISCLAIMER, PODCAST_LEAD_HOSTS } from '../types/podcast';
 import type {
   PodcastEpisode,
-  PodcastHost,
+  PodcastLeadHost,
   PodcastLine,
   PodcastScript,
   PodcastSegment,
@@ -21,20 +21,29 @@ import {
   newLineId,
   referenceSegments,
   resolvePodcastVerses,
+  segmentHighlights,
   validVerseRefs,
 } from '../utils/podcastScript';
 import { useReferenceStore } from './useReferenceStore';
 import { useArticleStore } from './useArticleStore';
 import { useBlogStore } from './useBlogStore';
 
-// The recording script (🎙️ سكريبت التسجيل): generated segment by segment from an
-// approved reference article or the current draft, editable line by line, kept in
-// localStorage with the programme settings for the next episodes.
+// The recording script (🎙️ سكريبت التسجيل): generated segment by segment straight
+// from an article (pasted text or a Word file, a reference article, or the current
+// draft; no idea tree), editable line by line, kept in localStorage with the
+// programme settings for the next episodes. Each finished segment is saved at once:
+// after a failure, «استئناف» continues from the failed one.
+
+// What to turn into a script: a stored article, or a text given in the window
+export type PodcastSourceInput =
+  | { kind: 'reference' | 'draft'; id: string }
+  | { kind: 'text'; title: string; text: string };
 
 export interface PodcastSettings {
   programName: string;
   nextEpisodeNumber: number;
-  leadHost: PodcastHost; // the last choice, offered again for the next episode
+  leadHost: PodcastLeadHost; // the last choices, offered again for the next episode
+  coGuest: boolean;
 }
 
 export interface PodcastProgress {
@@ -55,12 +64,13 @@ interface PodcastStoreState {
   closeModal: () => void;
   updateSettings: (patch: Partial<PodcastSettings>) => void;
   // Splits the source into segments and writes them all
-  generate: (source: Pick<PodcastSource, 'kind' | 'id'>, episode: Omit<PodcastEpisode, 'disclaimer'>) => Promise<void>;
+  generate: (source: PodcastSourceInput, episode: Omit<PodcastEpisode, 'disclaimer'>) => Promise<void>;
   // Writes the segments not written yet (after an error or a cancel)
   resume: () => Promise<void>;
   regenerateSegment: (segmentId: string, instruction?: string) => Promise<void>;
   cancel: () => void;
-  updateEpisode: (patch: Partial<Omit<PodcastEpisode, 'disclaimer' | 'leadHost'>>) => void;
+  updateEpisode: (patch: Partial<Omit<PodcastEpisode, 'disclaimer' | 'leadHost' | 'coGuest'>>) => void;
+  updateInterruption: (index: number, text: string) => void;
   updateLine: (segmentId: string, lineId: string, patch: Partial<Pick<PodcastLine, 'text' | 'speaker'>>) => void;
   deleteLine: (segmentId: string, lineId: string) => void;
   insertLineAfter: (segmentId: string, lineId: string | null) => void;
@@ -79,11 +89,13 @@ function requestFor(script: PodcastScript, index: number, instruction?: string):
     programName: script.episode.programName,
     episodeNumber: script.episode.episodeNumber,
     leadHost: script.episode.leadHost ?? DEFAULT_LEAD_HOST,
+    coGuest: !!script.episode.coGuest,
     articleTitle: script.source.title,
     segmentTitle: segment.title,
     segmentIndex: segment.kind === 'body' ? body.indexOf(segment) + 1 : 0,
     bodyCount: body.length,
     topics: [...new Set(body.map(s => s.title.replace(/\s*\([^)]*\)$/, '')))],
+    ...(segment.kind === 'closing' ? { highlights: segmentHighlights(script) } : {}),
     sourceText: segment.sourceText,
     allowedVerseRefs: script.allowedVerseRefs,
     previousLines: index > 0 ? lastLinesOf(script.segments[index - 1]) : [],
@@ -105,7 +117,10 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
     try {
       const result = await callApiWithKey<PodcastSegmentResponse>('/api/generate-podcast-script', requestFor(script, index, instruction), signal);
       const lines = await resolvePodcastVerses(result.lines.map(l => ({ ...l, id: newLineId() })));
-      patchSegment(segment.id, () => ({ lines, status: 'done', rejectedRefs: result.rejectedRefs }));
+      patchSegment(segment.id, () => ({ lines, status: 'done', rejectedRefs: result.rejectedRefs, model: result.model }));
+      if (result.interruptions?.length) {
+        set(state => (state.script ? { script: { ...state.script, interruptionBank: result.interruptions } } : {}));
+      }
     } catch (e) {
       const aborted = signal.aborted;
       patchSegment(segment.id, s => ({ status: s.lines.length ? 'done' : aborted ? 'pending' : 'error', error: aborted ? undefined : aiErrorMessage(e, 'كتابة هذا المقطع') }));
@@ -137,7 +152,7 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
 
   return {
     script: null,
-    settings: { programName: DEFAULT_PROGRAM_NAME, nextEpisodeNumber: DEFAULT_EPISODE_NUMBER, leadHost: DEFAULT_LEAD_HOST },
+    settings: { programName: DEFAULT_PROGRAM_NAME, nextEpisodeNumber: DEFAULT_EPISODE_NUMBER, leadHost: DEFAULT_LEAD_HOST, coGuest: false },
     isModalOpen: false,
     isGenerating: false,
     progress: null,
@@ -149,9 +164,19 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
 
     generate: async (source, episode) => {
       if (get().isGenerating) return;
+      // Closed at once: the Quran data may take a moment to load (no double start)
+      set({ isModalOpen: false });
       let title = '';
       let split: { segments: PodcastSegment[]; refs: string[] };
-      if (source.kind === 'draft') {
+      if (source.kind === 'text') {
+        if (!source.text.trim()) {
+          set({ error: 'النص فارغ.' });
+          return;
+        }
+        title = source.title.trim() || 'مقال بلا عنوان';
+        const r = referenceSegments({ title, fullText: source.text });
+        split = { segments: r.segments, refs: await validVerseRefs(r.refCandidates) };
+      } else if (source.kind === 'draft') {
         const draft = useArticleStore.getState().draft;
         if (!draft?.sections.length) {
           set({ error: 'لا توجد مسودة مكتوبة بعد.' });
@@ -175,7 +200,7 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
         error: null,
         script: {
           id: `podcast-${Date.now()}`,
-          source: { kind: source.kind, id: source.id, title },
+          source: { kind: source.kind, id: source.kind === 'text' ? `text-${Date.now()}` : source.id, title },
           // The disclaimer is fixed: inserted by the app, never written by the model
           episode: { ...episode, disclaimer: PODCAST_DISCLAIMER },
           segments: split.segments,
@@ -186,6 +211,7 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
           ...state.settings,
           programName: episode.programName,
           leadHost: episode.leadHost ?? DEFAULT_LEAD_HOST,
+          coGuest: !!episode.coGuest,
           nextEpisodeNumber: episode.episodeNumber + 1,
         },
       }));
@@ -216,6 +242,15 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
 
     updateEpisode: (patch) => set(state => state.script ? { script: { ...state.script, episode: { ...state.script.episode, ...patch } } } : {}),
 
+    updateInterruption: (index, text) =>
+      set(state => {
+        if (!state.script?.interruptionBank) return {};
+        const bank = [...state.script.interruptionBank];
+        if (text.trim()) bank[index] = text.trim();
+        else bank.splice(index, 1);
+        return { script: { ...state.script, interruptionBank: bank } };
+      }),
+
     updateLine: (segmentId, lineId, patch) =>
       patchSegment(segmentId, s => ({ lines: s.lines.map(l => (l.id === lineId ? { ...l, ...patch } : l)) })),
 
@@ -234,14 +269,20 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
   };
 }, {
   name: 'idea-builder-podcast-script',
-  version: 2,
+  version: 3,
   // v2: fixed disclaimer, lead host (settings.disclaimer is gone)
+  // v3: new cast — the lead host is زكريا or مصطفى (د. يوسف no longer hosts)
   migrate: (persisted: any) => {
     if (persisted?.settings) {
       delete persisted.settings.disclaimer;
-      persisted.settings.leadHost ??= DEFAULT_LEAD_HOST;
+      if (!PODCAST_LEAD_HOSTS.includes(persisted.settings.leadHost)) persisted.settings.leadHost = DEFAULT_LEAD_HOST;
+      persisted.settings.coGuest ??= false;
     }
-    if (persisted?.script) persisted.script.episode = { ...persisted.script.episode, disclaimer: PODCAST_DISCLAIMER };
+    if (persisted?.script) {
+      const episode = persisted.script.episode;
+      // Scripts led by د. يوسف: the disclaimer was Zakaria's, and he leads them now
+      persisted.script.episode = { ...episode, disclaimer: PODCAST_DISCLAIMER, leadHost: PODCAST_LEAD_HOSTS.includes(episode.leadHost) ? episode.leadHost : DEFAULT_LEAD_HOST };
+    }
     return persisted;
   },
   storage: createJSONStorage(() => localStorage),
