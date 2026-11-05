@@ -66,7 +66,7 @@ interface BlogStoreState {
   // One-shot request for the reader to scroll to a paragraph; the reader clears
   // it once handled, so remounting the reader doesn't scroll again.
   scrollTargetId: string | null;
-  leftPanelView: 'document' | 'blog' | 'draft';
+  leftPanelView: 'document' | 'blog' | 'draft' | 'podcast';
 
   loadCorpus: () => Promise<void>;
   // Adds (or replaces, same id) an article in the story corpus; false when it could not be saved
@@ -79,7 +79,7 @@ interface BlogStoreState {
   openBlogRef: (ref: BlogRef) => boolean;
   closeArticle: () => void;
   clearScrollTarget: () => void;
-  setLeftPanelView: (view: 'document' | 'blog' | 'draft') => void;
+  setLeftPanelView: (view: 'document' | 'blog' | 'draft' | 'podcast') => void;
 }
 
 export const useBlogStore = create<BlogStoreState>((set, get) => ({
@@ -168,5 +168,5 @@ export const useBlogStore = create<BlogStoreState>((set, get) => ({
 
   clearScrollTarget: () => set({ scrollTargetId: null }),
 
-  setLeftPanelView: (view: 'document' | 'blog' | 'draft') => set({ leftPanelView: view }),
+  setLeftPanelView: (view: 'document' | 'blog' | 'draft' | 'podcast') => set({ leftPanelView: view }),
 }));

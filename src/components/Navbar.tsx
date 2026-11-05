@@ -7,6 +7,7 @@ import { useReferenceStore } from '../store/useReferenceStore';
 import { SpiderWebLogo } from './SpiderWebLogo';
 import { UIPreferencesMenu } from './UIPreferencesMenu';
 import { useUIStore } from '../store/useUIStore';
+import { usePodcastStore } from '../store/usePodcastStore';
 import {
   PenLine,
   FileDown,
@@ -59,6 +60,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { hasKey, serverHasKey, openModal: openKeyModal, checkServerKey } = useApiKeyStore();
   const openReferenceModal = useReferenceStore(state => state.openModal);
   const startTour = useUIStore(state => state.startTour);
+  const openPodcastModal = usePodcastStore(state => state.openModal);
+  const isGeneratingPodcast = usePodcastStore(state => state.isGenerating);
 
   useEffect(() => {
     checkServerKey();
@@ -119,6 +122,17 @@ export const Navbar: React.FC<NavbarProps> = ({
         className={outlineButton}
       >
         <span>✨ استيراد نص عصف</span>
+      </button>
+
+      <button
+        data-tour="podcast"
+        onClick={openPodcastModal}
+        disabled={isGeneratingPodcast}
+        title="تحويل المقال المرجعي أو المسودة إلى سكريبت حواري للتسجيل"
+        className={outlineButton}
+      >
+        <span>🎙️{' '}</span>
+        <span className="nav-secondary">{isGeneratingPodcast ? 'جاري كتابة السكريبت...' : 'سكريبت تسجيل'}</span>
       </button>
 
       <button

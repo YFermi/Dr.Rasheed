@@ -11,10 +11,13 @@ import { ArticleDraftView } from './components/ArticleDraft/ArticleDraftView';
 import { ArticleGenerateModal } from './components/ArticleDraft/ArticleGenerateModal';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { TutorialTour } from './components/TutorialTour';
+import { PodcastScriptView } from './components/Podcast/PodcastScriptView';
+import { PodcastSourceModal } from './components/Podcast/PodcastSourceModal';
+import { usePodcastStore } from './store/usePodcastStore';
 import { useIdeaStore } from './store/useIdeaStore';
 import { useBlogStore } from './store/useBlogStore';
 import { useArticleStore } from './store/useArticleStore';
-import { FileText, BookOpen, PenLine, Loader2 } from 'lucide-react';
+import { FileText, BookOpen, PenLine, Loader2, Mic } from 'lucide-react';
 import { toArabicDigits } from './utils/arabic';
 
 export default function App() {
@@ -40,6 +43,7 @@ export default function App() {
   );
   const isGeneratingArticle = useArticleStore(state => state.isGenerating);
   const hasStaleSections = useArticleStore(state => Object.values(state.sectionMeta).some(m => m.stale));
+  const isGeneratingPodcast = usePodcastStore(state => state.isGenerating);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -194,10 +198,24 @@ export default function App() {
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="محاور قديمة في المسودة" />
               )}
             </button>
+            <button
+              type="button"
+              onClick={() => setLeftPanelView('podcast')}
+              title="سكريبت التسجيل: المقال حواراً بين د. رشيد الجراح وفريق البرنامج"
+              className={`px-4 flex items-center gap-1.5 transition border-r border-gray-300 ${
+                leftPanelView === 'podcast'
+                  ? 'bg-white text-blue-800 font-bold border-b-2 border-blue-700'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-white/60'
+              }`}
+            >
+              <Mic className="w-3.5 h-3.5" />
+              <span>🎙️ سكريبت التسجيل</span>
+              {isGeneratingPodcast && <Loader2 className="w-3 h-3 animate-spin text-blue-600" />}
+            </button>
           </div>
 
           <div className="flex-1 overflow-hidden relative">
-            {leftPanelView === 'blog' ? <BlogReader /> : leftPanelView === 'draft' ? <ArticleDraftView /> : <WordPreview />}
+            {leftPanelView === 'blog' ? <BlogReader /> : leftPanelView === 'draft' ? <ArticleDraftView /> : leftPanelView === 'podcast' ? <PodcastScriptView /> : <WordPreview />}
           </div>
         </div>
       </div>
@@ -216,6 +234,9 @@ export default function App() {
 
       {/* Article generation options */}
       <ArticleGenerateModal />
+
+      {/* Recording script: source article and episode details */}
+      <PodcastSourceModal />
 
       {/* Gemini API key (stacked above the other modals) */}
       <ApiKeyModal />

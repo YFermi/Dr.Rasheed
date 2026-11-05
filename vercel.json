@@ -5,7 +5,7 @@
   "framework": "vite",
   "functions": {
     "api/*.ts": {
-      "maxDuration": 60,
+      "maxDuration": 300,
       "includeFiles": "data/style-examples.json"
     },
     "api/article/*.ts": {

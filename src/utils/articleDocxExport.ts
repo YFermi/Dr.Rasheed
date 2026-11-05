@@ -22,11 +22,11 @@ import type { GeneratedArticle, DraftBlock } from '../types/article';
 // verse boxes (the tree export in docxExport.ts stays as it is).
 
 export const AI_DRAFT_LABEL = 'مسودة بمساعدة الذكاء الاصطناعي';
-const QURAN_ATTRIBUTION = 'نص الآيات الكريمة من مشروع تنزيل — tanzil.net';
+export const QURAN_ATTRIBUTION = 'نص الآيات الكريمة من مشروع تنزيل — tanzil.net';
 
-const FONT = 'Amiri';
+export const FONT = 'Amiri';
 
-const run = (text: string, opts: Partial<{ size: number; bold: boolean; italics: boolean; color: string }> = {}) =>
+export const run = (text: string, opts: Partial<{ size: number; bold: boolean; italics: boolean; color: string }> = {}) =>
   new TextRun({ text, font: FONT, rightToLeft: true, size: opts.size ?? 24, bold: opts.bold, italics: opts.italics, color: opts.color ?? '1F2937' });
 
 const prose = (text: string) =>
@@ -38,7 +38,7 @@ const prose = (text: string) =>
   });
 
 // Same gold box as the tree export's Quranic verses
-function verseBox(block: DraftBlock): Table | Paragraph {
+export function verseBox(block: Pick<DraftBlock, 'text' | 'ref' | 'unresolved'>): Table | Paragraph {
   if (block.unresolved || !block.text) {
     return new Paragraph({
       alignment: AlignmentType.CENTER,
