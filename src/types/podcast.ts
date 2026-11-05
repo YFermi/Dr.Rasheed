@@ -11,6 +11,17 @@ export const PODCAST_SPEAKERS: Record<PodcastSpeaker, string> = {
   zakaria: 'زكريا',
 };
 
+// The hosts who can lead an episode (open it after the disclaimer, recap the
+// previous one, close it)
+export type PodcastHost = Exclude<PodcastSpeaker, 'rasheed'>;
+export const PODCAST_HOSTS: PodcastHost[] = ['yousef', 'zakaria', 'mustafa'];
+export const DEFAULT_LEAD_HOST: PodcastHost = 'yousef';
+
+// Fixed text, inserted by the app (never written by the model) as the first
+// line of every script, read by Zakaria
+export const PODCAST_DISCLAIMER =
+  'إخلاء مسؤولية وتوضيح منهجي: هذا المحتوى مُقدَّم لأغراض تعليمية، تحليلية، ونقدية بحتة. إن أي تناول لمصطلحات تاريخية، دينية، أو اجتماعية يهدف حصرًا إلى تحليل المفاهيم والأفكار والسلوكيات ضمن سياقها الأصلي، وهو لا يُمثّل بأي حالٍ من الأحوال حكمًا قيميًا أو تعميمًا سلبيًا على أي فئة اجتماعية أو قومية معاصرة. كما أن أي تفاعل عفوي أو مزاح يرد خلال الحوار لا يُقصد به الإساءة الشخصية أو التحرش. ونؤكد التزامنا التام بإرشادات المجتمع لجميع المنصات، ورفضنا لجميع أشكال خطاب الكراهية والصور النمطية الضارة. وأن جميع الأفكار والمفاهيم التي يتم تناولها في هذا الحوار مستندة إلى ما هو منشور في المدونة منذ أكثر من عشرين عامًا ويمكن أيضًا الوصول إلى المدونة بسهولة عبر البحث في محرك البحث جوجل باسم: الدكتور رشيد الجراح.';
+
 // What the model writes for a verse line (its text is inserted by the client)
 export const VERSE_SPEAKER = 'آية';
 
@@ -40,7 +51,8 @@ export interface PodcastEpisode {
   programName: string;
   episodeNumber: number;
   dateText: string;
-  disclaimer: string; // read by Zakaria before the introduction
+  leadHost?: PodcastHost; // default DEFAULT_LEAD_HOST (scripts made before the choice existed)
+  disclaimer: string; // always PODCAST_DISCLAIMER
 }
 
 export interface PodcastSource {
@@ -64,6 +76,7 @@ export interface PodcastSegmentRequest {
   kind: PodcastSegmentKind;
   programName: string;
   episodeNumber: number;
+  leadHost: PodcastHost;
   articleTitle: string;
   segmentTitle: string;
   segmentIndex: number; // 1-based among the body segments (0 for intro/closing)

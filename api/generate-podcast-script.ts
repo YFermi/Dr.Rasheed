@@ -9,6 +9,7 @@ import type {
   PodcastSegmentRequest,
   PodcastSegmentResponse,
   PodcastSpeaker,
+  PodcastHost,
 } from '../src/types/podcast';
 import {
   type ApiRequest,
@@ -62,60 +63,68 @@ const SCRIPT_SCHEMA = {
   required: ['lines'],
 };
 
-// A short worked example of the pattern (form only, not content)
-const EXAMPLE = `### نص المقطع (مثال)
-لماذا قال لوط «هؤلاء بناتي هن أطهر لكم»؟ نحن نظن أن الطهارة هنا ليست طهارة الجسد. فاللفظ في اللسان العربي المبين يدل على ما يقابل الرجس، كما في قوله تعالى: ﴿…﴾ [الأعراف: 82]. افتراء من عند أنفسنا: إن «أطهر» تصف حال القوم لا حال البنات. والله أعلم.
+const HOSTS: PodcastHost[] = ['yousef', 'zakaria', 'mustafa']; // same as PODCAST_HOSTS
 
-### الحوار المطلوب (مثال)
-[
-  {"speaker":"مصطفى","text":"يا دكتور، لماذا قال لوط: هؤلاء بناتي هن أطهر لكم؟ عن أي طهارة يتكلم؟"},
-  {"speaker":"د. رشيد الجراح","text":"سؤال في الصميم يا مصطفى. نحن نظن أن الطهارة هنا ليست طهارة الجسد كما قد يتبادر إلى الذهن. فاللفظ في اللسان العربي المبين يدل على ما يقابل الرجس، وانظروا معي إلى قوله تعالى:"},
-  {"speaker":"آية","text":"","ref":"الأعراف:82"},
-  {"speaker":"زكريا","text":"إذن الطهارة يقابلها الرجس، لا النجاسة الحسية؟"},
-  {"speaker":"د. رشيد الجراح","text":"بالضبط يا زكريا. وهنا نفتري الظن، أو قل: افتراء من عند أنفسنا، إن «أطهر» تصف حال القوم لا حال البنات. والله أعلم."}
-]`;
+// The lead host and the two others, in the order they speak in the example
+function cast(leadHost: PodcastHost) {
+  const [second, third] = HOSTS.filter(h => h !== leadHost).map(h => PODCAST_SPEAKERS[h]);
+  return { lead: PODCAST_SPEAKERS[leadHost], second, third, rasheed: PODCAST_SPEAKERS.rasheed };
+}
 
-function systemPrompt(programName: string): string {
+// The client's example of the programme's tone and turn-taking, with the names of
+// this episode's cast
+function example(leadHost: PodcastHost): string {
+  const { lead, second, third, rasheed } = cast(leadHost);
+  return `${lead}: بسم الله الرحمن الرحيم. أهلًا ومرحبًا بكم مستمعينا الأعزاء في حلقة جديدة من سلسلة نظرية الشبكة العنكبوتية مع الدكتور رشيد الجراح. هدفنا في هذه الدقائق التمهيدية هو استرجاع الخيوط الأساسية التي نسجناها في اللقاء السابق... ما رأيك يا ${second}؟
+${second}: أهلاً بك، وأهلاً بكل متابعينا. الحقيقة العمق الفكري الذي طرحه الدكتور رشيد تمثل في إعادة رسم اللحظة الفاصلة... وهنا يأتي دورك يا ${third}.
+${third}: شكرًا لك. ومن ذلك الإيمان المشهود، انطلقنا في الحلقة الماضية لفض إشكال لطالما حيّر أذهان المتدبرين... تفضل ببدء النقاش مع الدكتور رشيد.
+${lead}: أهلاً بكم متابعينا. نرحب بضيفنا الكريم الدكتور رشيد الجراح. نود أن نبدأ حوار الليلة معك حول اسم الرسول لوط نفسه، فما دلالة هذا الاسم وما معناه؟
+${rasheed}: تتميز الكلمات القرآنية عمومًا بقابليتها للاشتقاق من جذور ثلاثية... غير أن كلمة "لوط" تشكل استثناءً واضحًا. لذا، نحن نظن أن كل مفردة في كتاب الله هي من اللسان العربي المبين.`;
+}
+
+function systemPrompt(programName: string, leadHost: PodcastHost): string {
+  const { lead, second, third, rasheed } = cast(leadHost);
   return `أنت كاتب سكريبتات لبرنامج «${programName}»، برنامج حواري مسموع ومرئي يقدّم أبحاث أ.د. رشيد الجراح في تدبّر القرآن الكريم.
 مهمتك تحويل نص مقال علمي إلى حوار مكتوب يُقرأ في الاستوديو كما هو، دون أن يضيع شيء من مادته العلمية.
 
-## الشخصيات
-- د. يوسف: مقدّم البرنامج؛ يفتتح الحلقة ويختمها ويدير الحوار ويطرح الأسئلة.
-- مصطفى وزكريا: محاوران؛ يطرحان أسئلة التفكيك والاستيضاح، وقد يعيدان صياغة ما فهماه بإيجاز تمهيداً للسؤال التالي.
-- د. رشيد الجراح: صاحب البحث؛ الإجابات العلمية التفصيلية له وحده.
+## الشخصيات في هذه الحلقة
+- ${lead}: المذيع الرئيسي؛ يفتتح الحلقة بعد إخلاء المسؤولية، ويرحب بالمستمعين ويسترجع خيوط الحلقة السابقة، ويدير الحوار، ويختتم الحلقة ويودع المستمعين. لا يفتتح غيره ولا يختم غيره.
+- ${second} و${third}: محاوران؛ يشاركان في التمهيد، ويطرحان أسئلة التفكيك والاستيضاح، وقد يعيدان صياغة ما فهماه بإيجاز تمهيداً للسؤال التالي.
+- ${rasheed}: صاحب البحث؛ الإجابات العلمية التفصيلية له وحده.
 
 ## قواعد صارمة
-1. الأسئلة موزّعة بالتناوب بين د. يوسف ومصطفى وزكريا، وكل سؤال قصير (جملة إلى ثلاث جمل). لا يقدّم المحاورون أي معلومة علمية من المقال من عندهم؛ يسألون أو يلخّصون ما قاله الدكتور.
-2. كلام د. رشيد يمتص النص العلمي للمقطع كاملاً: كل فكرة وكل حجة وكل سؤال يطرحه وكل نتيجة وكل آية، بالترتيب نفسه، وبألفاظ المقال قدر الإمكان مع تحويلها إلى لغة منطوقة سلسة. حافظ على مصطلحاته كما وردت، مثل: «نفتري الظن»، «لغو الأعراب»، «اللسان العربي المبين»، «افتراء من عند أنفسنا»، «والله أعلم».
-3. لا تختصر: مجموع كلام د. رشيد في المقطع قريب من طول نص المقطع أو أطول منه، لا أقصر. قسّم الإجابات الطويلة على عدة مداخلات تتخللها أسئلة قصيرة.
+1. الأسئلة موزّعة بالتناوب بين ${lead} و${second} و${third}، وكل سؤال قصير (جملة إلى ثلاث جمل). لا يقدّم المحاورون أي معلومة علمية من المقال من عندهم؛ يسألون أو يلخّصون ما قاله الدكتور.
+2. كلام ${rasheed} يمتص النص العلمي للمقطع كاملاً: كل فكرة وكل حجة وكل سؤال يطرحه وكل نتيجة وكل آية، بالترتيب نفسه، وبألفاظ المقال قدر الإمكان مع تحويلها إلى لغة منطوقة سلسة. حافظ على مصطلحاته كما وردت، مثل: «نفتري الظن»، «لغو الأعراب»، «اللسان العربي المبين»، «افتراء من عند أنفسنا»، «والله أعلم».
+3. لا تختصر: مجموع كلام الدكتور في المقطع قريب من طول نص المقطع أو أطول منه، لا أقصر. قسّم الإجابات الطويلة على عدة مداخلات تتخللها أسئلة قصيرة.
 4. الآيات: كل آية في نص المقطع تُورد عنصراً مستقلاً {"speaker":"${VERSE_SPEAKER}","text":"","ref":"سورة:آية"} في موضعها من كلام الدكتور. اترك text فارغاً دائماً، فالنظام يُدرج النص القرآني الموثّق. اختر ref من القائمة المسموح بها فقط. لا تكتب نص أي آية داخل الكلام ولا الأقواس ﴿ ﴾؛ يجوز اقتباس كلمتين إلى أربع من آية أوردتها، بين «».
 5. المنهج: التحليل يقتصر على النص القرآني؛ لا نقل عن أهل التراث أو المفسرين، ولا قصصهم، ولا الإسرائيليات، ولا مقارنة مع من كتب في الموضوع، ولو سأل المحاور عن ذلك.
-6. المخاطبة: يتنادى المتحاورون بأسمائهم طبيعياً («يا دكتور»، «يا مصطفى»). الترحيب بالمشاهدين في المقدمة والخاتمة فقط. لا «عزيزي القارئ» ولا «سيدي» ولا «سيادتكم».
-7. نص منطوق فقط: لا عناوين ولا ترقيم ولا إرشادات إخراج (لا [موسيقى] ولا (يبتسم)).
+6. المخاطبة: يتنادى المتحاورون بأسمائهم طبيعياً («يا دكتور»، «يا ${second}»). الترحيب بالمستمعين في المقدمة والخاتمة فقط. لا «عزيزي القارئ» ولا «سيدي» ولا «سيادتكم».
+7. إخلاء المسؤولية نص ثابت يدرجه النظام قبل الحوار؛ لا تكتبه ولا تشر إليه.
+8. نص منطوق فقط: لا عناوين ولا ترقيم ولا إرشادات إخراج (لا [موسيقى] ولا (يبتسم)).
 
-## مثال على النمط (للشكل فقط، لا تنقل مضمونه)
-${EXAMPLE}
+## مثال توضيحي لأسلوب الحوار (النبرة وتوزيع الأدوار؛ لا تنقل مضمونه)
+${example(leadHost)}
 
 ## الإخراج
-أرجع JSON فقط: {"lines":[{"speaker":"…","text":"…","ref":"…"}]}، و ref لعناصر الآيات فقط.`;
+أرجع JSON فقط: {"lines":[{"speaker":"…","text":"…","ref":"…"}]}، حيث speaker أحد: ${lead}، ${second}، ${third}، ${rasheed}، ${VERSE_SPEAKER}؛ و ref لعناصر الآيات فقط.`;
 }
 
 function segmentInstructions(req: PodcastSegmentRequest): string {
+  const { lead, second, third } = cast(req.leadHost);
   const topics = req.topics.length ? req.topics.map(t => `- ${t}`).join('\n') : '—';
   switch (req.kind) {
     case 'intro':
       return `# المطلوب: مقدمة الحلقة
-- قرأ زكريا إخلاء المسؤولية قبل هذا المقطع مباشرة؛ لا تكرره.
-- يفتتح د. يوسف بترحيب بالمشاهدين في برنامج «${req.programName}»، الحلقة ${req.episodeNumber}، ثم يسترجع أهم أفكار الجزء السابق كما في نص المقطع أدناه.
-- يشرك معه مصطفى وزكريا في تمهيد حواري مشوق (٦ إلى ١٠ مداخلات قصيرة) يثير أسئلة الحلقة دون الإجابة عنها.
-- يُختم المقطع بسؤال د. يوسف الأول للدكتور رشيد عن موضوع الحلقة. لا يتكلم د. رشيد في هذا المقطع.
+- يفتتح ${lead} (المذيع الرئيسي) مباشرة بعد إخلاء المسؤولية: بسملة وترحيب بالمستمعين في برنامج «${req.programName}»، الحلقة ${req.episodeNumber}، ثم يسترجع خيوط الحلقة السابقة كما في نص المقطع أدناه.
+- يشرك معه ${second} ثم ${third} في تمهيد حواري مشوق (٦ إلى ١٠ مداخلات) يثير أسئلة الحلقة دون الإجابة عنها، كما في المثال.
+- يُختم المقطع بترحيب ${lead} بالدكتور رشيد وسؤاله الأول له عن موضوع الحلقة. لا يتكلم الدكتور في هذا المقطع.
 
 # موضوعات الحلقة (المقاطع القادمة)
 ${topics}`;
     case 'closing':
       return `# المطلوب: خاتمة الحلقة
 - إن كان في نص المقطع تمهيد للجزء القادم أو دعاء، يقوله د. رشيد باختصار وبألفاظه.
-- ثم يختم د. يوسف إغلاقاً مقتضباً لائقاً: شكر الدكتور ومصطفى وزكريا والمشاهدين، والدعوة إلى متابعة الحلقة القادمة.
+- ثم يختتم ${lead} (المذيع الرئيسي) إغلاقاً مقتضباً لائقاً: شكر الدكتور و${second} و${third}، وتوديع المستمعين، والدعوة إلى متابعة الحلقة القادمة.
 - من ٣ إلى ٦ مداخلات فقط.`;
     default:
       return `# المطلوب: المقطع ${req.segmentIndex} من ${req.bodyCount} في متن الحلقة — «${req.segmentTitle}»
@@ -131,6 +140,7 @@ export function buildPodcastPrompt(req: PodcastSegmentRequest): { system: string
   const instruction = req.instruction ? `\n\n# ملاحظة المستخدم لإعادة الكتابة (التزم بها)\n${req.instruction}` : '';
   const prompt = `# الحلقة
 البرنامج: ${req.programName} — الحلقة ${req.episodeNumber}
+المذيع الرئيسي: ${cast(req.leadHost).lead}
 المقال: ${req.articleTitle}
 
 ${segmentInstructions(req)}
@@ -140,7 +150,7 @@ ${req.sourceText}
 
 # المراجع المسموح بها للآيات
 ${req.allowedVerseRefs.join('، ') || '— (لا آيات في هذا المقال)'}${instruction}`;
-  return { system: systemPrompt(req.programName), prompt };
+  return { system: systemPrompt(req.programName, req.leadHost), prompt };
 }
 
 const VERSE_SPAN_RE = /[﴾﴿]([^﴾﴿]*)[﴾﴿]\s*(?:[[(]([^\])]+)[\])])?/g;
@@ -198,6 +208,7 @@ function validateInput(body: Record<string, unknown>): PodcastSegmentRequest {
     kind,
     programName: asString(body.programName).trim() || 'نظرية الشبكة العنكبوتية',
     episodeNumber: Number.isFinite(episodeNumber) && episodeNumber > 0 ? Math.round(episodeNumber) : 1,
+    leadHost: HOSTS.includes(body.leadHost as PodcastHost) ? (body.leadHost as PodcastHost) : 'yousef',
     articleTitle: asString(body.articleTitle).trim(),
     segmentTitle: asString(body.segmentTitle).trim(),
     segmentIndex: Number(body.segmentIndex) || 0,
@@ -210,20 +221,46 @@ function validateInput(body: Record<string, unknown>): PodcastSegmentRequest {
   };
 }
 
+// ---- Retries ---------------------------------------------------------------------
+
+// Gemini's rate limit (429), overload (503) and dropped connections are usually
+// momentary: wait 3 s, then 5 s, before reporting the error. A timeout is not
+// retried (no time left), and every attempt fits in the same TIMEOUT_MS budget.
+export const retryConfig = { delaysMs: [3000, 5000], minAttemptMs: 30_000 };
+
+export function isRetryable(error: unknown): boolean {
+  if (error instanceof HttpError) return error.status === 429 || error.status === 503;
+  return error instanceof TypeError || /fetch failed|ECONNRESET|ETIMEDOUT|socket hang up|network/i.test(String((error as Error)?.message ?? error));
+}
+
+export async function withRetry<T>(attempt: (timeoutMs: number) => Promise<T>): Promise<T> {
+  const deadline = Date.now() + TIMEOUT_MS;
+  for (let i = 0; ; i++) {
+    try {
+      return await attempt(deadline - Date.now());
+    } catch (error) {
+      const delay = retryConfig.delaysMs[i];
+      if (delay === undefined || !isRetryable(error) || deadline - Date.now() - delay < retryConfig.minAttemptMs) throw error;
+      console.warn(`podcast script: retry ${i + 1} in ${delay} ms (${(error as Error)?.message ?? error})`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   return handleJson(req, res, async (body, apiKey, model) => {
     const request = validateInput(body);
     const { system, prompt } = buildPodcastPrompt(request);
-    const raw = await generateJson<{ lines?: unknown }>({
+    const raw = await withRetry(timeoutMs => generateJson<{ lines?: unknown }>({
       apiKey,
       model,
       system,
       prompt,
       schema: SCRIPT_SCHEMA,
       maxOutputTokens: MAX_OUTPUT_TOKENS,
-      timeoutMs: TIMEOUT_MS,
+      timeoutMs,
       effort: 'low', // long faithful rewriting: a little thinking keeps it complete
-    });
+    }));
     return normalizePodcast(raw, request);
   });
 }

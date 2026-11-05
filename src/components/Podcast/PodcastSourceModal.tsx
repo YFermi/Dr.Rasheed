@@ -7,7 +7,7 @@ import { useApiKeyStore, selectAiAvailable } from '../../store/useApiKeyStore';
 import { formatProjectDate } from '../../utils/projectDate';
 import { draftSegments, referenceSegments } from '../../utils/podcastScript';
 import { toArabicDigits } from '../../utils/arabic';
-import type { PodcastSource } from '../../types/podcast';
+import { PODCAST_HOSTS, PODCAST_SPEAKERS, PODCAST_DISCLAIMER, type PodcastHost, type PodcastSource } from '../../types/podcast';
 
 // 🎙️ سكريبت تسجيل: choose the article (a reference article or the current draft)
 // and the episode details, then generate.
@@ -28,7 +28,7 @@ export const PodcastSourceModal: React.FC = () => {
   const [programName, setProgramName] = useState(settings.programName);
   const [episodeNumber, setEpisodeNumber] = useState(settings.nextEpisodeNumber);
   const [dateText, setDateText] = useState(formatProjectDate());
-  const [disclaimer, setDisclaimer] = useState(settings.disclaimer);
+  const [leadHost, setLeadHost] = useState<PodcastHost>(settings.leadHost);
 
   // Fresh values each time the window opens: newest reference article first
   useEffect(() => {
@@ -37,7 +37,7 @@ export const PodcastSourceModal: React.FC = () => {
     setProgramName(settings.programName);
     setEpisodeNumber(settings.nextEpisodeNumber);
     setDateText(formatProjectDate());
-    setDisclaimer(settings.disclaimer);
+    setLeadHost(settings.leadHost);
   }, [isModalOpen]);
 
   // How the chosen article will be split (segments = API calls)
@@ -54,7 +54,7 @@ export const PodcastSourceModal: React.FC = () => {
   const handleGenerate = () => {
     if (!canGenerate || !source) return;
     if (script && !window.confirm('سيحل السكريبت الجديد محل السكريبت الحالي. هل تريد المتابعة؟')) return;
-    generate(source, { programName: programName.trim() || settings.programName, episodeNumber, dateText: dateText.trim(), disclaimer: disclaimer.trim() });
+    generate(source, { programName: programName.trim() || settings.programName, episodeNumber, dateText: dateText.trim(), leadHost });
   };
 
   const option = (checked: boolean, onChange: () => void, title: string, detail: string) => (
@@ -126,9 +126,20 @@ export const PodcastSourceModal: React.FC = () => {
             <input value={dateText} onChange={e => setDateText(e.target.value)} className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-white focus:border-[#d4af37] focus:outline-none" />
           </label>
           <label className="block space-y-1">
-            <span className="fs-11 text-gray-300 block">إخلاء المسؤولية (يقرؤه زكريا، ويُحفظ للحلقات القادمة):</span>
-            <textarea rows={4} value={disclaimer} onChange={e => setDisclaimer(e.target.value)} className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded p-2 text-white leading-relaxed focus:border-[#d4af37] focus:outline-none" />
+            <span className="fs-11 text-gray-300 block">المذيع الرئيسي للحلقة (يفتتح بعد إخلاء المسؤولية، ويسترجع الحلقة السابقة، ويختتم):</span>
+            <select
+              value={leadHost}
+              onChange={e => setLeadHost(e.target.value as PodcastHost)}
+              aria-label="المذيع الرئيسي للحلقة"
+              className="w-full bg-[#0a0a0a] border border-[#2e2817] rounded px-2 py-1.5 text-[#d4af37] font-bold focus:border-[#d4af37] focus:outline-none"
+            >
+              {PODCAST_HOSTS.map(h => <option key={h} value={h}>{PODCAST_SPEAKERS[h]}</option>)}
+            </select>
           </label>
+          <details className="rounded border border-[#2e2817] bg-[#0a0a0a] p-2">
+            <summary className="fs-11 text-gray-300 cursor-pointer">إخلاء المسؤولية: نص ثابت يقرؤه زكريا أول السكريبت</summary>
+            <p className="mt-2 fs-11 text-[#8a7f66] leading-relaxed">{PODCAST_DISCLAIMER}</p>
+          </details>
 
           {!aiAvailable && (
             <div className="p-2.5 bg-amber-950/40 border border-amber-800/60 rounded text-amber-200 flex items-center justify-between gap-2">

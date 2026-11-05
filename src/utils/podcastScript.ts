@@ -15,11 +15,6 @@ const CLOSING_RE = /(الجزء القادم|الجزء التالي|الحلق�
 
 export const DEFAULT_PROGRAM_NAME = 'نظرية الشبكة العنكبوتية';
 export const DEFAULT_EPISODE_NUMBER = 187;
-// Draft wording: replace it with the programme's exact disclaimer (editable in the
-// generation window and kept for the next episodes)
-export const DEFAULT_DISCLAIMER =
-  'تنويه: ما يُطرح في هذه الحلقة اجتهادٌ شخصيٌّ في تدبّر النص القرآني، يقوم على تفكيك ألفاظه في اللسان العربي المبين ومقابلتها بمواضعها في كتاب الله، وليس فتوى ولا قولاً فصلاً. نحن نفتري الظن، فما كان من صواب فمن الله وحده، وما كان من خطأ فمن أنفسنا، ونستغفر الله إن كنا نفتري.';
-
 const words = (text: string) => text.split(/\s+/).filter(Boolean).length;
 let lineCounter = 0;
 export const newLineId = () => `ln-${Date.now().toString(36)}-${(lineCounter++).toString(36)}`;

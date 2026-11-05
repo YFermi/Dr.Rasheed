@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { DEFAULT_LEAD_HOST, PODCAST_DISCLAIMER } from '../types/podcast';
 import type {
   PodcastEpisode,
+  PodcastHost,
   PodcastLine,
   PodcastScript,
   PodcastSegment,
@@ -12,7 +14,6 @@ import type {
 import { callApiWithKey } from '../utils/apiKey';
 import { aiErrorMessage } from '../utils/aiErrors';
 import {
-  DEFAULT_DISCLAIMER,
   DEFAULT_EPISODE_NUMBER,
   DEFAULT_PROGRAM_NAME,
   draftSegments,
@@ -33,7 +34,7 @@ import { useBlogStore } from './useBlogStore';
 export interface PodcastSettings {
   programName: string;
   nextEpisodeNumber: number;
-  disclaimer: string;
+  leadHost: PodcastHost; // the last choice, offered again for the next episode
 }
 
 export interface PodcastProgress {
@@ -54,12 +55,12 @@ interface PodcastStoreState {
   closeModal: () => void;
   updateSettings: (patch: Partial<PodcastSettings>) => void;
   // Splits the source into segments and writes them all
-  generate: (source: Pick<PodcastSource, 'kind' | 'id'>, episode: PodcastEpisode) => Promise<void>;
+  generate: (source: Pick<PodcastSource, 'kind' | 'id'>, episode: Omit<PodcastEpisode, 'disclaimer'>) => Promise<void>;
   // Writes the segments not written yet (after an error or a cancel)
   resume: () => Promise<void>;
   regenerateSegment: (segmentId: string, instruction?: string) => Promise<void>;
   cancel: () => void;
-  updateEpisode: (patch: Partial<PodcastEpisode>) => void;
+  updateEpisode: (patch: Partial<Omit<PodcastEpisode, 'disclaimer' | 'leadHost'>>) => void;
   updateLine: (segmentId: string, lineId: string, patch: Partial<Pick<PodcastLine, 'text' | 'speaker'>>) => void;
   deleteLine: (segmentId: string, lineId: string) => void;
   insertLineAfter: (segmentId: string, lineId: string | null) => void;
@@ -77,6 +78,7 @@ function requestFor(script: PodcastScript, index: number, instruction?: string):
     kind: segment.kind,
     programName: script.episode.programName,
     episodeNumber: script.episode.episodeNumber,
+    leadHost: script.episode.leadHost ?? DEFAULT_LEAD_HOST,
     articleTitle: script.source.title,
     segmentTitle: segment.title,
     segmentIndex: segment.kind === 'body' ? body.indexOf(segment) + 1 : 0,
@@ -135,7 +137,7 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
 
   return {
     script: null,
-    settings: { programName: DEFAULT_PROGRAM_NAME, nextEpisodeNumber: DEFAULT_EPISODE_NUMBER, disclaimer: DEFAULT_DISCLAIMER },
+    settings: { programName: DEFAULT_PROGRAM_NAME, nextEpisodeNumber: DEFAULT_EPISODE_NUMBER, leadHost: DEFAULT_LEAD_HOST },
     isModalOpen: false,
     isGenerating: false,
     progress: null,
@@ -174,7 +176,8 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
         script: {
           id: `podcast-${Date.now()}`,
           source: { kind: source.kind, id: source.id, title },
-          episode,
+          // The disclaimer is fixed: inserted by the app, never written by the model
+          episode: { ...episode, disclaimer: PODCAST_DISCLAIMER },
           segments: split.segments,
           allowedVerseRefs: split.refs,
           generatedAt: new Date().toISOString(),
@@ -182,7 +185,7 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
         settings: {
           ...state.settings,
           programName: episode.programName,
-          disclaimer: episode.disclaimer,
+          leadHost: episode.leadHost ?? DEFAULT_LEAD_HOST,
           nextEpisodeNumber: episode.episodeNumber + 1,
         },
       }));
@@ -231,7 +234,16 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
   };
 }, {
   name: 'idea-builder-podcast-script',
-  version: 1,
+  version: 2,
+  // v2: fixed disclaimer, lead host (settings.disclaimer is gone)
+  migrate: (persisted: any) => {
+    if (persisted?.settings) {
+      delete persisted.settings.disclaimer;
+      persisted.settings.leadHost ??= DEFAULT_LEAD_HOST;
+    }
+    if (persisted?.script) persisted.script.episode = { ...persisted.script.episode, disclaimer: PODCAST_DISCLAIMER };
+    return persisted;
+  },
   storage: createJSONStorage(() => localStorage),
   partialize: (state) => ({ script: state.script, settings: state.settings }),
   // A segment cut off by closing the page is written again on «استئناف»

@@ -12,7 +12,7 @@ import {
 } from 'docx';
 import { saveAs } from 'file-saver';
 import type { PodcastScript, PodcastSpeaker } from '../types/podcast';
-import { PODCAST_SPEAKERS } from '../types/podcast';
+import { PODCAST_DISCLAIMER, PODCAST_SPEAKERS } from '../types/podcast';
 import { FONT, QURAN_ATTRIBUTION, run, verseBox } from './articleDocxExport';
 
 // Word export of the recording script, ready for the studio: speaker names in bold
@@ -72,7 +72,7 @@ export async function exportPodcastToWord(script: PodcastScript) {
       children: [run(`عن مقال: ${script.source.title}`, { size: 20, italics: true, color: '6B7280' })],
     }),
     segmentHeading('إخلاء المسؤولية'),
-    speech('zakaria', episode.disclaimer),
+    speech('zakaria', PODCAST_DISCLAIMER),
   ];
 
   for (const segment of script.segments) {

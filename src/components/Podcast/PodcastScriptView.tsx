@@ -3,7 +3,7 @@ import { Mic, FileDown, Loader2, RefreshCw, Plus, Trash2, Play, Square, AlertTri
 import { usePodcastStore } from '../../store/usePodcastStore';
 import { exportPodcastToWord } from '../../utils/podcastDocxExport';
 import { toArabicDigits } from '../../utils/arabic';
-import { PODCAST_SPEAKERS, type PodcastLine, type PodcastSegment, type PodcastSpeaker } from '../../types/podcast';
+import { DEFAULT_LEAD_HOST, PODCAST_DISCLAIMER, PODCAST_SPEAKERS, type PodcastLine, type PodcastSegment, type PodcastSpeaker } from '../../types/podcast';
 
 // 🎙️ سكريبت التسجيل: the generated studio script in black and gold; every line can
 // be edited in place, and every segment written again (with an optional note).
@@ -255,7 +255,7 @@ export const PodcastScriptView: React.FC = () => {
               onChange={e => updateEpisode({ dateText: e.target.value })}
               className="w-full bg-transparent text-center fs-13 text-[#c2b691] focus:outline-none"
             />
-            <p className="fs-12 text-[#8a7f66]">عن مقال: {script.source.title}</p>
+            <p className="fs-12 text-[#8a7f66]">عن مقال: {script.source.title} • المذيع الرئيسي: {PODCAST_SPEAKERS[script.episode.leadHost ?? DEFAULT_LEAD_HOST]}</p>
           </header>
 
           {/* Disclaimer (Zakaria) */}
@@ -265,7 +265,8 @@ export const PodcastScriptView: React.FC = () => {
               <span className="fs-10 text-[#8a7f66]">إخلاء المسؤولية</span>
             </div>
             <div className="flex-1 min-w-0">
-              <EditableText value={script.episode.disclaimer} onSave={disclaimer => updateEpisode({ disclaimer })} className="fs-14 leading-loose text-[#c2b691] px-2 py-1" />
+              {/* Fixed text, not editable */}
+              <p className="fs-14 leading-loose text-[#c2b691] px-2 py-1">{PODCAST_DISCLAIMER}</p>
             </div>
           </section>
 
