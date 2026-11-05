@@ -297,7 +297,7 @@ export const PodcastScriptView: React.FC = () => {
               onChange={e => updateEpisode({ dateText: e.target.value })}
               className="w-full bg-transparent text-center fs-13 text-[#c2b691] focus:outline-none"
             />
-            <p className="fs-12 text-[#8a7f66]">عن مقال: {script.source.title} • قائد الحلقة: {PODCAST_SPEAKERS[lead]}{script.episode.coGuest ? ` • ضيف مشارك: ${PODCAST_SPEAKERS.ali}` : ''}</p>
+            <p className="fs-12 text-[#8a7f66]">عن مقال: {script.source.title} • قائد الحلقة: {PODCAST_SPEAKERS[lead]}{script.episode.coGuest ? ` • ضيف مشارك: ${PODCAST_SPEAKERS.ali}` : ''}{script.previousEpisode ? ` • الحلقة السابقة: ${script.previousEpisode.title || 'نص ملصق'}` : ''}</p>
           </header>
 
           {/* The official disclaimer, read by the lead host first */}

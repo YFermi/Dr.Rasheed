@@ -19,9 +19,11 @@ import {
   draftSegments,
   lastLinesOf,
   newLineId,
+  referenceRefCandidates,
   referenceSegments,
   resolvePodcastVerses,
   segmentHighlights,
+  unifyVerseMarkup,
   validVerseRefs,
 } from '../utils/podcastScript';
 import { useReferenceStore } from './useReferenceStore';
@@ -38,6 +40,12 @@ import { useBlogStore } from './useBlogStore';
 export type PodcastSourceInput =
   | { kind: 'reference' | 'draft'; id: string }
   | { kind: 'text'; title: string; text: string };
+
+// The previous episode, whose full text the introduction recaps
+export interface PreviousEpisodeInput {
+  title: string;
+  text: string;
+}
 
 export interface PodcastSettings {
   programName: string;
@@ -64,7 +72,7 @@ interface PodcastStoreState {
   closeModal: () => void;
   updateSettings: (patch: Partial<PodcastSettings>) => void;
   // Splits the source into segments and writes them all
-  generate: (source: PodcastSourceInput, episode: Omit<PodcastEpisode, 'disclaimer'>) => Promise<void>;
+  generate: (source: PodcastSourceInput, episode: Omit<PodcastEpisode, 'disclaimer'>, previous?: PreviousEpisodeInput | null) => Promise<void>;
   // Writes the segments not written yet (after an error or a cancel)
   resume: () => Promise<void>;
   regenerateSegment: (segmentId: string, instruction?: string) => Promise<void>;
@@ -96,7 +104,11 @@ function requestFor(script: PodcastScript, index: number, instruction?: string):
     bodyCount: body.length,
     topics: [...new Set(body.map(s => s.title.replace(/\s*\([^)]*\)$/, '')))],
     ...(segment.kind === 'closing' ? { highlights: segmentHighlights(script) } : {}),
-    sourceText: segment.sourceText,
+    ...(segment.kind === 'intro' && script.previousEpisode?.text.trim()
+      ? { previousEpisodeText: unifyVerseMarkup(script.previousEpisode.text), previousEpisodeTitle: script.previousEpisode.title }
+      : {}),
+    dateText: script.episode.dateText,
+    sourceText: unifyVerseMarkup(segment.sourceText),
     allowedVerseRefs: script.allowedVerseRefs,
     previousLines: index > 0 ? lastLinesOf(script.segments[index - 1]) : [],
     ...(instruction?.trim() ? { instruction: instruction.trim() } : {}),
@@ -162,7 +174,7 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
     closeModal: () => set({ isModalOpen: false }),
     updateSettings: (patch) => set(state => ({ settings: { ...state.settings, ...patch } })),
 
-    generate: async (source, episode) => {
+    generate: async (source, episode, previous) => {
       if (get().isGenerating) return;
       // Closed at once: the Quran data may take a moment to load (no double start)
       set({ isModalOpen: false });
@@ -195,6 +207,12 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
         const r = referenceSegments(article);
         split = { segments: r.segments, refs: await validVerseRefs(r.refCandidates) };
       }
+      // The previous episode's verses may be quoted in the introduction
+      const previousEpisode = previous?.text.trim() ? { title: previous.title.trim(), text: previous.text.trim() } : undefined;
+      if (previousEpisode) {
+        const previousRefs = await validVerseRefs(referenceRefCandidates(previousEpisode.text));
+        split = { ...split, refs: [...new Set([...split.refs, ...previousRefs])] };
+      }
       set(state => ({
         isModalOpen: false,
         error: null,
@@ -205,6 +223,7 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
           episode: { ...episode, disclaimer: PODCAST_DISCLAIMER },
           segments: split.segments,
           allowedVerseRefs: split.refs,
+          ...(previousEpisode ? { previousEpisode } : {}),
           generatedAt: new Date().toISOString(),
         },
         settings: {

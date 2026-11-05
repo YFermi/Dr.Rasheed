@@ -29,6 +29,8 @@ import {
 const TIMEOUT_MS = 250_000; // under the function's 300 s (vercel.json)
 const MAX_OUTPUT_TOKENS = 16384; // a ~1,400-word segment becomes ~2,000 words of dialog
 const MAX_SOURCE_CHARS = 20_000;
+// The introduction recaps the previous episode from its full text (~12,000 words)
+const MAX_PREVIOUS_EPISODE_CHARS = 80_000;
 const MAX_PREVIOUS_LINES = 6;
 const KINDS = new Set<PodcastSegmentKind>(['intro', 'body', 'closing']);
 const COMMENT_SLOT = '...'; // same as src/types/podcast.ts
@@ -82,6 +84,18 @@ function schemaFor(req: PodcastSegmentRequest) {
 
 // ---- Prompt ----------------------------------------------------------------------
 
+// The client's golden introduction: the only binding model of depth, length and
+// tone for the opening (sent with the introduction call only). Its cast is that
+// of an earlier season: د. يوسف = the lead, مصطفى = the second, زكريا = the third.
+const GOLDEN_INTRO = `د. يوسف: بسم الله الرحمن الرحيم. أهلًا ومرحبًا بكم مستمعينا الأعزاء في حلقة جديدة من سلسلة نظرية الشبكة العنكبوتية مع الدكتور رشيد الجراح بتاريخ [التاريخ].
+هدفنا في هذه الدقائق التمهيدية هو استرجاع الخيوط الأساسية التي نسجناها في اللقاء السابق؛ لنبني عليها مسار حوارنا الليلة بشكل منهجي متصل. لقد افتتح الدكتور رشيد أطروحته بتفكيك الروايات الموروثة التي تجعل لوطاً ابن أخ لإبراهيم عليهما السلام، معتبراً إياها مدفوعة بإسرائيليات لا يدعمها الذكر الحكيم. فالتأسيس المنهجي القرآني يفصل تماماً بين "قوم إبراهيم" و"قوم لوط"، ولكل نبي منهما لسان خاص أُرسل به، مما قادنا إلى افتراء الظن أن الرابطة التي جمعت بين البيتين هي علاقة مصاهرة وقربى من جهة النساء سابقة على الرسالة، وليست قرابة دم من جهة الآباء. كما عالجنا البعد الزمني لعمر النبيين؛ فالقرآن يصف إبراهيم إبان مواجهته للأصنام بصفة "الفتى"، مما دفع الدكتور رشيد الى افتراء الظن إلى حداثة سنه في تلك الواقعة، بينما تشير المعطيات إلى أن لوطاً كان رجلاً مكتمل النضج يعيش بين أهله وقومه، وبالتالي فهو على الأرجح أكبر سناً من إبراهيم. لكن هذه النتائج العملية مبنية على تصور أعمق، ما رأيك يا مصطفى.
+
+مصطفى: أهلاً بيك يا دكتور يوسف، وأهلاً بكل متابعينا. الحقيقة العمق الفكري اللي طرحه الدكتور رشيد تمثل في إعادة رسم اللحظة الفاصلة في حياة النبيين؛ لحظة ما انتشر خبر تحريق الفتى إبراهيم، فتحرك لوط من موطنه ليشهد الواقعة، ورأى المعجزة كاملة: النار أصبحت برداً وسلاماً، والبنيان تم الاتيان عليه من قواعده فخر السقف على القوم وآتهم العذاب من حيث لا يشعرون. ومن خلال المشهد ده كان السؤال الأهم ليه النص جه "فآمن له لوط" مش "فآمن به لوط" وبالتالي انتقلنا الى التحليل العديد من السياقات القرانية للنظر في التدقيق اللساني البديع في الفرق بين "آمن به" و"آمن له"؛ فالإيمان "بـ" هو تصديق عقائدي قلبي للرسالة قد لا يرتبط بحوادث حسية، بينما الإيمان "لـ" هو إيمان ناتج عن معاينة الآيات والمعجزات على أرض الواقع، زي ما حصل مع سحرة فرعون وبني إسرائيل تجاه موسى عليه السلام. فلوط كان مؤمناً بإبراهيم وبربه من البداية، لكنه "آمن له" بعد ما عاين البينة بعينيه وزال عنه أي تردد. وانتهينا الى افتراء الظن انه لوط كان في الأساس مؤمن ولكن كان يكتم ايمانه وفي اللحظة التي راي فيها إبراهيم يخرج من نار قومه سالما هنا جهر بهذا الايمان وانتقل الى انه آمن لـ إبراهيم، وهذا العمق الفكري ينقلنا الى الجزء الاخير، وهنا يأتي دورك يا زكريا.
+
+زكريا: شكرًا لك أخي مصطفى. ومن ذلك الايمان المشهود، انطلقنا في الحلقة الماضية لفض إشكال لطالما حيّر أذهان المتدبرين في قوله تعالى: > قال تعالى: {وَقَالَ إِنِّي مُهَاجِرٌ إِلَى رَبِّي} [العنكبوت: 26]؛ إذ رجح الدكتور رشيد أن المتحدث بالهجرة هو إبراهيم عليه السلام؛ لكون الهجرة لزومًا تعني مفارقة الوطن ومغادرة الديار بعد نزول العذاب بقومه، في حين لم يكن خروج لوط خروج هجرة بل عودة إلى قومه الذين أُرسل لهم لاحقا، لتبدأ قصة لوط مع قومه، مصداقًا لقوله الحق: > قال تعالى: {وَإِنَّ لُوطًا لَمِنَ الْمُرْسَلِينَ} [الصافات: 133]. كما وقفنا عند دلالة النجاة المشتركة في قوله تعالى: > قال تعالى: {وَنَجَّيْنَاهُ وَلُوطًا إِلَى الْأَرْضِ الَّتِي بَارَكْنَا فِيهَا لِلْعَالَمِينَ} [الأنبياء: 71]؛ فخلصنا إلى أن الخلاص شمل النبيين معًا، ولكن في زمانين مختلفين ومن عذاب قومين مستقلين؛ حيث وصل إبراهيم إلى تلك البقعة المباركة بعد نجاته من نار قومه، بينما لحق به لوط ملتمسًا الهدى ومرافقًا له لينال "الحكم والعلم" قبل أن يعود ليواجه منكرات قومه. وبهذا التأصيل نكون قد أحطنا بالموضوع من معظم جوانبه. تفضل يا د.يوسف ببدء النقاش مع الدكتور رشيد.
+
+د.يوسف: أهلاً بكم متابعينا الأفاضل في هذه الحلقة الجديدة من برنامجنا "نظرية الشبكة العنكبوتية". ونرحب بضيفنا الكريم الدكتور رشيد الجراح. لنكمل ما قد بدأناه في الحلقة الماضية من إعاده حبك خيوط قصة لوط مع قومه وبعد ما استمعنا الى اهم الأفكار التي تحدثنا فيها في الحلقة الماضية، نود ان نبدأ حوار الليلة معك حول أسم الرسول لوط نفسه فما دلالة هذا الاسم وما معناه؟`;
+
 const PROFILES = `## ملفات الشخصيات (ثابتة)
 المحاورون:
 - ${NAMES.zakaria} (اللغوي / الأصيل): عربية فصحى رصينة، يركّز على التأصيل اللغوي والشرعي للألفاظ.
@@ -114,14 +128,19 @@ ${PROFILES}${ali}
 6. نوّع صيغ الأسئلة والتعقيبات، ولا تكرر اللوازم الكلامية («بالضبط»، «سؤال جميل»، «أحسنت»…) ولا افتتاحيات الجمل نفسها.
 
 ## الآيات
-7. كل آية في نص المقطع تُورد عنصراً مستقلاً {"speaker":"${VERSE_SPEAKER}","text":"","ref":"سورة:آية"} في موضعها من كلام الضيف، وقبلها يمهّد لها الضيف («قال تعالى:» أو نحوها). اترك text فارغاً دائماً، فالنظام يُدرج النص القرآني الموثّق. اختر ref من القائمة المسموح بها فقط، ولا تكتب نص أي آية داخل الكلام ولا الأقواس.
+7. الآيات في نص المصدر مكتوبة بالصيغة الموحدة: > قال تعالى: {نص الآية} [اسم السورة: رقم الآية]. كل آية تستشهد بها تُورد عنصراً مستقلاً {"speaker":"${VERSE_SPEAKER}","text":"","ref":"سورة:آية"} في موضعها من كلام المتحدث، فيطبعها النظام بالصيغة الموحدة نفسها مع «قال تعالى:» ونص الآية الموثّق. لا تكتب «قال تعالى:» قبلها ولا نص الآية ولا الأقواس داخل الكلام، واترك text فارغاً، واختر ref من القائمة المسموح بها فقط.
 
 ## عام
 8. يتنادى المتحاورون بأسمائهم طبيعياً. الترحيب بالمستمعين في المقدمة والخاتمة فقط. لا «عزيزي القارئ» ولا «سيدي» ولا «سيادتكم».
 9. إخلاء المسؤولية المنهجي نص ثابت يقرؤه ${lead} قبل هذا الحوار ويدرجه النظام؛ لا تكتبه ولا تكرره.
 10. نص منطوق فقط: لا عناوين ولا ترقيم ولا إرشادات إخراج.
 
-## الإخراج
+${req.kind === 'intro' ? `## نموذج المقدمة الذهبي المعتمد — التزم بنفس العمق والطول والطبيعة الحوارية
+(أسماؤه من موسم سابق: د. يوسف هو القائد، ومصطفى الثاني، وزكريا الثالث. في هذه الحلقة: ${lead} القائد، ثم ${NAMES[RELAY[req.leadHost][0]]}، ثم ${NAMES[RELAY[req.leadHost][1]]}. الآيات فيه مكتوبة بالصيغة الموحدة؛ أنت تكتبها عناصر آيات مستقلة.)
+
+${GOLDEN_INTRO}
+
+` : ''}## الإخراج
 أرجع JSON فقط: {"lines":[{"speaker":"…","text":"…","ref":"…"}]${req.kind === 'closing' ? ',"interruptions":["…"]' : ''}}، حيث speaker أحد: ${speakersOf(req.coGuest).map(s => NAMES[s]).join('، ')}، ${VERSE_SPEAKER}؛ و ref لعناصر الآيات فقط.`;
 }
 
@@ -132,15 +151,23 @@ function segmentInstructions(req: PodcastSegmentRequest): string {
   const topics = req.topics.length ? req.topics.map(t => `- ${t}`).join('\n') : '—';
   switch (req.kind) {
     case 'intro':
-      return `# المطلوب: افتتاح الحلقة (قائدها ${lead})
-قرأ ${lead} إخلاء المسؤولية المنهجي للتو؛ تابع افتتاحه بالترتيب الآتي:
-1. ${lead} ${leadVoice}: بسملة وترحيب بالمستمعين في برنامج «${req.programName}»، الحلقة ${req.episodeNumber}، ثم يلخّص الثلث الأول من خيوط الحلقة السابقة (نص المقطع أدناه)، ويسلّم الكلمة لـ${second}.
-2. ${second}: يلخّص الثلث الثاني، ويسلّم الكلمة لـ${third}.
-3. ${third}: يلخّص الثلث الأخير، ويسلّم الكلمة لـ${lead}.
-4. ${lead}: يرحّب بالدكتور رشيد${req.coGuest ? ' وبالأستاذ علي الشرمان' : ''} ويطرح السؤال الأول على الدكتور رشيد عن موضوع الحلقة.
-لا يتكلم الضيوف في هذا المقطع.
+      return `# المطلوب: المقدمة التمهيدية (قائد الحلقة ${lead}) — بعمق النموذج الذهبي وطوله وطبيعته الحوارية
+قرأ ${lead} إخلاء المسؤولية المنهجي للتو. المقدمة استرجاع تحليلي دسم لخيوط الحلقة السابقة من نصها أدناه، لا فهرس لها.
 
-# موضوعات الحلقة (المقاطع القادمة)
+## ممنوع منعاً باتاً
+- جمل الفهرسة الشكلية مثل: «في هذا الجزء سنستعرض»، «في الثلث الأول سنناقش»، «في الثلث الأخير سنغوص»، «أحيل الكلمة لزميلي ليطلعنا على المحور الثاني».
+- الكلام العام السطحي، والإعلان عن الموضوعات بدل عرض مضمونها، واختصار الحجج إلى عناوين.
+
+## المطلوب في كل مداخلة: تفاصيل الحلقة السابقة نفسها — قضاياها وأدلتها وآياتها ونتائجها ومصطلحاتها («افتراء الظن»، «التأسيس المنهجي القرآني»…)
+1. ${lead} (${leadVoice}، 180 إلى 280 كلمة): بسملة وترحيب بالمستمعين في «${req.programName}» مع الدكتور رشيد الجراح${req.dateText ? ` بتاريخ ${req.dateText}` : ''}، ثم يدخل مباشرة في تفكيك القضية الفكرية أو التاريخية أو اللغوية الكبرى في الحلقة السابقة، بأدلتها وما انتهت إليه، ثم يسلّم الكلمة لـ${second} بعبارة حوارية تربط بما بعدها («لكن هذه النتائج مبنية على تصور أعمق، ما رأيك يا ${second}؟»).
+2. ${second} (180 إلى 280 كلمة): يأخذ الخيط ويدخل في تدقيق لساني أو فلسفي أعمق من الحلقة السابقة (فروق الألفاظ والتراكيب ودلالاتها، والمعاينة مقابل التصديق…) مستشهداً بالآيات، ثم يسلّم لـ${third} بعبارة حوارية ذكية.
+3. ${third} (180 إلى 280 كلمة): يفكك إشكالاً نصياً أو عقدياً آخر من الحلقة السابقة (من القائل، ودلالة لفظ، وما ترتب عليه) مستشهداً بالآيات، ثم يختم ويعيد الكلمة لـ${lead} ليبدأ النقاش مع الدكتور رشيد.
+4. ${lead} (60 إلى 120 كلمة): يرحّب بالمستمعين وبضيفنا الدكتور رشيد الجراح${req.coGuest ? ' وبالأستاذ علي الشرمان' : ''}، ويربط بما سبق، ثم يطرح السؤال التفكيكي الأول العميق عن موضوع الليلة (من افتتاحية المقال الحالي وموضوعات الحلقة أدناه).
+- كل ما يُذكر في المداخلات الثلاث الأولى مأخوذ من نص الحلقة السابقة وحده؛ وإن لم يُرفق نصها فمن تلخيص الكاتب في افتتاحية المقال الحالي، دون إضافة شيء ليس فيهما.
+- كل آية تُذكر عنصر آية مستقل بمرجعها، في موضعها من كلام المحاور.
+- لا يتكلم الضيوف في هذا المقطع.
+
+# موضوعات الحلقة الحالية (المقاطع القادمة)
 ${topics}`;
     case 'closing': {
       const highlights = req.highlights?.length ? req.highlights.map(h => `- ${h}`).join('\n') : '—';
@@ -172,7 +199,10 @@ export function buildPodcastPrompt(req: PodcastSegmentRequest): { system: string
 
 ${segmentInstructions(req)}
 
-${previous}# نص المقطع${req.kind === 'body' ? ` — «${req.segmentTitle}»` : ''}
+${previous}${req.kind === 'intro' && req.previousEpisodeText ? `# نص الحلقة السابقة${req.previousEpisodeTitle ? ` — «${req.previousEpisodeTitle}»` : ''} (مصدر المقدمة)
+${req.previousEpisodeText}
+
+` : ''}# ${req.kind === 'intro' ? 'افتتاحية المقال الحالي (تلخيص الكاتب للجزء السابق)' : 'نص المقطع'}${req.kind === 'body' ? ` — «${req.segmentTitle}»` : ''}
 ${req.sourceText}
 
 # المراجع المسموح بها للآيات
@@ -183,6 +213,9 @@ ${req.allowedVerseRefs.join('، ') || '— (لا آيات في هذا المقا
 // ---- Output ----------------------------------------------------------------------
 
 const VERSE_SPAN_RE = /[﴾﴿{]([^﴾﴿{}]*)[﴾﴿}]\s*(?:[[(]([^\])]+)[\])])?/g;
+// «> قال تعالى:» at the end of the line before a verse: the block prints it. The
+// speaker's own lead-in stays («في قوله تعالى:»), as in the golden introduction.
+const LEAD_IN_RE = /\s*>?\s*قال تعالى\s*:?\s*>?\s*$/;
 
 // Keeps the episode's cast and allowed verse refs; a verse quoted inside a line
 // becomes a verse line when its reference is allowed, and is dropped otherwise.
@@ -196,8 +229,17 @@ export function normalizePodcast(
   const rejectedRefs: string[] = [];
   const pushVerse = (ref: string | undefined) => {
     const r = ref?.trim();
-    if (r && isAllowedRef(r, req.allowedVerseRefs)) lines.push({ type: 'verse', text: '', ref: canonicalRef(r) });
-    else rejectedRefs.push(r || 'نص آية بلا مرجع');
+    if (!r || !isAllowedRef(r, req.allowedVerseRefs)) {
+      rejectedRefs.push(r || 'نص آية بلا مرجع');
+      return;
+    }
+    // The verse block prints «قال تعالى:» itself: no second one at the end of the line before
+    const last = lines[lines.length - 1];
+    if (last?.type === 'speech') {
+      last.text = last.text.replace(LEAD_IN_RE, '').trim();
+      if (!last.text) lines.pop();
+    }
+    lines.push({ type: 'verse', text: '', ref: canonicalRef(r) });
   };
 
   for (const item of Array.isArray(raw.lines) ? raw.lines : []) {
@@ -214,7 +256,7 @@ export function normalizePodcast(
       if (speaker === 'rasheed' || speaker === 'ali') lines.push({ type: 'speech', speaker, text: COMMENT_SLOT });
       continue;
     }
-    const text = stripReaderAddress(rawText);
+    const text = stripReaderAddress(rawText.replace(/(^|\s)>\s*/g, '$1'));
     if (!text) continue;
     if (!/[﴾﴿{]/.test(text)) {
       lines.push({ type: 'speech', speaker, text });
@@ -258,6 +300,13 @@ function validateInput(body: Record<string, unknown>): PodcastSegmentRequest {
     bodyCount: Number(body.bodyCount) || 0,
     topics: asStringArray(body.topics).slice(0, 30),
     highlights: asStringArray(body.highlights).slice(0, 30).map(h => h.slice(0, 300)),
+    dateText: asString(body.dateText).trim().slice(0, 200),
+    ...(kind === 'intro' && asString(body.previousEpisodeText).trim()
+      ? {
+          previousEpisodeText: asString(body.previousEpisodeText).trim().slice(0, MAX_PREVIOUS_EPISODE_CHARS),
+          previousEpisodeTitle: asString(body.previousEpisodeTitle).trim().slice(0, 300),
+        }
+      : {}),
     sourceText,
     allowedVerseRefs: asStringArray(body.allowedVerseRefs),
     previousLines: asStringArray(body.previousLines).slice(-MAX_PREVIOUS_LINES),
@@ -275,6 +324,12 @@ export const recoveryConfig = { delayMs: 2000, minAttemptMs: 30_000 };
 
 export const modelsToTry = (chosen: string) => [chosen, ...FALLBACK_CHAIN.filter(m => m !== chosen)];
 
+// The introduction needs deeper reasoning: gemini-3.8-flash, then gemini-3.6-flash,
+// whatever the chosen model (unless it is the Pro one), then the rest of the chain
+export const INTRO_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash'];
+export const introModelsToTry = (chosen: string) =>
+  [...new Set([...(/pro/.test(chosen) ? [chosen] : []), ...INTRO_MODELS, ...modelsToTry(chosen)])];
+
 const isBusy = (e: unknown) => e instanceof HttpError && (e.status === 429 || e.status === 503);
 const isUnavailableModel = (e: unknown) => e instanceof HttpError && e.status === 502 && /غير متاح لهذا المفتاح/.test(e.message);
 const isNetwork = (e: unknown) =>
@@ -283,11 +338,10 @@ const isNetwork = (e: unknown) =>
 const rejectsSampling = (e: unknown) => e instanceof HttpError && /\(400\)/.test(e.message) && /temperature|penalty|frequency/i.test(e.message);
 
 export async function withFallback<T>(
-  chosen: string,
+  models: string[],
   attempt: (model: string, timeoutMs: number, withSampling: boolean) => Promise<T>
 ): Promise<{ result: T; model: string }> {
   const deadline = Date.now() + TIMEOUT_MS;
-  const models = modelsToTry(chosen);
   let lastError: unknown;
   for (let i = 0; i < models.length; i++) {
     const model = models[i];
@@ -317,7 +371,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
   return handleJson(req, res, async (body, apiKey, chosenModel): Promise<PodcastSegmentResponse> => {
     const request = validateInput(body);
     const { system, prompt } = buildPodcastPrompt(request);
-    const { result, model } = await withFallback(chosenModel, (model, timeoutMs, withSampling) =>
+    const intro = request.kind === 'intro';
+    const models = intro ? introModelsToTry(chosenModel) : modelsToTry(chosenModel);
+    const { result, model } = await withFallback(models, (model, timeoutMs, withSampling) =>
       generateJson<{ lines?: unknown; interruptions?: unknown }>({
         apiKey,
         model,
@@ -326,7 +382,9 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
         schema: schemaFor(request),
         maxOutputTokens: MAX_OUTPUT_TOKENS,
         timeoutMs,
-        effort: 'low', // long faithful rewriting: a little thinking keeps it complete
+        // Long faithful rewriting: a little thinking keeps it complete; the
+        // introduction analyses a whole episode and gets more
+        effort: intro ? 'medium' : 'low',
         ...(withSampling ? { sampling: SAMPLING } : {}),
       })
     );

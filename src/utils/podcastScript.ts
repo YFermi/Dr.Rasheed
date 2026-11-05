@@ -216,3 +216,10 @@ export function segmentHighlights(script: PodcastScript, words = 40): string[] {
     .filter(s => s.kind === 'body')
     .map(s => `${s.title}: ${s.sourceText.split(/\s+/).slice(0, words).join(' ')}…`);
 }
+
+// The text sent to the model carries its verses in the unified format:
+// «﴿نص﴾ [الأعراف: 82]» → «> قال تعالى: {نص} [الأعراف: 82]»
+const BRACKETED_VERSE_RE = /(?:قال تعالى\s*:?\s*)?﴿([^﴾﴿]*)﴾\s*(\[[^\]]+\])?/g;
+export function unifyVerseMarkup(text: string): string {
+  return text.replace(BRACKETED_VERSE_RE, (_m, verse: string, ref?: string) => `> قال تعالى: {${verse.trim()}}${ref ? ` ${ref}` : ''}`);
+}

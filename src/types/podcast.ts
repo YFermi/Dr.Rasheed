@@ -86,6 +86,7 @@ export interface PodcastScript {
   segments: PodcastSegment[];
   allowedVerseRefs: string[];
   interruptionBank?: string[]; // alternative interruption questions for the audio editor
+  previousEpisode?: { title: string; text: string }; // the introduction recaps it
   generatedAt: string;
 }
 
@@ -103,6 +104,9 @@ export interface PodcastSegmentRequest {
   bodyCount: number;
   topics: string[]; // the body segments' titles (the intro announces them)
   highlights?: string[]; // closing only: the opening words of each body segment (for the interruption bank)
+  dateText?: string;
+  previousEpisodeText?: string; // intro only: the full previous episode, the source of the recap
+  previousEpisodeTitle?: string;
   sourceText: string;
   allowedVerseRefs: string[];
   previousLines?: string[]; // «المتحدث: النص» of the dialog just before this segment

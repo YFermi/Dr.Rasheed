@@ -11,6 +11,8 @@ import { toArabicDigits } from '../../utils/arabic';
 import { PODCAST_LEAD_HOSTS, PODCAST_SPEAKERS, PODCAST_DISCLAIMER, type PodcastLeadHost } from '../../types/podcast';
 
 type Choice = { kind: 'text' } | { kind: 'reference'; id: string } | { kind: 'draft' };
+// The previous episode (the introduction recaps its full text)
+type PreviousChoice = 'none' | 'paste' | string; // string: a reference article id
 
 const MAX_TEXT_CHARS = 120_000;
 
@@ -39,6 +41,9 @@ export const PodcastSourceModal: React.FC = () => {
   const [dateText, setDateText] = useState(formatProjectDate());
   const [leadHost, setLeadHost] = useState<PodcastLeadHost>(settings.leadHost);
   const [coGuest, setCoGuest] = useState(settings.coGuest);
+  const [previousChoice, setPreviousChoice] = useState<PreviousChoice>('none');
+  const [previousTitle, setPreviousTitle] = useState('');
+  const [previousText, setPreviousText] = useState('');
 
   // Fresh values each time the window opens
   useEffect(() => {
@@ -50,7 +55,17 @@ export const PodcastSourceModal: React.FC = () => {
     setDateText(formatProjectDate());
     setLeadHost(settings.leadHost);
     setCoGuest(settings.coGuest);
+    setPreviousText('');
+    setPreviousTitle('');
   }, [isModalOpen]);
+
+  // Default previous episode: the reference article just before the chosen one
+  // (or the newest one for a new text or the draft)
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const others = choice.kind === 'reference' ? references.slice(references.findIndex(a => a.id === choice.id) + 1) : references;
+    setPreviousChoice(others[0]?.id ?? 'none');
+  }, [isModalOpen, choice.kind, choice.kind === 'reference' ? choice.id : '']);
 
   // How the chosen article will be split (segments = API calls)
   const preview = useMemo(() => {
@@ -79,11 +94,16 @@ export const PodcastSourceModal: React.FC = () => {
     choice.kind === 'draft' ? { kind: 'draft', id: 'draft' } :
     { kind: 'reference', id: choice.id };
 
+  const previousArticle = previousChoice !== 'none' && previousChoice !== 'paste' ? references.find(a => a.id === previousChoice) : undefined;
+  const previous =
+    previousChoice === 'paste' ? (previousText.trim() ? { title: previousTitle, text: previousText } : null) :
+    previousArticle ? { title: previousArticle.title, text: previousArticle.fullText } : null;
+
   const canGenerate = !!source && !!preview && aiAvailable && !isGenerating && episodeNumber > 0;
   const handleGenerate = () => {
     if (!canGenerate || !source) return;
     if (script && !window.confirm('سيحل السكريبت الجديد محل السكريبت الحالي. هل تريد المتابعة؟')) return;
-    generate(source, { programName: programName.trim() || settings.programName, episodeNumber, dateText: dateText.trim(), leadHost, coGuest });
+    generate(source, { programName: programName.trim() || settings.programName, episodeNumber, dateText: dateText.trim(), leadHost, coGuest }, previous);
   };
 
   const option = (checked: boolean, onChange: () => void, title: string, detail: string) => (
@@ -154,6 +174,29 @@ export const PodcastSourceModal: React.FC = () => {
               <div className="fs-10.5 text-[#c2b691] leading-relaxed">
                 سيُكتب الحوار في {toArabicDigits(preview.length)} مقاطع: {preview.map(s => s.title).join(' • ')}
               </div>
+            )}
+          </div>
+
+          {/* Previous episode: the material of a rich introduction */}
+          <div className="space-y-1.5">
+            <label className="block space-y-1">
+              <span className="fs-11 text-gray-300 block">الحلقة السابقة (تستعرض المقدمة التمهيدية قضاياها وأدلتها وآياتها من نصها الكامل):</span>
+              <select value={previousChoice} onChange={e => setPreviousChoice(e.target.value)} aria-label="الحلقة السابقة" className={inputClass}>
+                {references.filter(a => !(choice.kind === 'reference' && a.id === choice.id)).map(a => (
+                  <option key={a.id} value={a.id}>📌 {a.title}</option>
+                ))}
+                <option value="paste">📝 لصق نص الحلقة السابقة</option>
+                <option value="none">بلا — من تلخيص افتتاحية المقال فقط (مقدمة أقصر)</option>
+              </select>
+            </label>
+            {previousChoice === 'paste' && (
+              <div className="space-y-1.5 p-2.5 rounded-lg border border-[#2e2817] bg-[#0a0a0a]">
+                <input value={previousTitle} onChange={e => setPreviousTitle(e.target.value)} placeholder="عنوان الحلقة السابقة" aria-label="عنوان الحلقة السابقة" className={inputClass} />
+                <textarea rows={4} value={previousText} onChange={e => setPreviousText(e.target.value.slice(0, MAX_TEXT_CHARS))} placeholder="الصق نص مقال الحلقة السابقة…" aria-label="نص الحلقة السابقة" className={`${inputClass} leading-relaxed select-text`} />
+              </div>
+            )}
+            {previousChoice === 'none' && (
+              <p className="fs-10.5 text-amber-300/80">دون نص الحلقة السابقة تبقى المقدمة محدودة بما في افتتاحية المقال من تلخيص.</p>
             )}
           </div>
 
