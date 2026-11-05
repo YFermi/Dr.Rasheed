@@ -1,10 +1,15 @@
-// POST /api/generate-podcast-script — turns one segment of an article (the
-// introduction, a part of an axis, or the closing) into studio dialog for the
-// programme «نظرية الشبكة العنكبوتية», straight from the article text (no idea
-// tree). The client splits the article into segments and calls this once per
-// segment, in order. Verse lines carry only a reference; the client inserts the
-// canonical (Tanzil) text. When Gemini is busy, the next model of the fallback
-// chain writes the segment.
+// POST /api/generate-podcast-script — writes one segment of the studio script of
+// «نظرية الشبكة العنكبوتية», on two separate tracks with two separate inputs:
+// - the introduction (kind 'intro') from previousArticleText alone: the hosts
+//   recap and discuss yesterday's article; its last turn asks Dr. Rasheed the first
+//   question, framed by currentArticleOpening;
+// - the body and the closing from currentArticleText alone (this segment of
+//   today's article): its paragraphs become questions and Dr. Rasheed's answers,
+//   word for word, under the smart cutter protocol.
+// The client calls it once per segment, in order, and joins the segments into one
+// script (each call gets the last lines before it). No idea tree is involved.
+// Verse lines carry only a reference; the client inserts the canonical (Tanzil)
+// text. When Gemini is busy, the next model of the fallback chain writes the segment.
 
 import type {
   PodcastSegmentKind,
@@ -111,15 +116,19 @@ function systemPrompt(req: PodcastSegmentRequest): string {
     : `\n- لا ضيف مشارك في هذه الحلقة: ${NAMES.rasheed} هو الضيف الوحيد.`;
   const guests = req.coGuest ? `${NAMES.rasheed} و${NAMES.ali}` : NAMES.rasheed;
   return `أنت محرر سكريبتات صوتية لبرنامج «${req.programName}»، برنامج حواري يقدّم أبحاث أ.د. رشيد الجراح في تدبّر القرآن الكريم.
-مهمتك تحويل نص مقال إلى حوار مكتوب يُقرأ في الاستوديو كما هو، دون أن يضيع شيء من مادته.
+مهمتك كتابة مقطع من سكريبت الحلقة يُقرأ في الاستوديو كما هو.
+
+## مساران منفصلان لا يختلطان
+- المقدمة التمهيدية: مصدرها الوحيد «المقال السابق» (حلقة الأمس)؛ يلخّصه المحاورون ويناقشونه بعمق. لا يُستعمل فيها شيء من المقال الحالي سوى بدايته لصياغة السؤال الأول للدكتور.
+- صلب الحلقة والخاتمة: مصدرهما الوحيد «المقال الحالي» (حلقة اليوم)؛ يتحول نصه إلى أسئلة من المحاورين وإجابات من الضيوف، دون تلخيص.
 
 ${PROFILES}${ali}
 
 قائد هذه الحلقة: ${lead}؛ هو من يفتتح ويدير ويختتم.
 
 ## الالتزام بالمصدر (صارم)
-1. نص المقال هو المصدر الوحيد لإجابات الضيوف (${guests}): كل فكرة وحجة ونتيجة وآية فيه، بالترتيب نفسه، وبألفاظه قدر الإمكان مع تحويلها إلى لغة منطوقة. لا تضف معلومة ليست فيه، ولا تحذف شيئاً منه.
-2. المحاورون يسألون ويستوضحون ويعقّبون بإيجاز؛ لا يقدّمون من عندهم معلومة علمية غير موجودة في المقال.
+1. في صلب الحلقة، نص المقطع من المقال الحالي هو المصدر الوحيد لإجابات الضيوف (${guests}): كل فكرة وحجة ونتيجة وآية فيه، بالترتيب نفسه وبألفاظه حرفياً قدر الإمكان (مع تحويل يسير إلى لغة منطوقة). يُمنع التلخيص، ولا تضف معلومة ليست فيه، ولا تحذف شيئاً منه.
+2. في صلب الحلقة، المحاورون يستمدون أسئلتهم من تسلسل فقرات المقطع حصراً، فقرة بعد فقرة، ويستوضحون ويعقّبون بإيجاز؛ لا يقدّمون من عندهم معلومة علمية غير موجودة في المقال.
 3. المنهج: التحليل يقتصر على النص القرآني؛ لا نقل عن أهل التراث أو المفسرين، ولا قصصهم، ولا الإسرائيليات، ولا مقارنة مع من كتب في الموضوع، ولو سأل المحاور عن ذلك.
 
 ## بروتوكول المقص الذكي
@@ -152,18 +161,19 @@ function segmentInstructions(req: PodcastSegmentRequest): string {
   switch (req.kind) {
     case 'intro':
       return `# المطلوب: المقدمة التمهيدية (قائد الحلقة ${lead}) — بعمق النموذج الذهبي وطوله وطبيعته الحوارية
-قرأ ${lead} إخلاء المسؤولية المنهجي للتو. المقدمة استرجاع تحليلي دسم لخيوط الحلقة السابقة من نصها أدناه، لا فهرس لها.
+قرأ ${lead} إخلاء المسؤولية المنهجي للتو. المقدمة استرجاع تحليلي دسم لخيوط الحلقة السابقة من «المقال السابق» أدناه وحده، لا فهرس لها.
 
 ## ممنوع منعاً باتاً
 - جمل الفهرسة الشكلية مثل: «في هذا الجزء سنستعرض»، «في الثلث الأول سنناقش»، «في الثلث الأخير سنغوص»، «أحيل الكلمة لزميلي ليطلعنا على المحور الثاني».
 - الكلام العام السطحي، والإعلان عن الموضوعات بدل عرض مضمونها، واختصار الحجج إلى عناوين.
 
-## المطلوب في كل مداخلة: تفاصيل الحلقة السابقة نفسها — قضاياها وأدلتها وآياتها ونتائجها ومصطلحاتها («افتراء الظن»، «التأسيس المنهجي القرآني»…)
+## المطلوب في كل مداخلة: درر المقال السابق نفسه — قضاياه وأدلته وآياته ونتائجه ومصطلحاته («افتراء الظن»، «التأسيس المنهجي القرآني»…)
 1. ${lead} (${leadVoice}، 180 إلى 280 كلمة): بسملة وترحيب بالمستمعين في «${req.programName}» مع الدكتور رشيد الجراح${req.dateText ? ` بتاريخ ${req.dateText}` : ''}، ثم يدخل مباشرة في تفكيك القضية الفكرية أو التاريخية أو اللغوية الكبرى في الحلقة السابقة، بأدلتها وما انتهت إليه، ثم يسلّم الكلمة لـ${second} بعبارة حوارية تربط بما بعدها («لكن هذه النتائج مبنية على تصور أعمق، ما رأيك يا ${second}؟»).
 2. ${second} (180 إلى 280 كلمة): يأخذ الخيط ويدخل في تدقيق لساني أو فلسفي أعمق من الحلقة السابقة (فروق الألفاظ والتراكيب ودلالاتها، والمعاينة مقابل التصديق…) مستشهداً بالآيات، ثم يسلّم لـ${third} بعبارة حوارية ذكية.
 3. ${third} (180 إلى 280 كلمة): يفكك إشكالاً نصياً أو عقدياً آخر من الحلقة السابقة (من القائل، ودلالة لفظ، وما ترتب عليه) مستشهداً بالآيات، ثم يختم ويعيد الكلمة لـ${lead} ليبدأ النقاش مع الدكتور رشيد.
-4. ${lead} (60 إلى 120 كلمة): يرحّب بالمستمعين وبضيفنا الدكتور رشيد الجراح${req.coGuest ? ' وبالأستاذ علي الشرمان' : ''}، ويربط بما سبق، ثم يطرح السؤال التفكيكي الأول العميق عن موضوع الليلة (من افتتاحية المقال الحالي وموضوعات الحلقة أدناه).
-- كل ما يُذكر في المداخلات الثلاث الأولى مأخوذ من نص الحلقة السابقة وحده؛ وإن لم يُرفق نصها فمن تلخيص الكاتب في افتتاحية المقال الحالي، دون إضافة شيء ليس فيهما.
+4. ${lead} (60 إلى 120 كلمة): يرحّب بالمستمعين وبضيفنا الدكتور رشيد الجراح${req.coGuest ? ' وبالأستاذ علي الشرمان' : ''}، ويربط بما سبق، ثم يطرح السؤال التفكيكي الأول العميق المستمد من «بداية المقال الحالي» أدناه، دون أن يجيب عنه أو يكشف مضمون الجواب.
+- كل ما يُذكر في المداخلات الثلاث الأولى مأخوذ من المقال السابق وحده، دون إضافة شيء ليس فيه، ودون أي شيء من المقال الحالي.
+- كل آية تُذكر هنا من آيات المقال السابق.
 - كل آية تُذكر عنصر آية مستقل بمرجعها، في موضعها من كلام المحاور.
 - لا يتكلم الضيوف في هذا المقطع.
 
@@ -172,7 +182,7 @@ ${topics}`;
     case 'closing': {
       const highlights = req.highlights?.length ? req.highlights.map(h => `- ${h}`).join('\n') : '—';
       return `# المطلوب: خاتمة الحلقة
-- إن كان في نص المقطع تمهيد للجزء القادم أو دعاء، يقوله د. رشيد باختصار وبألفاظه.
+- المصدر: خاتمة المقال الحالي أدناه. إن كان فيها تمهيد للجزء القادم أو دعاء، يقوله د. رشيد بألفاظه.
 - ثم يختتم ${lead} (قائد الحلقة) ${leadVoice}: شكر الضيوف و${second} و${third}، وتوديع المستمعين، والدعوة إلى متابعة الحلقة القادمة. من ٣ إلى ٦ مداخلات.
 - interruptions: بنك مقاطعات من 5 إلى 8 أسئلة مقاطعة قصيرة بديلة يستعين بها مخرج الصوت في المونتاج، موزّعة على موضوعات الحلقة، يبدأ كل سؤال باسم المحاور الذي يطرحه («${NAMES.mustafa}: …»)، ولا يحرق إجابة.
 
@@ -183,8 +193,22 @@ ${highlights}`;
     default:
       return `# المطلوب: المقطع ${req.segmentIndex} من ${req.bodyCount} في متن الحلقة — «${req.segmentTitle}»
 - واصل الحوار من حيث انتهى (آخر الأسطر أدناه): إن كان آخر سطر سؤالاً للضيف فابدأ بجوابه، وإلا فابدأ بسؤال ينقل إلى هذا المقطع.
-- حوّل نص المقطع كاملاً إلى حوار وفق القواعد والمقص الذكي، ووزّع الأسئلة على المحاورين الثلاثة بحسب ملفاتهم. لا تختم الحلقة ولا تودّع${req.segmentIndex < req.bodyCount ? '، فالحوار يستمر بعده' : ''}.`;
+- المصدر الوحيد: نص هذا المقطع من المقال الحالي أدناه. حوّله كاملاً، فقرة بعد فقرة وبترتيبه، إلى أسئلة من المحاورين الثلاثة (بحسب ملفاتهم) وإجابات حرفية من الضيوف وفق المقص الذكي v8.0: حد 250 كلمة متصلة، وأسئلة استيضاحية عند نقاط التوقف، ومساحة «...» للتعقيب.
+- يُمنع التلخيص أو إعادة الصياغة الحرة لكلام الدكتور. لا تختم الحلقة ولا تودّع${req.segmentIndex < req.bodyCount ? '، فالحوار يستمر بعده' : ''}.`;
   }
+}
+
+// Each track's only source
+function sourceBlock(req: PodcastSegmentRequest): string {
+  if (req.kind === 'intro') {
+    return `# المقال السابق${req.previousArticleTitle ? ` — «${req.previousArticleTitle}»` : ''} (حلقة الأمس: المرجع المعرفي الوحيد للمقدمة)
+${req.previousArticleText}
+
+# بداية المقال الحالي «${req.articleTitle}» (لصياغة السؤال الأول للدكتور فقط؛ لا تلخّصه)
+${req.currentArticleOpening || '—'}`;
+  }
+  return `# ${req.kind === 'closing' ? 'خاتمة المقال الحالي' : `نص المقطع من المقال الحالي — «${req.segmentTitle}»`} (حلقة اليوم: المرجع المعرفي الوحيد)
+${req.currentArticleText}`;
 }
 
 export function buildPodcastPrompt(req: PodcastSegmentRequest): { system: string; prompt: string } {
@@ -195,15 +219,12 @@ export function buildPodcastPrompt(req: PodcastSegmentRequest): { system: string
   const prompt = `# الحلقة
 البرنامج: ${req.programName} — الحلقة ${req.episodeNumber}
 قائد الحلقة: ${NAMES[req.leadHost]}${req.coGuest ? `\nالضيف المشارك: ${NAMES.ali}` : ''}
-المقال: ${req.articleTitle}
+المقال الحالي: ${req.articleTitle}${req.kind === 'intro' && req.previousArticleTitle ? `
+المقال السابق: ${req.previousArticleTitle}` : ''}
 
 ${segmentInstructions(req)}
 
-${previous}${req.kind === 'intro' && req.previousEpisodeText ? `# نص الحلقة السابقة${req.previousEpisodeTitle ? ` — «${req.previousEpisodeTitle}»` : ''} (مصدر المقدمة)
-${req.previousEpisodeText}
-
-` : ''}# ${req.kind === 'intro' ? 'افتتاحية المقال الحالي (تلخيص الكاتب للجزء السابق)' : 'نص المقطع'}${req.kind === 'body' ? ` — «${req.segmentTitle}»` : ''}
-${req.sourceText}
+${previous}${sourceBlock(req)}
 
 # المراجع المسموح بها للآيات
 ${req.allowedVerseRefs.join('، ') || '— (لا آيات في هذا المقال)'}${instruction}`;
@@ -283,9 +304,14 @@ export function normalizePodcast(
 function validateInput(body: Record<string, unknown>): PodcastSegmentRequest {
   const kind = asString(body.kind) as PodcastSegmentKind;
   if (!KINDS.has(kind)) throw new HttpError(400, 'نوع المقطع غير معروف (intro | body | closing)');
-  const sourceText = asString(body.sourceText).trim();
-  if (!sourceText) throw new HttpError(400, 'نص المقطع فارغ');
-  if (sourceText.length > MAX_SOURCE_CHARS) throw new HttpError(413, `نص المقطع أطول من ${MAX_SOURCE_CHARS} حرف`);
+  const previousArticleText = asString(body.previousArticleText).trim();
+  const currentArticleText = asString(body.currentArticleText).trim();
+  if (kind === 'intro') {
+    if (!previousArticleText) throw new HttpError(400, 'المقدمة تحتاج نص المقال السابق (previousArticleText)');
+  } else {
+    if (!currentArticleText) throw new HttpError(400, 'نص المقطع من المقال الحالي فارغ (currentArticleText)');
+    if (currentArticleText.length > MAX_SOURCE_CHARS) throw new HttpError(413, `نص المقطع أطول من ${MAX_SOURCE_CHARS} حرف`);
+  }
   const episodeNumber = Number(body.episodeNumber);
   const instruction = asString(body.instruction).trim();
   return {
@@ -301,13 +327,13 @@ function validateInput(body: Record<string, unknown>): PodcastSegmentRequest {
     topics: asStringArray(body.topics).slice(0, 30),
     highlights: asStringArray(body.highlights).slice(0, 30).map(h => h.slice(0, 300)),
     dateText: asString(body.dateText).trim().slice(0, 200),
-    ...(kind === 'intro' && asString(body.previousEpisodeText).trim()
+    ...(kind === 'intro'
       ? {
-          previousEpisodeText: asString(body.previousEpisodeText).trim().slice(0, MAX_PREVIOUS_EPISODE_CHARS),
-          previousEpisodeTitle: asString(body.previousEpisodeTitle).trim().slice(0, 300),
+          previousArticleText: previousArticleText.slice(0, MAX_PREVIOUS_EPISODE_CHARS),
+          previousArticleTitle: asString(body.previousArticleTitle).trim().slice(0, 300),
+          currentArticleOpening: asString(body.currentArticleOpening).trim().slice(0, 4000),
         }
-      : {}),
-    sourceText,
+      : { currentArticleText }),
     allowedVerseRefs: asStringArray(body.allowedVerseRefs),
     previousLines: asStringArray(body.previousLines).slice(-MAX_PREVIOUS_LINES),
     ...(instruction ? { instruction: instruction.slice(0, 2000) } : {}),

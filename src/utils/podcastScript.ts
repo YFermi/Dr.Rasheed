@@ -5,12 +5,11 @@ import type { ReferenceArticle } from '../store/useReferenceStore';
 import { paragraphsFromText, type StoryParagraph } from './blogArticle';
 import { replaceQuranGlyphs, toArabicDigits } from './arabic';
 
-// Splits an article (pasted text or a Word file, a reference article, or the current draft) into the
+// Splits the current article (pasted text, a Word file, a saved reference article or the draft) into the
 // segments of a recording script: the introduction, the body in parts of at most
 // SEGMENT_MAX_WORDS (one /api/generate-podcast-script call each), and the closing.
 
 export const SEGMENT_MAX_WORDS = 1400;
-const INTRO_MAX_WORDS = 400; // a text without headings: its first paragraphs
 const CLOSING_RE = /(الجزء القادم|الجزء التالي|الحلقة القادمة|للحديث بقية|وللحديث بقيه)/;
 
 export const DEFAULT_PROGRAM_NAME = 'نظرية الشبكة العنكبوتية';
@@ -24,8 +23,10 @@ interface Group {
   paragraphs: string[];
 }
 
-// Body groups longer than SEGMENT_MAX_WORDS are cut between paragraphs: «المحور الأول (١/٢)»
-function toSegments(intro: string[], groups: Group[], closing: string[]): PodcastSegment[] {
+// The script's segments: the introduction (written from the previous article, so
+// it carries no text of the current one), the current article's body in parts of
+// at most SEGMENT_MAX_WORDS («المحور الأول (١/٢)»), and its closing.
+function toSegments(groups: Group[], closing: string[]): PodcastSegment[] {
   const segment = (kind: PodcastSegmentKind, title: string, paragraphs: string[], key: string): PodcastSegment => ({
     id: `seg-${key}`,
     kind,
@@ -50,27 +51,27 @@ function toSegments(intro: string[], groups: Group[], closing: string[]): Podcas
     );
   });
   return [
-    segment('intro', 'المقدمة', intro.length ? intro : ['(لا تلخيص للجزء السابق في المقال)'], 'intro'),
+    segment('intro', 'المقدمة', [], 'intro'),
     ...body,
     ...(closing.length ? [segment('closing', 'الخاتمة', closing, 'closing')] : [segment('closing', 'الخاتمة', ['(لا خاتمة في المقال)'], 'closing')]),
   ];
 }
 
-// ---- From the current draft ---------------------------------------------------------
+// ---- The current draft as text ----------------------------------------------------------
 
-export function draftSegments(draft: GeneratedArticle): { segments: PodcastSegment[]; allowedVerseRefs: string[] } {
-  const groups: Group[] = draft.sections.map(s => ({
-    title: s.axisName,
-    paragraphs: s.blocks.flatMap(b => {
+// The draft offered as the current article: headings on their own lines, verses
+// as «﴿text﴾ [ref]», like a pasted article
+export function draftToText(draft: GeneratedArticle): string {
+  return [
+    draft.opening,
+    ...draft.sections.flatMap(s => [s.axisName, ...s.blocks.flatMap(b => {
       if (b.type === 'heading') return [];
       if (b.type === 'subheading') return [`${b.text}:`];
       if (b.type === 'verse') return b.ref ? [`﴿${b.text || '…'}﴾ [${b.ref.replace(':', ': ')}]`] : [];
       return [b.text];
-    }),
-  }));
-  const allowedVerseRefs = [...new Set(draft.sections.flatMap(s => s.blocks.flatMap(b => (b.type === 'verse' && b.ref && !b.unresolved ? [b.ref] : []))))];
-  const split = (text: string) => text.split(/\n{2,}/).map(t => t.trim()).filter(Boolean);
-  return { segments: toSegments(split(draft.opening), groups, split(draft.closing)), allowedVerseRefs };
+    })]),
+    draft.closing,
+  ].join('\n');
 }
 
 // ---- From a reference article (Word or pasted text) ----------------------------------
@@ -89,12 +90,22 @@ export function referenceRefCandidates(text: string): string[] {
   return [...refs];
 }
 
-// A reference article, or any text pasted or read from a Word file in the script window
-export function referenceSegments(article: Pick<ReferenceArticle, 'title' | 'fullText'>): { segments: PodcastSegment[]; refCandidates: string[] } {
+export interface ArticleText {
+  title: string;
+  fullText: string;
+}
+
+const articleParagraphs = (article: ArticleText): StoryParagraph[] => {
   // Quran-font glyph runs are unreadable outside their font; their reference stays
-  const text = replaceQuranGlyphs(article.fullText, '﴿…﴾');
-  let paragraphs: StoryParagraph[] = paragraphsFromText(text);
-  if (paragraphs[0] && paragraphs[0].text.trim() === article.title.trim()) paragraphs = paragraphs.slice(1);
+  const paragraphs = paragraphsFromText(replaceQuranGlyphs(article.fullText, '﴿…﴾'));
+  return paragraphs[0] && paragraphs[0].text.trim() === article.title.trim() ? paragraphs.slice(1) : paragraphs;
+};
+
+// The current article (today's episode) → the body segments and the closing. Its
+// opening paragraphs (before the first heading) are the first body segment: Dr.
+// Rasheed says them too; nothing of this article is summarized.
+export function currentArticleSegments(article: ArticleText): { segments: PodcastSegment[]; refCandidates: string[] } {
+  const paragraphs = articleParagraphs(article);
 
   // Closing: the final paragraphs from the one announcing the next part
   let closingStart = paragraphs.length;
@@ -104,25 +115,33 @@ export function referenceSegments(article: Pick<ReferenceArticle, 'title' | 'ful
   const closing = paragraphs.slice(closingStart).filter(p => !p.isHeading).map(p => p.text);
   const main = paragraphs.slice(0, closingStart);
 
-  const intro: string[] = [];
   const groups: Group[] = [];
   const firstHeading = main.findIndex(p => p.isHeading);
-  if (firstHeading > 0 || (firstHeading === -1 && main.length)) {
-    // Text before the first heading (or the first ~400 words) is the introduction
-    const end = firstHeading > 0 ? firstHeading : main.length;
-    let count = 0;
-    let i = 0;
-    for (; i < end && (firstHeading > 0 || count < INTRO_MAX_WORDS); i++) {
-      intro.push(main[i].text);
-      count += words(main[i].text);
+  if (firstHeading === -1) {
+    if (main.length) groups.push({ title: article.title || 'المقال', paragraphs: main.map(p => p.text) });
+  } else {
+    if (firstHeading > 0) groups.push({ title: 'تمهيد المقال', paragraphs: main.slice(0, firstHeading).map(p => p.text) });
+    for (const p of main.slice(firstHeading)) {
+      if (p.isHeading) groups.push({ title: p.text, paragraphs: [] });
+      else groups[groups.length - 1].paragraphs.push(p.text);
     }
-    if (firstHeading === -1) groups.push({ title: article.title, paragraphs: main.slice(i).map(p => p.text) });
   }
-  for (const p of firstHeading >= 0 ? main.slice(firstHeading) : []) {
-    if (p.isHeading) groups.push({ title: p.text, paragraphs: [] });
-    else groups[groups.length - 1].paragraphs.push(p.text);
+  return { segments: toSegments(groups, closing), refCandidates: referenceRefCandidates(article.fullText) };
+}
+
+// The opening words of the current article: the introduction's last turn frames
+// the first question to Dr. Rasheed from them (and from nothing else of it)
+export function articleOpening(article: ArticleText, maxWords = 250): string {
+  const out: string[] = [];
+  let count = 0;
+  for (const p of articleParagraphs(article)) {
+    const left = maxWords - count;
+    if (left <= 0) break;
+    const ws = p.text.split(/\s+/).filter(Boolean);
+    out.push(ws.length > left ? `${ws.slice(0, left).join(' ')}…` : p.text);
+    count += Math.min(ws.length, left);
   }
-  return { segments: toSegments(intro, groups, closing), refCandidates: referenceRefCandidates(text) };
+  return out.join('\n');
 }
 
 // ---- Verse text and dialog lines ------------------------------------------------------

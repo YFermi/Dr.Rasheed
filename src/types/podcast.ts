@@ -86,7 +86,7 @@ export interface PodcastScript {
   segments: PodcastSegment[];
   allowedVerseRefs: string[];
   interruptionBank?: string[]; // alternative interruption questions for the audio editor
-  previousEpisode?: { title: string; text: string }; // the introduction recaps it
+  previousEpisode?: { title: string; text: string; refs?: string[] }; // the previous article: the introduction's only source
   generatedAt: string;
 }
 
@@ -105,9 +105,14 @@ export interface PodcastSegmentRequest {
   topics: string[]; // the body segments' titles (the intro announces them)
   highlights?: string[]; // closing only: the opening words of each body segment (for the interruption bank)
   dateText?: string;
-  previousEpisodeText?: string; // intro only: the full previous episode, the source of the recap
-  previousEpisodeTitle?: string;
-  sourceText: string;
+  // Two tracks, two separate inputs:
+  // intro — the previous article is its only knowledge source; the current
+  // article's opening words only frame the first question to Dr. Rasheed
+  previousArticleText?: string;
+  previousArticleTitle?: string;
+  currentArticleOpening?: string;
+  // body and closing — this segment's text of the current article, their only source
+  currentArticleText?: string;
   allowedVerseRefs: string[];
   previousLines?: string[]; // «المتحدث: النص» of the dialog just before this segment
   instruction?: string; // the user's note when regenerating a segment

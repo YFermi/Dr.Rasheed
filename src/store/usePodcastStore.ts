@@ -16,35 +16,34 @@ import { aiErrorMessage } from '../utils/aiErrors';
 import {
   DEFAULT_EPISODE_NUMBER,
   DEFAULT_PROGRAM_NAME,
-  draftSegments,
+  articleOpening,
+  currentArticleSegments,
   lastLinesOf,
   newLineId,
   referenceRefCandidates,
-  referenceSegments,
   resolvePodcastVerses,
   segmentHighlights,
   unifyVerseMarkup,
   validVerseRefs,
 } from '../utils/podcastScript';
-import { useReferenceStore } from './useReferenceStore';
-import { useArticleStore } from './useArticleStore';
 import { useBlogStore } from './useBlogStore';
 
-// The recording script (🎙️ سكريبت التسجيل): generated segment by segment straight
-// from an article (pasted text or a Word file, a reference article, or the current
-// draft; no idea tree), editable line by line, kept in localStorage with the
-// programme settings for the next episodes. Each finished segment is saved at once:
+// The recording script (🎙️ سكريبت التسجيل), from two separate texts on two tracks
+// (no idea tree): the introduction from the previous article (yesterday's episode),
+// the body and the closing from the current article (today's). Segments are written
+// one by one and joined into one script, editable line by line, kept in
+// localStorage with the programme settings. Each finished segment is saved at once:
 // after a failure, «استئناف» continues from the failed one.
 
-// What to turn into a script: a stored article, or a text given in the window
-export type PodcastSourceInput =
-  | { kind: 'reference' | 'draft'; id: string }
-  | { kind: 'text'; title: string; text: string };
-
-// The previous episode, whose full text the introduction recaps
-export interface PreviousEpisodeInput {
+// An article given in the window (pasted, a Word file, or a saved one)
+export interface PodcastArticleInput {
   title: string;
   text: string;
+}
+
+export interface PodcastInputs {
+  previous: PodcastArticleInput; // المقال السابق: the introduction's only source
+  current: PodcastArticleInput; // المقال الحالي: the body's only source
 }
 
 export interface PodcastSettings {
@@ -72,7 +71,7 @@ interface PodcastStoreState {
   closeModal: () => void;
   updateSettings: (patch: Partial<PodcastSettings>) => void;
   // Splits the source into segments and writes them all
-  generate: (source: PodcastSourceInput, episode: Omit<PodcastEpisode, 'disclaimer'>, previous?: PreviousEpisodeInput | null) => Promise<void>;
+  generate: (inputs: PodcastInputs, episode: Omit<PodcastEpisode, 'disclaimer'>) => Promise<void>;
   // Writes the segments not written yet (after an error or a cancel)
   resume: () => Promise<void>;
   regenerateSegment: (segmentId: string, instruction?: string) => Promise<void>;
@@ -104,12 +103,20 @@ function requestFor(script: PodcastScript, index: number, instruction?: string):
     bodyCount: body.length,
     topics: [...new Set(body.map(s => s.title.replace(/\s*\([^)]*\)$/, '')))],
     ...(segment.kind === 'closing' ? { highlights: segmentHighlights(script) } : {}),
-    ...(segment.kind === 'intro' && script.previousEpisode?.text.trim()
-      ? { previousEpisodeText: unifyVerseMarkup(script.previousEpisode.text), previousEpisodeTitle: script.previousEpisode.title }
-      : {}),
     dateText: script.episode.dateText,
-    sourceText: unifyVerseMarkup(segment.sourceText),
-    allowedVerseRefs: script.allowedVerseRefs,
+    // Two tracks, two separate inputs (scripts saved before the split keep their
+    // introduction's own text as its source)
+    ...(segment.kind === 'intro'
+      ? {
+          previousArticleText: unifyVerseMarkup(script.previousEpisode?.text || segment.sourceText),
+          previousArticleTitle: script.previousEpisode?.title ?? '',
+          currentArticleOpening: unifyVerseMarkup(articleOpening({ title: '', fullText: body.map(s => s.sourceText).join('\n') })),
+          allowedVerseRefs: script.previousEpisode?.refs ?? script.allowedVerseRefs,
+        }
+      : {
+          currentArticleText: unifyVerseMarkup(segment.sourceText),
+          allowedVerseRefs: script.allowedVerseRefs,
+        }),
     previousLines: index > 0 ? lastLinesOf(script.segments[index - 1]) : [],
     ...(instruction?.trim() ? { instruction: instruction.trim() } : {}),
   };
@@ -174,56 +181,35 @@ export const usePodcastStore = create<PodcastStoreState>()(persist((set, get) =>
     closeModal: () => set({ isModalOpen: false }),
     updateSettings: (patch) => set(state => ({ settings: { ...state.settings, ...patch } })),
 
-    generate: async (source, episode, previous) => {
+    generate: async ({ previous, current }, episode) => {
       if (get().isGenerating) return;
       // Closed at once: the Quran data may take a moment to load (no double start)
       set({ isModalOpen: false });
-      let title = '';
-      let split: { segments: PodcastSegment[]; refs: string[] };
-      if (source.kind === 'text') {
-        if (!source.text.trim()) {
-          set({ error: 'النص فارغ.' });
-          return;
-        }
-        title = source.title.trim() || 'مقال بلا عنوان';
-        const r = referenceSegments({ title, fullText: source.text });
-        split = { segments: r.segments, refs: await validVerseRefs(r.refCandidates) };
-      } else if (source.kind === 'draft') {
-        const draft = useArticleStore.getState().draft;
-        if (!draft?.sections.length) {
-          set({ error: 'لا توجد مسودة مكتوبة بعد.' });
-          return;
-        }
-        title = draft.title;
-        const d = draftSegments(draft);
-        split = { segments: d.segments, refs: d.allowedVerseRefs };
-      } else {
-        const article = useReferenceStore.getState().getArticle(source.id);
-        if (!article) {
-          set({ error: 'المقال المرجعي غير موجود.' });
-          return;
-        }
-        title = article.title;
-        const r = referenceSegments(article);
-        split = { segments: r.segments, refs: await validVerseRefs(r.refCandidates) };
+      if (!previous.text.trim() || !current.text.trim()) {
+        set({ error: 'يلزم نصان: المقال السابق (للمقدمة) والمقال الحالي (لصلب الحلقة).' });
+        return;
       }
-      // The previous episode's verses may be quoted in the introduction
-      const previousEpisode = previous?.text.trim() ? { title: previous.title.trim(), text: previous.text.trim() } : undefined;
-      if (previousEpisode) {
-        const previousRefs = await validVerseRefs(referenceRefCandidates(previousEpisode.text));
-        split = { ...split, refs: [...new Set([...split.refs, ...previousRefs])] };
-      }
+      const title = current.title.trim() || 'مقال بلا عنوان';
+      // Today's article → the body and the closing; its verses for those segments
+      const split = currentArticleSegments({ title, fullText: current.text });
+      const currentRefs = await validVerseRefs(split.refCandidates);
+      // Yesterday's article → the introduction; its own verses
+      const previousEpisode = {
+        title: previous.title.trim(),
+        text: previous.text.trim(),
+        refs: await validVerseRefs(referenceRefCandidates(previous.text)),
+      };
       set(state => ({
         isModalOpen: false,
         error: null,
         script: {
           id: `podcast-${Date.now()}`,
-          source: { kind: source.kind, id: source.kind === 'text' ? `text-${Date.now()}` : source.id, title },
+          source: { kind: 'text', id: `text-${Date.now()}`, title },
           // The disclaimer is fixed: inserted by the app, never written by the model
           episode: { ...episode, disclaimer: PODCAST_DISCLAIMER },
           segments: split.segments,
-          allowedVerseRefs: split.refs,
-          ...(previousEpisode ? { previousEpisode } : {}),
+          allowedVerseRefs: currentRefs,
+          previousEpisode,
           generatedAt: new Date().toISOString(),
         },
         settings: {
