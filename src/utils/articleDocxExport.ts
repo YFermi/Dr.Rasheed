@@ -97,6 +97,14 @@ function blockToDocx(block: DraftBlock): (Paragraph | Table)[] {
       })];
     case 'verse':
       return [verseBox(block), new Paragraph({ spacing: { after: 80 }, children: [] })];
+    case 'bullet':
+      return [new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        bidirectional: true,
+        indent: { right: 360 },
+        spacing: { before: 40, after: 60, line: 400 },
+        children: [run('◆  ', { color: 'B8901F' }), run(block.text)],
+      })];
     default:
       return [prose(block.text)];
   }

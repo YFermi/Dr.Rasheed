@@ -31,6 +31,7 @@ export interface ArticleSectionInput {
   axisName: string;
   nodes: ArticleNodeInput[];
   verseRefs: string[];
+  sourceVerseRefs?: string[]; // verses quoted in this axis's retrieved passages
 }
 
 export interface ArticleInput {
@@ -65,7 +66,8 @@ export interface ArticleOutline {
   closing: string;
 }
 
-export type DraftBlockType = 'heading' | 'subheading' | 'paragraph' | 'verse';
+// bullet: one item of a structured comparison (supported by verses)
+export type DraftBlockType = 'heading' | 'subheading' | 'paragraph' | 'bullet' | 'verse';
 
 export interface DraftBlock {
   type: DraftBlockType;

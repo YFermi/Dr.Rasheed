@@ -50,7 +50,7 @@ const MAX_PREVIOUS_IDEAS = 40;
 const TIMEOUT_MS = 250_000;
 const MAX_EXAMPLES = 3;
 const EXAMPLE_MAX_WORDS = 40;
-const BLOCK_TYPES = new Set(['heading', 'subheading', 'paragraph', 'verse']);
+const BLOCK_TYPES = new Set(['heading', 'subheading', 'paragraph', 'bullet', 'verse']);
 
 // After the charter: the faults seen in generated articles, forbidden outright.
 // Item 4 is worded for this app's verse elements (the app prints the verified text).
@@ -61,6 +61,17 @@ const strictNegativeConstraints = `
 3. ركز حصراً على المحور المطلوب منك كتابته الآن. لا تقم بتمهيد طويل ولا تكرر ما كُتب في المحاور السابقة.
 4. عند الاستدلال بآية، أوردها كاملة موثّقة بمرجعها في عنصر آية مستقل، ولا تترك أبداً علامة استفهام "؟" أو مساحة فارغة بدلاً من الآية.
 5. لا تكتب عبارة "وللحديث بقية" أو "وللحديث تتمة" في نهاية المحور الحالي؛ هذه العبارة توضع فقط في نهاية المقال المجمع.
+12. يُحظر السرد الإنشائي الطويل الخالي من الاستدلال القرآني. اجعل الآية هي مركز الفقرة ومحور الحديث.
+`;
+
+// Verse density: every step anchored in a verse of the sources (in this app a
+// verse is a verse element, printed in its gold box ﴿…﴾ from the verified text)
+const verseDensityRules = `
+## كثافة الاستدلال القرآني
+- أسلوب الكتابة يجب أن يكون مبنياً على (السلطان اللفظي). يُمنع منعاً باتاً صياغة استنتاج أو فكرة دون إيراد الآية القرآنية التي استُمدت منها من المصادر.
+- استخدم الاقتباس القرآني بكثافة (Verse Density). إذا كانت المصادر تحتوي على 5 آيات تخص هذه الفكرة، فاستخدمها جميعاً داخل صناديق ﴿...﴾ (عناصر verse) ولا تكتفِ بتلخيص المعنى.
+- اعتمد على المقارنات النصية المنظمة في نقاط (Bullet points) مدعومة بالآيات لتوضيح التضاد (مثلاً: ماذا فعل قوم لوط مقابل ماذا فعل إبراهيم)، تماماً كما في الدستور المنهجي [ص-2]. كل نقطة عنصر bullet مستقل، ويليها عنصر الآية التي تدعمها.
+- ابنِ الفقرة حول الآية: تمهيد قصير ← الآية ← تفكيك ألفاظها ← النتيجة؛ ثم الآية التالية.
 `;
 
 // Continuing an axis written in parts: never restart it, repeat it or re-cite a
@@ -82,7 +93,7 @@ const CORE_STYLE_RULES = `## قواعد الأسلوب الأساسية
 - نبرة حوارية بلا منادى: أسئلة كثيرة («لماذا…؟»، «السؤال: …») تُطرح مباشرة دون مخاطبة القارئ.
 - تطوير الفكرة: سؤال ← شاهد قرآني ← تفكيك اللفظ وسياقه ومقابلته بمواضعه الأخرى في كتاب الله ← فهم جديد ← «النتيجة: …».
 - «افتراء من عند أنفسنا: …» لفكرة isNew فقط ومرة واحدة على الأكثر؛ والفكرة المنشورة سابقاً: «كما بيّنا في الجزء …».
-- فقرات قصيرة متصلة؛ لا تعداد نقطي، ولا عناوين إنجليزية، ولا «في الختام» أو «خلاصة القول».`;
+- فقرات قصيرة متصلة؛ النقاط (bullet) للمقارنات المنظمة وحدها، ولا عناوين إنجليزية، ولا «في الختام» أو «خلاصة القول».`;
 
 const SECTION_SCHEMA = {
   type: 'object',
@@ -92,7 +103,7 @@ const SECTION_SCHEMA = {
       items: {
         type: 'object',
         properties: {
-          type: { type: 'string', enum: ['heading', 'subheading', 'paragraph', 'verse'] },
+          type: { type: 'string', enum: ['heading', 'subheading', 'paragraph', 'bullet', 'verse'] },
           text: { type: 'string' },
           ref: { type: 'string' },
         },
@@ -189,6 +200,7 @@ ${taskHeader('كتابة مقال/جزء من مقال')}
 
 ${strictNegativeConstraints}
 ${continuationConstraints}
+${verseDensityRules}
 
 ${CORE_STYLE_RULES}
 
@@ -199,7 +211,7 @@ ${formatExamples(examples)}
 
 ## قواعد الإخراج
 - أرجع JSON فقط بالحقول blocks و coveredNodeIds و wordCount.
-- أنواع العناصر: heading (عنوان المحور، مرة واحدة في البداية)، subheading (عناوين فرعية مثل «أولاً: …»)، paragraph (فقرة نثرية)، verse (آية).
+- أنواع العناصر: heading (عنوان المحور، مرة واحدة في البداية)، subheading (عناوين فرعية مثل «أولاً: …»)، paragraph (فقرة نثرية)، bullet (نقطة واحدة من مقارنة منظمة)، verse (آية).
 - عنصر الآية: {"type":"verse","text":"","ref":"سورة:آية"} — اترك text فارغاً دائماً، واختر ref من القائمة المسموح بها فقط.
 - ${CHARTER_VERSE_NOTE}
 - لا تكتب أي نص قرآني داخل الفقرات ولا الأقواس ﴿ ﴾ أو { }؛ يجوز اقتباس كلمتين إلى أربع من آية أوردتها في عنصر آية، بين «».
@@ -228,7 +240,10 @@ ${plan.keyMoves.map(m => `- ${m}`).join('\n') || '- (اختر خطوات منا�
 # الأفكار التي يجب أن يتناولها هذا المحور (من شجرة الأفكار)
 ${JSON.stringify(req.sectionNodes.map(n => ({ id: n.id, type: n.type, label: n.label, notes: n.notes, isNew: n.isNew, verseRefs: n.verseRefs, links: n.links, fromBlogParts: n.blogParts })), null, 1)}
 ${previousIdeasSection(req.previousIdeas)}${corpusSection(req.corpusExcerpts)}
-# المراجع القرآنية المسموح بها (لا تستشهد بغيرها)
+# آيات هذا المحور في المخطط (استشهد بها جميعاً، كلاً في موضع فكرتها)
+${plan.verseRefs.join('، ') || '—'}
+
+# المراجع القرآنية المسموح بها (لا تستشهد بغيرها؛ فيها آيات أفكار المحور وآيات مقاطع المدونة أعلاه)
 ${req.allowedVerseRefs.join('، ') || '— (لا آيات؛ لا تستعمل عناصر verse)'}
 
 # نهاية ما قبل هذا المحور (ليتصل الكلام)
@@ -301,7 +316,7 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
 
     const text = sanitizeProse(stripReaderAddress(asString(b.text)));
     if (!text) continue;
-    if (type !== 'paragraph' || !/[﴾﴿{]/.test(text)) {
+    if ((type !== 'paragraph' && type !== 'bullet') || !/[﴾﴿{]/.test(text)) {
       blocks.push({ type: type as DraftBlock['type'], text });
       continue;
     }
@@ -310,14 +325,14 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
     let cursor = 0;
     for (const m of text.matchAll(VERSE_SPAN_RE)) {
       const before = sanitizeProse(text.slice(cursor, m.index));
-      if (before) blocks.push({ type: 'paragraph', text: before });
+      if (before) blocks.push({ type: type as DraftBlock['type'], text: before });
       const ref = m[2]?.trim();
       if (ref && isAllowedRef(ref, req.allowedVerseRefs)) blocks.push({ type: 'verse', text: '', ref: canonicalRef(ref) });
       else rejectedRefs.push(ref ? ref : 'نص آية بلا مرجع');
       cursor = m.index! + m[0].length;
     }
     const after = sanitizeProse(text.slice(cursor));
-    if (after) blocks.push({ type: 'paragraph', text: after });
+    if (after) blocks.push({ type: type as DraftBlock['type'], text: after });
   }
 
   // Later parts of a long section continue it: no heading of their own
@@ -329,7 +344,7 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
   return {
     blocks,
     coveredNodeIds: asStringArray(raw.coveredNodeIds).filter(id => nodeIds.has(id)),
-    wordCount: blocks.filter(b => b.type === 'paragraph').reduce((n, b) => n + wordCount(b.text), 0),
+    wordCount: blocks.filter(b => b.type === 'paragraph' || b.type === 'bullet').reduce((n, b) => n + wordCount(b.text), 0),
     ...(rejectedRefs.length > 0 ? { rejectedRefs } : {}),
   };
 }

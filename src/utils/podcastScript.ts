@@ -67,6 +67,7 @@ export function draftToText(draft: GeneratedArticle): string {
     ...draft.sections.flatMap(s => [s.axisName, ...s.blocks.flatMap(b => {
       if (b.type === 'heading') return [];
       if (b.type === 'subheading') return [`${b.text}:`];
+      if (b.type === 'bullet') return [`- ${b.text}`];
       if (b.type === 'verse') return b.ref ? [`﴿${b.text || '…'}﴾ [${b.ref.replace(':', ': ')}]`] : [];
       return [b.text];
     })]),

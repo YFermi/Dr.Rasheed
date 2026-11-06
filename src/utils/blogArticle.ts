@@ -54,6 +54,7 @@ export function paragraphsFromDraft(draft: GeneratedArticle): StoryParagraph[] {
     ...prose(draft.opening),
     ...draft.sections.flatMap(s => s.blocks.map(b => {
       if (b.type === 'verse') return { text: b.text ? `﴿${b.text}﴾ [${(b.ref ?? '').replace(':', ': ')}]` : '', isHeading: false };
+      if (b.type === 'bullet') return { text: `• ${b.text}`, isHeading: false };
       return { text: b.text, isHeading: b.type === 'heading' || b.type === 'subheading' };
     })),
     ...prose(draft.closing),

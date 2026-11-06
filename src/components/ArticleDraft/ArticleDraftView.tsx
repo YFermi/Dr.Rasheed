@@ -63,6 +63,14 @@ function SectionBlocks({ section }: { section: DraftSection }) {
           return <h3 key={i} className="mt-4 mb-2 fs-17 font-bold text-[#374151] font-quran">{b.text}</h3>;
         }
         if (b.type === 'verse') return <VerseBlock key={i} block={b} />;
+        if (b.type === 'bullet') {
+          return (
+            <p key={i} className="fs-16 text-[#1f2937] leading-[1.9] font-quran my-1 pr-6 relative">
+              <span className="absolute right-1 text-[#b8901f]">◆</span>
+              {b.text}
+            </p>
+          );
+        }
         return <p key={i} className="fs-16 text-[#1f2937] leading-[1.9] text-justify font-quran my-2">{b.text}</p>;
       })}
     </>

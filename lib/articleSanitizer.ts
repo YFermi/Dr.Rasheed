@@ -385,7 +385,7 @@ export function sanitizeArticleBlocks<B extends SanitizableBlock, A extends Sani
         recapSeen = true;
       }
       if (!text) return [];
-      if (block.type === 'paragraph') {
+      if (block.type === 'paragraph' || block.type === 'bullet') {
         if (keptParagraphs.some(k => similarity(k, text) >= DUPLICATE_THRESHOLD)) return [];
         keptParagraphs.push(text);
       }

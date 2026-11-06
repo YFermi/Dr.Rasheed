@@ -20,6 +20,7 @@ import { callApiWithKey } from './apiKey';
 import { sanitizeArticleBlocks } from '../../lib/articleSanitizer';
 import { latestReferenceArticle, referenceContextOf } from './referenceContext';
 import { corpusSearch, storySources } from './corpusSearch';
+import { quranRefsIn } from './quranRefs';
 
 // Client-side orchestration of article generation: tree → input, then the
 // /api/article/* calls one after another (outline → sections → stitches), then
@@ -251,6 +252,7 @@ export async function callAPI<T>(path: string, body: unknown, signal?: AbortSign
 // ---- Paragraph helpers -----------------------------------------------------------
 
 const paragraphIndices = (s: DraftSection) => s.blocks.flatMap((b, i) => (b.type === 'paragraph' ? [i] : []));
+const isProse = (type: string) => type === 'paragraph' || type === 'bullet';
 
 function lastParagraphs(s: DraftSection, n: number): string[] {
   return paragraphIndices(s).slice(-n).map(i => s.blocks[i].text);
@@ -265,7 +267,7 @@ function replaceParagraphs(s: DraftSection, which: 'first' | 'last', texts: stri
   const targets = which === 'last' ? all.slice(-texts.length) : all.slice(0, texts.length);
   const blocks = s.blocks.map(b => ({ ...b }));
   targets.forEach((blockIndex, k) => (blocks[blockIndex].text = texts[k]));
-  return { ...s, blocks, wordCount: blocks.filter(b => b.type === 'paragraph').reduce((n, b) => n + b.text.split(/\s+/).filter(Boolean).length, 0) };
+  return { ...s, blocks, wordCount: blocks.filter(b => isProse(b.type)).reduce((n, b) => n + b.text.split(/\s+/).filter(Boolean).length, 0) };
 }
 
 // ---- Verse text --------------------------------------------------------------------
@@ -281,6 +283,24 @@ export async function resolveVerses(sections: DraftSection[]): Promise<DraftSect
       return resolved ? { ...b, text: resolved.text, unresolved: false } : { ...b, text: '', unresolved: true };
     }),
   }));
+}
+
+// ---- Verses of the sources -------------------------------------------------------------
+
+// Verse density: the verses Dr. Rasheed quotes in each axis's retrieved passages
+// (and in the reference article) may be cited too, not only the tree's. Each
+// section lists its own (sourceVerseRefs, for the outline); all are allowed.
+async function withSourceVerses(input: ArticleInput, contextFor: SectionContextFn, referenceContext?: string): Promise<ArticleInput> {
+  const sections = await Promise.all(input.sections.map(async s => ({
+    ...s,
+    sourceVerseRefs: await quranRefsIn((contextFor(s).corpusExcerpts ?? []).map(e => e.text)),
+  })));
+  const fromReference = referenceContext ? await quranRefsIn([referenceContext]) : [];
+  return {
+    ...input,
+    sections,
+    allowedVerseRefs: [...new Set([...input.allowedVerseRefs, ...fromReference, ...sections.flatMap(s => s.sourceVerseRefs)])],
+  };
 }
 
 // ---- Orchestration -----------------------------------------------------------------
@@ -403,6 +423,7 @@ export async function generateArticle(
     outlineContext?: Pick<SectionContext, 'referenceContext' | 'previousIdeas'>;
   } = {}
 ): Promise<GeneratedArticle> {
+  input = await withSourceVerses(input, contextFor, outlineContext.referenceContext);
   const n = input.sections.length;
   // Until the outline gives the budgets, the parts are estimated from the chosen length
   const estimatedParts = partCount(input.sectionLength ?? input.targetLength / Math.max(1, n));
@@ -479,6 +500,11 @@ export async function regenerateOneSection(
     ? { ...article.outline, sections: article.outline.sections.map(s => (s.id === section.id ? { ...s, wordBudget: extra.wordBudget! } : s)) }
     : article.outline;
   const sections = [...article.sections];
+  // The verses of this axis's passages and of the reference article are allowed too
+  allowedVerseRefs = [...new Set([
+    ...allowedVerseRefs,
+    ...(await quranRefsIn([...(context.corpusExcerpts ?? []).map(e => e.text), context.referenceContext ?? ''])),
+  ])];
   const parts = partCount(outline.sections.find(s => s.id === section.id)?.wordBudget ?? 0);
   const total = parts + (i > 0 ? 1 : 0) + (i < sections.length - 1 ? 1 : 0) + 1;
   let step = 0;
