@@ -17,7 +17,7 @@ import type {
 import type { ReferenceArticle } from '../store/useReferenceStore';
 import { extractVerses, containsQuranGlyphs, normalizeArabic, toArabicDigits } from './arabic';
 import { callApiWithKey } from './apiKey';
-import { cleanArticle } from '../../lib/articleCleanup';
+import { sanitizeArticleBlocks } from '../../lib/articleSanitizer';
 import { latestReferenceArticle, referenceContextOf } from './referenceContext';
 import { corpusSearch, storySources } from './corpusSearch';
 
@@ -330,8 +330,10 @@ async function writeSection(
       ? {
         index,
         count,
-        previousPartEnding: lastParagraphs(merged, STITCH_PARAGRAPHS).join('\n\n'),
+        // The axis so far (the server keeps its last 300 words) and the verses it cites
+        previousPartEnding: merged.blocks.filter(b => b.type !== 'verse').map(b => b.text).join('\n\n'),
         subheadingsSoFar: merged.blocks.filter(b => b.type === 'subheading').map(b => b.text),
+        citedRefs: [...new Set(merged.blocks.flatMap(b => (b.type === 'verse' && b.ref ? [b.ref] : [])))],
       }
       : undefined;
     const response = await callAPI<SectionResponse>('/api/article/section', {
@@ -449,7 +451,7 @@ export async function generateArticle(
   const resolved = await resolveVerses(sections);
 
   // 5. Final cleanup of the assembled article (prose only; verse boxes untouched)
-  return cleanArticle({
+  return sanitizeArticleBlocks({
     title: outline.title,
     opening: outline.opening,
     closing: outline.closing,
@@ -500,7 +502,7 @@ export async function regenerateOneSection(
 
   report('جاري إدراج الآيات...');
   const resolved = await resolveVerses(sections);
-  return cleanArticle({ ...article, outline, sections: resolved, approvedAt: null });
+  return sanitizeArticleBlocks({ ...article, outline, sections: resolved, approvedAt: null });
 }
 
 // ---- Context sent with the calls -------------------------------------------------

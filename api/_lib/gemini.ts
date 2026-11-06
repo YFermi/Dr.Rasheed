@@ -291,13 +291,16 @@ export function canonicalRef(ref: string): string {
 
 // Allowed when it lies inside an allowed range of the same surah
 // (citing الأعراف:81 is fine when الأعراف:80-84 is allowed).
+// Every ayah of the reference must be allowed (one cited verse box may join
+// consecutive allowed ayahs: «العلق:17-18» when 17 and 18 are allowed)
 export function isAllowedRef(ref: string, allowed: string[]): boolean {
   const r = parseVerseRef(ref);
   if (!r) return false;
-  return allowed.some(a => {
-    const range = parseVerseRef(a);
-    return range !== null && range.surah === r.surah && r.from >= range.from && r.to <= range.to;
-  });
+  const ranges = allowed.map(parseVerseRef).filter((a): a is VerseRange => a !== null && a.surah === r.surah);
+  for (let ayah = r.from; ayah <= r.to; ayah++) {
+    if (!ranges.some(a => ayah >= a.from && ayah <= a.to)) return false;
+  }
+  return true;
 }
 
 // ---- Small validation helpers ------------------------------------------------

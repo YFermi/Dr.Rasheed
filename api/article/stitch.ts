@@ -15,7 +15,7 @@ import {
   taskHeader,
   stripReaderAddress,
 } from '../_lib/gemini.js';
-import { cleanProse } from '../../lib/articleCleanup.js';
+import { sanitizeProse } from '../../lib/articleSanitizer.js';
 
 const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const MAX_PARAGRAPHS_PER_SIDE = 2;
@@ -58,9 +58,10 @@ ${req.transitionPlan || '—'}
 // Falls back to the original paragraphs if the model changed their number or
 // slipped verse brackets in.
 export function normalizeStitch(raw: Partial<StitchResponse>, req: StitchRequest): StitchResponse & { changed: boolean } {
-  // Post-processing cleanup: orphan «؟», banned clichés, no closing line mid-article
-  const a = asStringArray(raw.newA_ending).map(p => cleanProse(stripReaderAddress(p)));
-  const b = asStringArray(raw.newB_start).map(p => cleanProse(stripReaderAddress(p)));
+  // The sanitizer (lib/articleSanitizer.ts) on each rewritten paragraph; the whole
+  // article is sanitized once assembled (src/utils/articleBuilder.ts)
+  const a = asStringArray(raw.newA_ending).map(p => sanitizeProse(stripReaderAddress(p)));
+  const b = asStringArray(raw.newB_start).map(p => sanitizeProse(stripReaderAddress(p)));
   const valid = (out: string[], orig: string[]) =>
     out.length === orig.length && out.every(p => p.length > 0 && !/[﴾﴿]/.test(p));
   const okA = valid(a, req.sectionA_ending);

@@ -127,8 +127,9 @@ export interface PreviousIdea {
 export interface SectionPart {
   index: number; // 1-based
   count: number;
-  previousPartEnding: string; // the end of what this section has so far
+  previousPartEnding: string; // the last ~300 words of what this section has so far
   subheadingsSoFar: string[];
+  citedRefs?: string[]; // verses this section already cites (not to be cited again)
 }
 
 export interface SectionRequest {

@@ -21,7 +21,7 @@ import {
   CHARTER_VERSE_NOTE,
   stripReaderAddress,
 } from '../_lib/gemini.js';
-import { CLOSING_LINE, cleanProse, withClosingLine } from '../../lib/articleCleanup.js';
+import { CLOSING_LINE, sanitizeProse, withClosingLine } from '../../lib/articleSanitizer.js';
 
 // Besides the tree: the reference article and the ideas already treated
 export interface OutlineExtras {
@@ -76,6 +76,7 @@ ${taskHeader('تخطيط جزء جديد من المقال (المخطط فقط�
 1. المقال المرجعي (كأسلوب وبنية يُحتذى بها فقط، وليس كمصدر معلومات).
 2. محاور المقال وأفكارها من جلسة العصف (شجرة الأفكار)، وما سبق تناوله في الأجزاء السابقة.
 خطّط الجزء بالتزام تام بالدستور المنهجي أعلاه، وعلى بنية [ص-2]: تمهيد يعرض الإشكالية، ومحاور مرقمة بأسئلة توجيهية، ونتيجة لكل محور، وخاتمة جامعة. لا تضف إلى المخطط فكرة ليست في المصادر المقدمة.
+يجب أن تكون المحاور متمايزة تمايزاً تاماً، لا يتناول محوران الفكرة نفسها من زاويتين متقاربتين. المحاور هنا هي محاور شجرة الأفكار نفسها (محور لكل محور في الشجرة، لا تُدمج ولا تُضاف)، فإن تقارب محوران فاجعل لكل منهما أطروحة وخطوات لا يتناولها الآخر، ووزّع الأفكار المشتركة على أحدهما فقط.
 ${CHARTER_VERSE_NOTE}
 
 ${styleGuide}
@@ -182,7 +183,7 @@ function finishOutline(raw: Partial<ArticleOutline>, input: ArticleInput, sectio
 
   return {
     title: asString(raw.title).trim() || input.projectTitle,
-    opening: stripReaderAddress(asString(raw.opening)).split(/\n{2,}/).map(cleanProse).filter(Boolean).join('\n\n'),
+    opening: stripReaderAddress(asString(raw.opening)).split(/\n{2,}/).map(sanitizeProse).filter(Boolean).join('\n\n'),
     sections,
     closing,
   };

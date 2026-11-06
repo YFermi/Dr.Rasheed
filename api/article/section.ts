@@ -33,7 +33,7 @@ import {
   FORBIDDEN_PHRASES,
   stripReaderAddress,
 } from '../_lib/gemini.js';
-import { cleanProse } from '../../lib/articleCleanup.js';
+import { sanitizeProse } from '../../lib/articleSanitizer.js';
 
 // Dr. Rasheed's axes run 1,000–3,000 words. The client writes a long section in
 // parts of ≤ 1,500 words (models fall well short of long targets in one call);
@@ -61,6 +61,18 @@ const strictNegativeConstraints = `
 3. ركز حصراً على المحور المطلوب منك كتابته الآن. لا تقم بتمهيد طويل ولا تكرر ما كُتب في المحاور السابقة.
 4. عند الاستدلال بآية، أوردها كاملة موثّقة بمرجعها في عنصر آية مستقل، ولا تترك أبداً علامة استفهام "؟" أو مساحة فارغة بدلاً من الآية.
 5. لا تكتب عبارة "وللحديث بقية" أو "وللحديث تتمة" في نهاية المحور الحالي؛ هذه العبارة توضع فقط في نهاية المقال المجمع.
+`;
+
+// Continuing an axis written in parts: never restart it, repeat it or re-cite a
+// verse (rule 9 is worded for this app's verse elements)
+const continuationConstraints = `
+🚨 قواعد الاستكمال (إلزامية عند وجود "آخر ما كُتب"):
+6. أنت تُكمل محوراً بدأ بالفعل. يُمنع منعاً باتاً إعادة التمهيد له، أو إعادة كتابة عنوانه، أو وضع عنوان فرعي يحمل معنى عنوان المحور نفسه.
+7. يُمنع تكرار أي فقرة أو فكرة وردت في "آخر ما كُتب"، وبخاصة فقرات "افتراءً من عند أنفسنا" و"والنتيجة التي نخلص إليها". لكل فقرة من هذين النوعين ورود واحد فقط في المحور كله.
+8. يُمنع الاستشهاد بآية سبق الاستشهاد بها في هذا المحور. إن احتجت لتأكيد معنى سابق فأشر إليه بالكلام دون إعادة إدراج الآية.
+9. إذا كانت الآية المستشهد بها أكثر من آية متتالية من نفس السورة، فأدرجها في عنصر آية واحد بمرجع مجمّع مثل "العلق:17-18"، ولا تُشظِّها إلى عنصرين.
+10. يُمنع افتتاح المحور الأول بأداة انتقال مثل "وهذا يقودنا" أو "عودة على بدء"؛ هذه الأدوات للمحاور اللاحقة فقط.
+11. انتبه للإملاء: لا تستخدم حروفاً فارسية (ک، ی)، ولا تطويلاً (ـ)، وتحقق من همزات القطع والوصل. أي خطأ إملائي يُفسد المسودة.
 `;
 
 // The essentials of data/style-guide.md, for the per-section calls (the outline
@@ -176,6 +188,7 @@ ${taskHeader('كتابة مقال/جزء من مقال')}
 ملاحظة تطبيقية: «المحاور الأساسية» في البند 3 تصلك مع أفكار المحور من جلسة العصف (شجرة الأفكار)، وهي جزء من المصادر المقدمة لك: اكتب أفكار المحور هذه وادعمها من المقاطع المسترجعة، ولا تضف فكرة ليست في أفكار المحور ولا في المقاطع. والطول الدقيق لهذا الاستدعاء مذكور في المطلوب أدناه.
 
 ${strictNegativeConstraints}
+${continuationConstraints}
 
 ${CORE_STYLE_RULES}
 
@@ -233,6 +246,22 @@ ${part ? partInstructions(part, heading, partWords, plan.keyMoves) : `اكتب �
   return { system, prompt, heading, wordBudget };
 }
 
+// The last ~300 words of the axis so far, which the next part must continue
+const TAIL_WORDS = 300;
+function continuationBlock(previousChunk: string): string {
+  const tail = previousChunk
+    ? previousChunk.trim().split(/\s+/).slice(-TAIL_WORDS).join(' ')
+    : '';
+  return tail
+    ? `
+════════════════════════════════════════════════════════════════════
+آخر ما كُتب في هذا المحور (لا تُعِد كتابته، أكمل من حيث انتهى):
+════════════════════════════════════════════════════════════════════
+${tail}
+`
+    : '';
+}
+
 // What one part of a long section must do; the key moves are shared out in order.
 function partInstructions(part: SectionPart, heading: string, partWords: number, keyMoves: string[]): string {
   const per = Math.ceil(keyMoves.length / part.count);
@@ -240,11 +269,8 @@ function partInstructions(part: SectionPart, heading: string, partWords: number,
   const isLast = part.index === part.count;
   const start = part.index === 1
     ? `ابدأ بعنصر heading بعنوان «${heading}».`
-    : `أكمل الكلام من حيث انتهى الجزء السابق، بلا عنوان رئيسي ولا تمهيد جديد، ولا تكرر ما قيل.
-نهاية الجزء السابق من هذا المحور:
-"""
-${part.previousPartEnding || '—'}
-"""${part.subheadingsSoFar.length ? `\nالعناوين الفرعية المستعملة حتى الآن (لا تكررها): ${part.subheadingsSoFar.join('، ')}` : ''}`;
+    : `أكمل الكلام من حيث انتهى الجزء السابق، بلا عنوان رئيسي ولا تمهيد جديد، ولا تكرر ما قيل (قواعد الاستكمال 6–11).
+${continuationBlock(part.previousPartEnding)}${part.subheadingsSoFar.length ? `\nالعناوين الفرعية المستعملة حتى الآن (لا تكررها): ${part.subheadingsSoFar.join('، ')}` : ''}${part.citedRefs?.length ? `\nالآيات المستشهد بها في هذا المحور حتى الآن (لا تُعِد إدراجها): ${part.citedRefs.join('، ')}` : ''}`;
   return `هذا هو الجزء ${part.index} من ${part.count} من «${heading}»، وطوله نحو ${partWords} كلمة.
 ${start}
 ${moves.length ? `الخطوات التي يغطيها هذا الجزء:\n${moves.map(m => `- ${m}`).join('\n')}\n` : ''}${isLast
@@ -273,7 +299,7 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
       continue;
     }
 
-    const text = cleanProse(stripReaderAddress(asString(b.text)));
+    const text = sanitizeProse(stripReaderAddress(asString(b.text)));
     if (!text) continue;
     if (type !== 'paragraph' || !/[﴾﴿{]/.test(text)) {
       blocks.push({ type: type as DraftBlock['type'], text });
@@ -283,14 +309,14 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
     // The model quoted a verse inline despite the rules
     let cursor = 0;
     for (const m of text.matchAll(VERSE_SPAN_RE)) {
-      const before = cleanProse(text.slice(cursor, m.index));
+      const before = sanitizeProse(text.slice(cursor, m.index));
       if (before) blocks.push({ type: 'paragraph', text: before });
       const ref = m[2]?.trim();
       if (ref && isAllowedRef(ref, req.allowedVerseRefs)) blocks.push({ type: 'verse', text: '', ref: canonicalRef(ref) });
       else rejectedRefs.push(ref ? ref : 'نص آية بلا مرجع');
       cursor = m.index! + m[0].length;
     }
-    const after = cleanProse(text.slice(cursor));
+    const after = sanitizeProse(text.slice(cursor));
     if (after) blocks.push({ type: 'paragraph', text: after });
   }
 
@@ -355,7 +381,8 @@ function previousIdeasOf(v: unknown): { previousIdeas?: PreviousIdea[] } {
 function isSectionPart(v: unknown): v is SectionPart {
   const p = v as SectionPart | undefined;
   return !!p && Number.isInteger(p.index) && Number.isInteger(p.count) && p.index >= 1 && p.index <= p.count
-    && typeof p.previousPartEnding === 'string' && Array.isArray(p.subheadingsSoFar);
+    && typeof p.previousPartEnding === 'string' && Array.isArray(p.subheadingsSoFar)
+    && (p.citedRefs === undefined || Array.isArray(p.citedRefs));
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
