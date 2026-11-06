@@ -33,6 +33,7 @@ import {
   FORBIDDEN_PHRASES,
   stripReaderAddress,
 } from '../_lib/gemini.js';
+import { cleanProse } from '../../lib/articleCleanup.js';
 
 // Dr. Rasheed's axes run 1,000–3,000 words. The client writes a long section in
 // parts of ≤ 1,500 words (models fall well short of long targets in one call);
@@ -50,6 +51,17 @@ const TIMEOUT_MS = 250_000;
 const MAX_EXAMPLES = 3;
 const EXAMPLE_MAX_WORDS = 40;
 const BLOCK_TYPES = new Set(['heading', 'subheading', 'paragraph', 'verse']);
+
+// After the charter: the faults seen in generated articles, forbidden outright.
+// Item 4 is worded for this app's verse elements (the app prints the verified text).
+const strictNegativeConstraints = `
+🚨 تحذير قاطع وصارم (Strict Negative Constraints):
+1. يُمنع منعاً باتاً ذكر كلمات (التفاسير، الموروث، قطاع الطرق، ابن كثير، المفسرون، التراث، الفهم السائد) حتى لو كان بغرض نفيها أو الرد عليها! ادخل في التحليل القرآني مباشرة وكأن التراث غير موجود.
+2. يُحظر استخدام العبارات الإنشائية التالية إطلاقاً: "السؤال الذي يطرح نفسه بقوة"، "فنعود لنطرح السؤال نفسه"، "كما يحلو للتراث"، "وصلنا في الجزء السابق".
+3. ركز حصراً على المحور المطلوب منك كتابته الآن. لا تقم بتمهيد طويل ولا تكرر ما كُتب في المحاور السابقة.
+4. عند الاستدلال بآية، أوردها كاملة موثّقة بمرجعها في عنصر آية مستقل، ولا تترك أبداً علامة استفهام "؟" أو مساحة فارغة بدلاً من الآية.
+5. لا تكتب عبارة "وللحديث بقية" أو "وللحديث تتمة" في نهاية المحور الحالي؛ هذه العبارة توضع فقط في نهاية المقال المجمع.
+`;
 
 // The essentials of data/style-guide.md, for the per-section calls (the outline
 // and stitch calls still get the full guide).
@@ -163,6 +175,8 @@ ${taskHeader('كتابة مقال/جزء من مقال')}
 
 ملاحظة تطبيقية: «المحاور الأساسية» في البند 3 تصلك مع أفكار المحور من جلسة العصف (شجرة الأفكار)، وهي جزء من المصادر المقدمة لك: اكتب أفكار المحور هذه وادعمها من المقاطع المسترجعة، ولا تضف فكرة ليست في أفكار المحور ولا في المقاطع. والطول الدقيق لهذا الاستدعاء مذكور في المطلوب أدناه.
 
+${strictNegativeConstraints}
+
 ${CORE_STYLE_RULES}
 
 ${referenceSection(req.referenceContext)}
@@ -259,7 +273,7 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
       continue;
     }
 
-    const text = stripReaderAddress(asString(b.text));
+    const text = cleanProse(stripReaderAddress(asString(b.text)));
     if (!text) continue;
     if (type !== 'paragraph' || !/[﴾﴿{]/.test(text)) {
       blocks.push({ type: type as DraftBlock['type'], text });
@@ -269,14 +283,14 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
     // The model quoted a verse inline despite the rules
     let cursor = 0;
     for (const m of text.matchAll(VERSE_SPAN_RE)) {
-      const before = text.slice(cursor, m.index).trim();
+      const before = cleanProse(text.slice(cursor, m.index));
       if (before) blocks.push({ type: 'paragraph', text: before });
       const ref = m[2]?.trim();
       if (ref && isAllowedRef(ref, req.allowedVerseRefs)) blocks.push({ type: 'verse', text: '', ref: canonicalRef(ref) });
       else rejectedRefs.push(ref ? ref : 'نص آية بلا مرجع');
       cursor = m.index! + m[0].length;
     }
-    const after = text.slice(cursor).trim();
+    const after = cleanProse(text.slice(cursor));
     if (after) blocks.push({ type: 'paragraph', text: after });
   }
 

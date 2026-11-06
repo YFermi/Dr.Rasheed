@@ -21,6 +21,7 @@ import {
   CHARTER_VERSE_NOTE,
   stripReaderAddress,
 } from '../_lib/gemini.js';
+import { CLOSING_LINE, cleanProse, withClosingLine } from '../../lib/articleCleanup.js';
 
 // Besides the tree: the reference article and the ideas already treated
 export interface OutlineExtras {
@@ -34,7 +35,6 @@ const MAX_PREVIOUS_IDEAS = 40;
 const TIMEOUT_MS = 120_000; // within vercel.json's maxDuration (300 s) for api/article/*
 const MIN_SECTION_WORDS = 300;
 const MAX_SECTION_WORDS = 3000;
-const CLOSING_LINE = 'وللحديث بقية';
 
 const OUTLINE_SCHEMA = {
   type: 'object',
@@ -177,12 +177,12 @@ export function normalizeOutline(raw: Partial<ArticleOutline>, input: ArticleInp
 }
 
 function finishOutline(raw: Partial<ArticleOutline>, input: ArticleInput, sections: OutlineSection[]): ArticleOutline {
-  let closing = stripReaderAddress(asString(raw.closing));
-  if (!closing.endsWith(CLOSING_LINE)) closing = `${closing}\n\n${CLOSING_LINE}`.trim();
+  // The closing line once, at the very end, whatever the model wrote («وللحديث بقية.» too)
+  const closing = withClosingLine(stripReaderAddress(asString(raw.closing)));
 
   return {
     title: asString(raw.title).trim() || input.projectTitle,
-    opening: stripReaderAddress(asString(raw.opening)),
+    opening: stripReaderAddress(asString(raw.opening)).split(/\n{2,}/).map(cleanProse).filter(Boolean).join('\n\n'),
     sections,
     closing,
   };

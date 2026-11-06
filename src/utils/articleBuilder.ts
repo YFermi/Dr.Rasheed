@@ -17,6 +17,7 @@ import type {
 import type { ReferenceArticle } from '../store/useReferenceStore';
 import { extractVerses, containsQuranGlyphs, normalizeArabic, toArabicDigits } from './arabic';
 import { callApiWithKey } from './apiKey';
+import { cleanArticle } from '../../lib/articleCleanup';
 import { latestReferenceArticle, referenceContextOf } from './referenceContext';
 import { corpusSearch, storySources } from './corpusSearch';
 
@@ -447,7 +448,8 @@ export async function generateArticle(
   report('جاري إدراج الآيات...');
   const resolved = await resolveVerses(sections);
 
-  return {
+  // 5. Final cleanup of the assembled article (prose only; verse boxes untouched)
+  return cleanArticle({
     title: outline.title,
     opening: outline.opening,
     closing: outline.closing,
@@ -456,7 +458,7 @@ export async function generateArticle(
     options,
     generatedAt: new Date().toISOString(),
     approvedAt: null,
-  };
+  });
 }
 
 // Rewrites one section (optionally longer/shorter or with an editor's
@@ -498,7 +500,7 @@ export async function regenerateOneSection(
 
   report('جاري إدراج الآيات...');
   const resolved = await resolveVerses(sections);
-  return { ...article, outline, sections: resolved, approvedAt: null };
+  return cleanArticle({ ...article, outline, sections: resolved, approvedAt: null });
 }
 
 // ---- Context sent with the calls -------------------------------------------------

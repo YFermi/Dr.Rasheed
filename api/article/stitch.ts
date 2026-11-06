@@ -15,6 +15,7 @@ import {
   taskHeader,
   stripReaderAddress,
 } from '../_lib/gemini.js';
+import { cleanProse } from '../../lib/articleCleanup.js';
 
 const TIMEOUT_MS = 55_000; // under Vercel's 60 s limit
 const MAX_PARAGRAPHS_PER_SIDE = 2;
@@ -48,7 +49,7 @@ ${req.sectionB_start.map((p, i) => `[${i + 1}] ${p}`).join('\n\n')}
 ${req.transitionPlan || '—'}
 
 # المطلوب
-أعد كتابة هذه الفقرات ليتصل الكلام بسلاسة (عبارات مثل «وهذا يقودنا إلى…»، «فنعود لنطرح السؤال نفسه…»).
+أعد كتابة هذه الفقرات ليتصل الكلام بسلاسة (عبارات مثل «وهذا يقودنا إلى…»)، دون «فنعود لنطرح السؤال نفسه» أو «السؤال الذي يطرح نفسه» أو «وللحديث بقية».
 أرجع JSON: newA_ending بعدد ${req.sectionA_ending.length} فقرات، و newB_start بعدد ${req.sectionB_start.length} فقرات، بالترتيب نفسه.`;
 
   return { system, prompt };
@@ -57,8 +58,9 @@ ${req.transitionPlan || '—'}
 // Falls back to the original paragraphs if the model changed their number or
 // slipped verse brackets in.
 export function normalizeStitch(raw: Partial<StitchResponse>, req: StitchRequest): StitchResponse & { changed: boolean } {
-  const a = asStringArray(raw.newA_ending).map(stripReaderAddress);
-  const b = asStringArray(raw.newB_start).map(stripReaderAddress);
+  // Post-processing cleanup: orphan «؟», banned clichés, no closing line mid-article
+  const a = asStringArray(raw.newA_ending).map(p => cleanProse(stripReaderAddress(p)));
+  const b = asStringArray(raw.newB_start).map(p => cleanProse(stripReaderAddress(p)));
   const valid = (out: string[], orig: string[]) =>
     out.length === orig.length && out.every(p => p.length > 0 && !/[﴾﴿]/.test(p));
   const okA = valid(a, req.sectionA_ending);
