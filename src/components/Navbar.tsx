@@ -8,6 +8,7 @@ import { SpiderWebLogo } from './SpiderWebLogo';
 import { UIPreferencesMenu } from './UIPreferencesMenu';
 import { useUIStore } from '../store/useUIStore';
 import { usePodcastStore } from '../store/usePodcastStore';
+import { startNewProject } from '../store/newProject';
 import {
   PenLine,
   FileDown,
@@ -42,10 +43,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   showMidCol,
   setShowMidCol
 }) => {
-  const { 
-    treeData, 
-    projectSettings, 
-    resetToInitial 
+  const {
+    treeData,
+    projectSettings
   } = useIdeaStore();
 
   const allNodes = getAllNodeList(treeData);
@@ -82,8 +82,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleReset = () => {
-    if (window.confirm('هل تود البدء بمشروع جديد بشجرة فارغة؟ ستُحذف المحاور والأفكار الحالية من هذا المتصفح (احفظ المشروع كملف JSON أولاً إن أردت الاحتفاظ به).')) {
-      resetToInitial();
+    if (window.confirm('هل تود البدء بمشروع جديد بشجرة فارغة ومسودة فارغة؟ ستُحذف المحاور والأفكار والمسودة الحالية من هذا المتصفح (احفظ المشروع كملف JSON وصدّر المسودة أولاً إن أردت الاحتفاظ بهما).')) {
+      startNewProject();
     }
   };
 

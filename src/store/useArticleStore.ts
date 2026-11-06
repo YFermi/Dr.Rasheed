@@ -45,6 +45,9 @@ interface ArticleStoreState {
   regenerateSection: (sectionId: string, opts?: { lengthFactor?: number; instruction?: string }) => Promise<void>;
   generateMissingSection: (sectionId: string) => Promise<void>;
   cancelGeneration: () => void;
+  // A new project: no draft, no section states, no generation in progress (the
+  // generation options are a preference and stay)
+  resetDraftState: () => void;
   lockSection: (sectionId: string) => void;
   unlockSection: (sectionId: string) => void;
   markStale: (sectionId: string) => void;
@@ -268,6 +271,19 @@ export const useArticleStore = create<ArticleStoreState>()(persist((set, get) =>
   },
 
   cancelGeneration: () => controller?.abort(),
+
+  resetDraftState: () => {
+    controller?.abort();
+    controller = null;
+    set({
+      draft: null,
+      sectionMeta: {},
+      isGenerating: false,
+      progress: null,
+      error: null,
+      isGenerateModalOpen: false,
+    });
+  },
 
   lockSection: (sectionId) => set(state => ({
     sectionMeta: { ...state.sectionMeta, [sectionId]: { ...state.sectionMeta[sectionId], locked: true } },
