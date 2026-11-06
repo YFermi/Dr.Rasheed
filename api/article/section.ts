@@ -27,7 +27,9 @@ import {
   wordCount,
   ORDINALS,
   referenceSection,
-  METHOD_RULES,
+  DR_RASHEED_METHODOLOGY_CHARTER,
+  taskHeader,
+  CHARTER_VERSE_NOTE,
   FORBIDDEN_PHRASES,
   stripReaderAddress,
 } from '../_lib/gemini.js';
@@ -40,8 +42,8 @@ export const MAX_SECTION_WORDS = 4000; // 3,000 + «أطول» (×1.3)
 const MAX_PART_WORDS = 2000;
 // Guards against oversized requests (the client sends ≤ 3,000 words of reference)
 const MAX_REFERENCE_CHARS = 30_000;
-const MAX_CORPUS_EXCERPTS = 8;
-const MAX_CORPUS_CHARS = 40_000; // ~4,000 Arabic words
+const MAX_CORPUS_EXCERPTS = 20;
+const MAX_CORPUS_CHARS = 80_000; // ~8,000 Arabic words (src/utils/corpusSearch.ts)
 const MAX_PREVIOUS_IDEAS = 40;
 // Within vercel.json's maxDuration (300 s) for api/article/*
 const TIMEOUT_MS = 250_000;
@@ -147,11 +149,21 @@ export function buildSectionPrompt(
   const part = req.part && req.part.count > 1 ? req.part : undefined;
   const partWords = Math.min(Math.round(wordBudget / (part?.count ?? 1) / 10) * 10, MAX_PART_WORDS);
 
-  const system = `أنت تكتب بأسلوب د. رشيد الجراح محوراً واحداً من جزء جديد في سلسلته.
+  const system = `${DR_RASHEED_METHODOLOGY_CHARTER}
+
+${taskHeader('كتابة مقال/جزء من مقال')}
+
+ستتلقى الآن:
+1. المقال المرجعي (كأسلوب وبنية يُحتذى بها فقط، وليس كمصدر معلومات).
+2. المقاطع المسترجعة من المدونة القرآنية للدكتور رشيد (هذه هي مصدر الأفكار الوحيد).
+3. عنوان المقال المطلوب كتابته والمحاور الأساسية.
+
+اكتب الجزء المطلوب بالتزام تام بالدستور المنهجي أعلاه.
+الطول المستهدف: 1500 كلمة لكل استدعاء (يُبنى المقال الكامل من استدعاءين متتاليين لإنتاج 3000 كلمة).
+
+ملاحظة تطبيقية: «المحاور الأساسية» في البند 3 تصلك مع أفكار المحور من جلسة العصف (شجرة الأفكار)، وهي جزء من المصادر المقدمة لك: اكتب أفكار المحور هذه وادعمها من المقاطع المسترجعة، ولا تضف فكرة ليست في أفكار المحور ولا في المقاطع. والطول الدقيق لهذا الاستدعاء مذكور في المطلوب أدناه.
 
 ${CORE_STYLE_RULES}
-
-${METHOD_RULES}
 
 ${referenceSection(req.referenceContext)}
 
@@ -162,10 +174,11 @@ ${formatExamples(examples)}
 - أرجع JSON فقط بالحقول blocks و coveredNodeIds و wordCount.
 - أنواع العناصر: heading (عنوان المحور، مرة واحدة في البداية)، subheading (عناوين فرعية مثل «أولاً: …»)، paragraph (فقرة نثرية)، verse (آية).
 - عنصر الآية: {"type":"verse","text":"","ref":"سورة:آية"} — اترك text فارغاً دائماً، واختر ref من القائمة المسموح بها فقط.
-- لا تكتب أي نص قرآني داخل الفقرات ولا الأقواس ﴿ ﴾؛ يجوز اقتباس كلمتين إلى أربع من آية أوردتها في عنصر آية، بين «».
+- ${CHARTER_VERSE_NOTE}
+- لا تكتب أي نص قرآني داخل الفقرات ولا الأقواس ﴿ ﴾ أو { }؛ يجوز اقتباس كلمتين إلى أربع من آية أوردتها في عنصر آية، بين «».
 - «افتراء من عند أنفسنا» مرة واحدة على الأكثر، ولفكرة isNew فقط.
 - لا تكتب خاتمة المقال ولا «وللحديث بقية»؛ هذا محور في وسط المقال.
-- اكتب بالطول المطلوب فعلاً: فقرات وافية تطوّر كل فكرة (سؤال ← شاهد ← تفكيك ← نقد ← نتيجة)، لا تلخيصاً.`;
+- اكتب بالطول المطلوب فعلاً: فقرات وافية تطوّر كل فكرة (سؤال ← شاهد ← تفكيك ← نتيجة)، لا تلخيصاً.`;
 
   const outlineSummary = outline.sections
     .map((s, i) => `${i === index ? '◀' : ' '} المحور ${ORDINALS[i] ?? i + 1} [${s.id}]: ${s.axisName} — ${s.thesis}`)
@@ -225,7 +238,8 @@ ${moves.length ? `الخطوات التي يغطيها هذا الجزء:\n${mov
     : 'ليس هذا آخر أجزاء المحور: لا تختم المحور ولا تمهّد لما بعده؛ توقف عند نهاية فكرة مكتملة.'}`;
 }
 
-const VERSE_SPAN_RE = /[﴾﴿]([^﴾﴿]*)[﴾﴿]\s*(?:[[(]([^\])]+)[\])])?/g;
+// ﴿…﴾ or the charter's {…}, with its reference; «> قال تعالى:» before it belongs to the block
+const VERSE_SPAN_RE = />?\s*(?:قال تعالى\s*:?\s*)?[﴾﴿{]([^﴾﴿{}]*)[﴾﴿}]\s*(?:[[(]([^\])]+)[\])])?/g;
 
 // Enforces the rules the prompt asks for: allowed verse refs only, no verse text
 // written by the model (inline ﴿…﴾ spans become verse blocks or are removed),
@@ -247,7 +261,7 @@ export function normalizeSection(raw: Partial<SectionResponse>, req: SectionRequ
 
     const text = stripReaderAddress(asString(b.text));
     if (!text) continue;
-    if (type !== 'paragraph' || !/[﴾﴿]/.test(text)) {
+    if (type !== 'paragraph' || !/[﴾﴿{]/.test(text)) {
       blocks.push({ type: type as DraftBlock['type'], text });
       continue;
     }

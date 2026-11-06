@@ -11,7 +11,8 @@ import {
   loadStylePack,
   asString,
   asStringArray,
-  METHOD_RULES,
+  DR_RASHEED_METHODOLOGY_CHARTER,
+  taskHeader,
   stripReaderAddress,
 } from '../_lib/gemini.js';
 
@@ -29,12 +30,13 @@ const STITCH_SCHEMA = {
 };
 
 export function buildStitchPrompt(req: StitchRequest, styleGuide: string): { system: string; prompt: string } {
-  const system = `أنت محرر يصقل الانتقال بين محورين متتاليين في مقال بأسلوب د. رشيد الجراح.
-عدّل أقل قدر ممكن: لا تغيّر الأفكار ولا تضف جديداً، ولا تكتب أي نص قرآني ولا الأقواس ﴿ ﴾.
+  const system = `${DR_RASHEED_METHODOLOGY_CHARTER}
 
-${styleGuide}
+${taskHeader('صقل الانتقال بين محورين متتاليين في المقال')}
 
-${METHOD_RULES}`;
+عدّل أقل قدر ممكن: لا تغيّر الأفكار ولا تضف جديداً، ولا تكتب أي نص قرآني ولا الأقواس ﴿ ﴾ أو { }.
+
+${styleGuide}`;
 
   const prompt = `# آخر فقرات المحور الأول (${req.sectionA_ending.length})
 ${req.sectionA_ending.map((p, i) => `[${i + 1}] ${p}`).join('\n\n')}

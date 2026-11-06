@@ -10,12 +10,14 @@ import { normalizeArabic, queryStems, replaceQuranGlyphs } from './arabic';
 // scored by the ideas' words they contain (rare words weigh more, words found
 // almost everywhere such as «لوط» are ignored) plus the verses they share.
 
-export const MAX_EXCERPTS = 8;
-export const MAX_EXCERPT_TOTAL_WORDS = 4000;
-const MAX_EXCERPT_WORDS = 450;
-const EXCERPT_TARGET_WORDS = 250;
+// Up to 8,000 words of the author's own passages per axis: the more of his text the
+// model has, the less it invents (20 passages × ~400 words, 3 per article at most)
+export const MAX_EXCERPTS = 20;
+export const MAX_EXCERPT_TOTAL_WORDS = 8000;
+const MAX_EXCERPT_WORDS = 600;
+const EXCERPT_TARGET_WORDS = 400;
 const MIN_PARAGRAPH_WORDS = 25;
-const MAX_PER_ARTICLE = 2;
+const MAX_PER_ARTICLE = 3;
 const COMMON_STEM_SHARE = 0.15; // a stem in more than 15% of paragraphs says nothing
 const VERSE_BONUS = 4;
 const IDEA_TEXT_WORDS = 40; // label + the start of the notes

@@ -16,7 +16,9 @@ import {
   ORDINALS,
   NO_REFERENCE,
   referenceSection,
-  METHOD_RULES,
+  DR_RASHEED_METHODOLOGY_CHARTER,
+  taskHeader,
+  CHARTER_VERSE_NOTE,
   stripReaderAddress,
 } from '../_lib/gemini.js';
 
@@ -66,12 +68,17 @@ const OUTLINE_SCHEMA = {
 
 export function buildOutlinePrompt(input: ArticleInput, styleGuide: string, extras: OutlineExtras = {}): { system: string; prompt: string } {
   const hasReference = !!extras.referenceContext?.trim() && extras.referenceContext.trim() !== NO_REFERENCE;
-  const system = `أنت محرر يخطط لجزء جديد من سلسلة مقالات د. رشيد الجراح بأسلوبه.
-مهمتك الآن التخطيط فقط، لا كتابة المقال.
+  const system = `${DR_RASHEED_METHODOLOGY_CHARTER}
+
+${taskHeader('تخطيط جزء جديد من المقال (المخطط فقط، لا كتابة المقال)')}
+
+ستتلقى الآن:
+1. المقال المرجعي (كأسلوب وبنية يُحتذى بها فقط، وليس كمصدر معلومات).
+2. محاور المقال وأفكارها من جلسة العصف (شجرة الأفكار)، وما سبق تناوله في الأجزاء السابقة.
+خطّط الجزء بالتزام تام بالدستور المنهجي أعلاه، وعلى بنية [ص-2]: تمهيد يعرض الإشكالية، ومحاور مرقمة بأسئلة توجيهية، ونتيجة لكل محور، وخاتمة جامعة. لا تضف إلى المخطط فكرة ليست في المصادر المقدمة.
+${CHARTER_VERSE_NOTE}
 
 ${styleGuide}
-
-${METHOD_RULES}
 
 ${referenceSection(extras.referenceContext)}${hasReference ? '\n\nصمّم المخطط ليكون استمراراً طبيعياً للمقال السابق.' : ''}`;
 
